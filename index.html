@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GLOW RUNNER: MEGA-SHOP EDITION</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Orbitron', sans-serif; touch-action: none; color: white; }
+        canvas { display: block; }
+        
+        .overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.92); z-index: 20; backdrop-filter: blur(8px);
+        }
+        .hidden { display: none !important; }
+
+        h1 { font-size: 1.6rem; color: #0ff; text-shadow: 0 0 15px #0ff; margin: 10px 0; letter-spacing: 3px; }
+        .btn { 
+            background: rgba(0,255,255,0.05); border: 1px solid #0ff; color: #0ff; 
+            padding: 10px 15px; font-family: 'Orbitron'; font-size: 0.75rem; 
+            cursor: pointer; transition: 0.2s; border-radius: 4px;
+        }
+        .btn:active { background: #0ff; color: #000; }
+
+        /* --- MASSIVER SHOP --- */
+        #shop { justify-content: flex-start; padding-top: 10px; overflow-y: auto; display: block; text-align: center; }
+        .shop-container { display: inline-block; width: 100%; max-width: 500px; padding-bottom: 50px; }
+        
+        .points-display {
+            position: sticky; top: 0; background: rgba(0,0,0,0.8); z-index: 30;
+            font-size: 1.3rem; color: #ff0; padding: 15px; border-bottom: 2px solid #333;
+            text-shadow: 0 0 10px #ff0; margin-bottom: 15px;
+        }
+
+        .preview-card {
+            background: #0a0a0a; border: 2px solid #0ff; margin: 0 auto 20px auto;
+            width: 80%; max-width: 280px; padding: 15px; border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,255,255,0.2);
+        }
+
+        #previewRenderBox { 
+            width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; 
+            margin: 0 auto 10px auto; background: #111; border: 1px solid #333; position: relative;
+        }
+        
+        .category-title { 
+            font-size: 0.7rem; color: #f0f; margin: 20px 0 8px 0; 
+            text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #f0f;
+            display: inline-block; padding: 0 10px;
+        }
+        
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 90%; margin: 0 auto; }
+        .item-btn { border: 1px solid #333; padding: 12px 5px; font-size: 0.65rem; color: #aaa; background: #050505; }
+        .item-btn.owned { border-color: #0f0; color: #0f0; }
+        .item-btn.active { background: #0ff; color: #000; border-color: #fff; }
+
+        #hud { position: absolute; top: 10px; width: 100%; text-align: center; pointer-events: none; z-index: 10; }
+        .hud-val { color: #0ff; font-weight: bold; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <div id="hud" class="hidden">
+        SCORE: <span id="currentScore" class="hud-val">0</span> | 
+        💎: <span id="totalPointsHud" class="hud-val">0</span>
+    </div>
+
+    <div id="menu" class="overlay">
+        <h1 style="font-size: 3rem;">GLOW RUNNER</h1>
+        <button class="btn" onclick="startGame()" style="padding: 20px 40px; font-size: 1.2rem;">LAUNCH</button>
+        <button class="btn" onclick="openShop()" style="margin-top: 15px;">ARMORY & SHOP</button>
+        <p style="margin-top: 20px; color: #ff0;">TOTAL CRYSTALS: <span id="menuTotal">0</span></p>
+    </div>
+
+    <div id="shop" class="overlay hidden">
+        <div class="shop-container">
+            <div class="points-display">💰 <span id="shopPoints">0</span> CRYSTALS</div>
+            
+            <div class="preview-card">
+                <div id="previewRenderBox"><div id="shipPreview"></div></div>
+                <div id="previewMeta" style="font-size: 0.7rem; margin-bottom: 10px;">Select an item</div>
+                <button id="actionBtn" class="btn" style="width: 100%;" onclick="handleAction()">ACTION</button>
+            </div>
+
+            <div class="category-title">Vessel Tints</div>
+            <div class="shop-grid">
+                <button class="btn item-btn" onclick="setPreview('color', 'cyan', 0)">CYAN (0)</button>
+                <button class="btn item-btn" onclick="setPreview('color', '#0f0', 100)">LIME (100)</button>
+                <button class="btn item-btn" onclick="setPreview('color', '#f0f', 250)">GHOST (250)</button>
+                <button class="btn item-btn" onclick="setPreview('color', '#ff0', 500)">GOLD (500)</button>
+                <button class="btn item-btn" onclick="setPreview('color', '#ff4500', 1000)">PULSE RED (1000)</button>
+                <button class="btn item-btn" onclick="setPreview('color', '#fff', 2500)">PURE WHITE (2500)</button>
+            </div>
+
+            <div class="category-title">Chassis Shapes</div>
+            <div class="shop-grid">
+                <button class="btn item-btn" onclick="setPreview('shape', 'circle', 0)">ORB (0)</button>
+                <button class="btn item-btn" onclick="setPreview('shape', 'square', 300)">CUBE (300)</button>
+                <button class="btn item-btn" onclick="setPreview('shape', 'triangle', 750)">DELTA (750)</button>
+                <button class="btn item-btn" onclick="setPreview('shape', 'star', 2000)">NOVA (2000)</button>
+                <button class="btn item-btn" onclick="setPreview('shape', 'diamond', 5000)">ELITE DIAMOND (5000)</button>
+            </div>
+
+            <div class="category-title">Battle Zones</div>
+            <div class="shop-grid">
+                <button class="btn item-btn" onclick="setPreview('map', 'none', 0)">VOID (0)</button>
+                <button class="btn item-btn" onclick="setPreview('map', 'grid', 500)">CYBER GRID (500)</button>
+                <button class="btn item-btn" onclick="setPreview('map', 'stars', 1200)">GALAXY (1200)</button>
+                <button class="btn item-btn" onclick="setPreview('map', 'matrix', 3000)">MAINFRAME (3000)</button>
+            </div>
+
+            <button class="btn" onclick="closeShop()" style="margin: 40px; border-color: #f0f; color: #f0f; width: 80%;">BACK TO MENU</button>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
+
+        // Datenspeicher
+        let totalPoints = parseInt(localStorage.getItem('vortex_pts_v2')) || 0;
+        let boughtSkins = JSON.parse(localStorage.getItem('vortex_skins_v2')) || ['cyan'];
+        let activeSkin = localStorage.getItem('vortex_active_skin_v2') || 'cyan';
+        let boughtShapes = JSON.parse(localStorage.getItem('vortex_shapes_v2')) || ['circle'];
+        let activeShape = localStorage.getItem('vortex_active_shape_v2') || 'circle';
+        let boughtMaps = JSON.parse(localStorage.getItem('vortex_maps_v2')) || ['none'];
+        let activeMap = localStorage.getItem('vortex_active_map_v2') || 'none';
+
+        let currentSelection = { type: 'color', id: 'cyan', price: 0 };
+        let player = { x: 0, y: 0 };
+        let target = { x: 0, y: 0 };
+        let enemies = [], obstacles = [], particles = [], score = 0, gameActive = false, frame = 0;
+
+        function updateUI() {
+            document.getElementById('totalPointsHud').innerText = totalPoints;
+            document.getElementById('menuTotal').innerText = totalPoints;
+            document.getElementById('shopPoints').innerText = totalPoints;
+            if(gameActive) document.getElementById('currentScore').innerText = score;
+        }
+
+        // --- SHOP SYSTEM ---
+        function setPreview(type, id, price) {
+            currentSelection = { type, id, price };
+            const ship = document.getElementById('shipPreview');
+            const meta = document.getElementById('previewMeta');
+            const btn = document.getElementById('actionBtn');
+            
+            let color = type === 'color' ? id : activeSkin;
+            let shape = type === 'shape' ? id : activeShape;
+
+            // Preview Rendering
+            ship.style = "";
+            if(shape === 'circle') { ship.style.width="30px"; ship.style.height="30px"; ship.style.borderRadius="50%"; ship.style.background=color; }
+            else if(shape === 'square') { ship.style.width="26px"; ship.style.height="26px"; ship.style.background=color; }
+            else if(shape === 'triangle') { ship.style.width="0"; ship.style.height="0"; ship.style.borderLeft="15px solid transparent"; ship.style.borderRight="15px solid transparent"; ship.style.borderBottom=`30px solid ${color}`; }
+            else if(shape === 'star') { ship.style.width="30px"; ship.style.height="30px"; ship.style.background=color; ship.style.clipPath="polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"; }
+            else if(shape === 'diamond') { ship.style.width="30px"; ship.style.height="30px"; ship.style.background=color; ship.style.transform="rotate(45deg)"; }
+            
+            if(shape !== 'triangle') ship.style.boxShadow = `0 0 20px ${color}`;
+
+            let list = type==='color'?boughtSkins:(type==='shape'?boughtShapes:boughtMaps);
+            let isOwned = list.includes(id);
+            let isActive = (type==='color' && activeSkin===id) || (type==='shape' && activeShape===id) || (type==='map' && activeMap===id);
+
+            meta.innerHTML = `<b style="color:#0ff">${id.toUpperCase()}</b><br>Price: ${price} Crystals`;
+            btn.innerText = isActive ? "EQUIPPED" : (isOwned ? "EQUIP" : (totalPoints >= price ? "BUY NOW" : "TOO EXPENSIVE"));
+            btn.style.borderColor = isActive ? "#555" : (isOwned ? "#0f0" : (totalPoints >= price ? "#f0f" : "#333"));
+        }
+
+        function handleAction() {
+            const { type, id, price } = currentSelection;
+            let list = type==='color'?boughtSkins:(type==='shape'?boughtShapes:boughtMaps);
+            
+            if(list.includes(id)) {
+                if(type==='color') activeSkin=id; if(type==='shape') activeShape=id; if(type==='map') activeMap=id;
+            } else if (totalPoints >= price) {
+                totalPoints -= price; list.push(id);
+                if(type==='color') activeSkin=id; if(type==='shape') activeShape=id; if(type==='map') activeMap=id;
+            }
+            save(); updateUI(); setPreview(type, id, price);
+        }
+
+        function save() {
+            localStorage.setItem('vortex_pts_v2', totalPoints);
+            localStorage.setItem('vortex_skins_v2', JSON.stringify(boughtSkins));
+            localStorage.setItem('vortex_active_skin_v2', activeSkin);
+            localStorage.setItem('vortex_shapes_v2', JSON.stringify(boughtShapes));
+            localStorage.setItem('vortex_active_shape_v2', activeShape);
+            localStorage.setItem('vortex_maps_v2', JSON.stringify(boughtMaps));
+            localStorage.setItem('vortex_active_map_v2', activeMap);
+        }
+
+        // --- GAME CORE ---
+        function openShop() { document.getElementById('menu').classList.add('hidden'); document.getElementById('shop').classList.remove('hidden'); setPreview('color', activeSkin, 0); updateUI(); }
+        function closeShop() { document.getElementById('shop').classList.add('hidden'); document.getElementById('menu').classList.remove('hidden'); }
+
+        function startGame() {
+            gameActive = true;
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            score = 0; enemies = []; obstacles = []; particles = [];
+            player.x = w/2; player.y = h/2 - 100;
+            spawnEnemy(); spawnObstacle(); moveTarget(); animate();
+        }
+
+        function spawnEnemy() {
+            if (!gameActive) return;
+            enemies.push({ x: Math.random()*w, y: -20, speed: 2 + (score/10) });
+            setTimeout(spawnEnemy, Math.max(700, 3000 - (score*200)));
+        }
+
+        function spawnObstacle() {
+            if (!gameActive) return;
+            if(activeMap !== 'none') obstacles.push({ x: Math.random()*w, y: -50, w: 60+Math.random()*80, h: 20, speed: 1 + Math.random()*2 });
+            setTimeout(spawnObstacle, 1500);
+        }
+
+        function moveTarget() {
+            target.x = 50 + Math.random()*(w-100);
+            target.y = 50 + Math.random()*(h-100);
+            if(Math.hypot(target.x - w/2, target.y - h/2) < 80) moveTarget();
+        }
+
+        function drawVortex() {
+            let pulse = Math.sin(frame*0.1) * 8;
+            let g = ctx.createRadialGradient(w/2, h/2, 5, w/2, h/2, 60+pulse);
+            g.addColorStop(0, "#000"); g.addColorStop(0.3, "#1a0033"); g.addColorStop(1, "transparent");
+            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(w/2, h/2, 80+pulse, 0, Math.PI*2); ctx.fill();
+            
+            ctx.strokeStyle = "#0ff"; ctx.lineWidth = 2; ctx.setLineDash([10, 15]);
+            ctx.lineDashOffset = -frame; ctx.beginPath(); ctx.arc(w/2, h/2, 50, 0, Math.PI*2); ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function animate() {
+            if (!gameActive) return;
+            frame++;
+            ctx.fillStyle = "black"; ctx.fillRect(0,0,w,h);
+
+            // MAP RENDERING
+            if(activeMap === 'grid') {
+                ctx.strokeStyle="rgba(0,255,255,0.15)";
+                for(let i=0; i<w; i+=60) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
+                for(let i=0; i<h; i+=60) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(w,i); ctx.stroke(); }
+            } else if(activeMap === 'stars') {
+                ctx.fillStyle="white";
+                for(let i=0; i<50; i++) { ctx.fillRect((Math.sin(i)*10000)%w, (i*frame*0.5)%h, 2, 2); }
+            } else if(activeMap === 'matrix') {
+                ctx.fillStyle="#0f0"; ctx.font="10px monospace";
+                for(let i=0; i<w; i+=20) { ctx.fillText(Math.random()>0.5?"1":"0", i, (frame*2 + i)%h); }
+            }
+
+            // PHYSICS
+            let distToVortex = Math.hypot(w/2-player.x, h/2-player.y);
+            if(distToVortex < 50) return endGame("VORTEX CONSUMED YOU");
+
+            enemies.forEach((en, i) => {
+                let d = Math.hypot(player.x-en.x, player.y-en.y);
+                en.x += (player.x-en.x)/d * en.speed; en.y += (player.y-en.y)/d * en.speed;
+                ctx.fillStyle = "#f00"; ctx.beginPath(); ctx.arc(en.x, en.y, 12, 0, Math.PI*2); ctx.fill();
+                if(d < 20) return endGame("DESTRUCTION");
+            });
+
+            obstacles.forEach((ob, i) => {
+                ob.y += ob.speed; ctx.fillStyle = "#f0f"; ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+                if(player.x > ob.x && player.x < ob.x+ob.w && player.y > ob.y && player.y < ob.y+ob.h) return endGame("COLLISION");
+                if(ob.y > h) obstacles.splice(i,1);
+            });
+
+            if(Math.hypot(player.x-target.x, player.y-target.y) < 30) { 
+                score++; totalPoints += 10; updateUI(); moveTarget(); 
+            }
+
+            // PLAYER DRAW
+            ctx.save(); ctx.translate(player.x, player.y);
+            ctx.fillStyle = activeSkin; ctx.shadowBlur = 20; ctx.shadowColor = activeSkin;
+            if(activeShape === 'circle') { ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); }
+            else if(activeShape === 'square') { ctx.fillRect(-15,-15,30,30); }
+            else if(activeShape === 'triangle') { ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(18,12); ctx.lineTo(-18,12); ctx.closePath(); ctx.fill(); }
+            else if(activeShape === 'star') { ctx.beginPath(); for(let i=0;i<10;i++){ let r=i%2?18:8; let a=Math.PI*2/10*i; ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r); } ctx.fill(); }
+            else if(activeShape === 'diamond') { ctx.rotate(Math.PI/4); ctx.fillRect(-15,-15,30,30); }
+            ctx.restore();
+
+            drawVortex();
+            ctx.fillStyle="#ff0"; ctx.shadowBlur=10; ctx.shadowColor="#ff0"; 
+            ctx.beginPath(); ctx.arc(target.x, target.y, 10, 0, Math.PI*2); ctx.fill();
+            
+            requestAnimationFrame(animate);
+        }
+
+        function endGame(m) { gameActive=false; alert(m + "\nSCORE: " + score + "\nCRYSTALS EARNED: " + (score*10)); save(); updateUI(); document.getElementById('menu').classList.remove('hidden'); document.getElementById('hud').classList.add('hidden'); }
+
+        const move = e => { if(gameActive) { let t = e.touches ? e.touches[0] : e; player.x = t.clientX; player.y = t.clientY; }};
+        window.addEventListener('mousemove', move); window.addEventListener('touchmove', move);
+        updateUI();
+    </script>
+</body>
+</html>
