@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glow Runner - Admin Panel</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        body { background: #050505; color: white; font-family: 'Orbitron'; text-align: center; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        
+        /* Login Style */
+        #login-area { margin-top: 100px; }
+        input { background: #111; border: 1px solid #0ff; color: white; padding: 10px; font-family: 'Orbitron'; border-radius: 5px; text-align: center; }
+        button { background: #0ff; color: black; border: none; padding: 10px 20px; cursor: pointer; font-family: 'Orbitron'; font-weight: bold; border-radius: 5px; margin: 5px; }
+        button:hover { box-shadow: 0 0 15px #0ff; }
+        button.lock-btn { background: #ff4444; color: white; }
+        button.unlock-btn { background: #44ff44; color: black; }
+
+        /* Table Style */
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; background: #111; }
+        th, td { border: 1px solid #333; padding: 12px; text-align: left; }
+        th { background: #222; color: #0ff; }
+        .status-locked { color: #ff4444; font-weight: bold; }
+        .status-active { color: #44ff44; }
+        
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="login-area">
+            <h1>ADMIN ACCESS</h1>
+            <input type="password" id="adminPass" placeholder="PASSWORT EINGEBEN">
+            <br><br>
+            <button onclick="checkLogin()">LOGIN</button>
+        </div>
+
+        <div id="admin-content" class="hidden">
+            <h1>USER MANAGEMENT</h1>
+            <button onclick="location.reload()">AKTUALISIEREN</button>
+            <button onclick="location.href='index.html'" style="background:#555; color:white;">ZUM SPIEL</button>
+            
+            <table id="userTable">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Highscore</th>
+                        <th>Status</th>
+                        <th>Aktion</th>
+                    </tr>
+                </thead>
+                <tbody id="userList">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBB7Dbf_Y9ShE5InKfTIfHimXx-8UxlEg8",
+            authDomain: "glow-runner-bc6b9.firebaseapp.com",
+            projectId: "glow-runner-bc6b9",
+            databaseURL: "https://glow-runner-bc6b9-default-rtdb.europe-west1.firebasedatabase.app/",
+            appId: "1:962164006871:web:33a8ff5a2d4bf048287592"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Gehashtes Passwort für 290171 (SHA-256)
+        const targetHash = "294318c5443d3d22ec680b5c907f15d2a900224155b769f36f8620894e6378c6";
+
+        async function hashPassword(str) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        window.checkLogin = async function() {
+    const input = document.getElementById('adminPass').value.trim(); // .trim() entfernt Leerzeichen
+    const passwortKorrekt = "290171"; // Dein Passwort im Klartext
+
+    if (input === passwortKorrekt) {
+        document.getElementById('login-area').classList.add('hidden');
+        document.getElementById('admin-content').classList.remove('hidden');
+        loadUsers();
+    } else {
+        alert("Falsches Passwort! Eingegeben wurde: " + input);
+    }
+};
+
+        function loadUsers() {
+            const usersRef = ref(db, 'users');
+            onValue(usersRef, (snapshot) => {
+                const list = document.getElementById('userList');
+                list.innerHTML = "";
+                const data = snapshot.val();
+
+                for (let username in data) {
+                    const user = data[username];
+                    const isLocked = user.locked === true;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${username}</td>
+                        <td>${user.highscore || 0}</td>
+                        <td class="${isLocked ? 'status-locked' : 'status-active'}">
+                            ${isLocked ? 'GESPERRT' : 'AKTIV'}
+                        </td>
+                        <td>
+                            ${isLocked ? 
+                                `<button class="unlock-btn" onclick="setUserLock('${username}', false)">ENTSPERREN</button>` : 
+                                `<button class="lock-btn" onclick="setUserLock('${username}', true)">SPERREN</button>`
+                            }
+                        </td>
+                    `;
+                    list.appendChild(tr);
+                }
+            });
+        }
+
+        window.setUserLock = function(username, shouldLock) {
+            const userRef = ref(db, 'users/' + username);
+            if (shouldLock) {
+                update(userRef, { locked: true });
+            } else {
+                // Das Feld 'locked' komplett entfernen zum Entsperren
+                update(userRef, { locked: null });
+            }
+        };
+    </script>
+</body>
+</html>
