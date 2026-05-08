@@ -17,21 +17,34 @@
         }
         .hidden { display: none !important; }
 
-        /* Titel & Logo Styling */
         .title-img { max-width: 80%; max-height: 150px; margin-bottom: 10px; filter: drop-shadow(0 0 10px #0ff); }
-        .footer-logo-container { position: absolute; bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 5px; opacity: 0.8; }
-        .footer-logo { width: 50px; height: auto; border-radius: 5px; }
-        .made-by { font-size: 0.7rem; letter-spacing: 2px; color: #888; }
+        
+        /* LOGO FIX: Absolut am Boden, damit es nicht im Text stört */
+        .footer-logo-container { 
+            position: absolute; 
+            bottom: 10px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 5px; 
+            opacity: 0.6; 
+            pointer-events: none;
+            z-index: 25;
+        }
+        .footer-logo { width: 40px; height: auto; border-radius: 5px; }
+        .made-by { font-size: 0.5rem; letter-spacing: 2px; color: #888; }
 
-        h1 { font-size: 2.5rem; color: #0ff; text-shadow: 0 0 20px #0ff; margin: 10px 0; letter-spacing: 5px; text-align: center; }
+        h1 { font-size: 2.2rem; color: #0ff; text-shadow: 0 0 20px #0ff; margin: 5px 0; letter-spacing: 5px; text-align: center; }
         .btn { 
             background: rgba(0,255,255,0.1); border: 2px solid #0ff; color: #0ff; 
             padding: 12px 20px; font-family: 'Orbitron'; font-size: 0.9rem; 
             cursor: pointer; transition: 0.3s; border-radius: 8px; text-transform: uppercase;
+            width: 280px; margin: 6px 0;
         }
         .btn:hover { background: #0ff; color: #000; box-shadow: 0 0 20px #0ff; }
 
-        /* --- HUD & REVERSE POWER --- */
         #hud { position: absolute; top: 10px; width: 100%; text-align: center; pointer-events: none; z-index: 10; }
         .hud-val { color: #0ff; font-weight: bold; font-size: 1.2rem; text-shadow: 0 0 10px #0ff; }
         
@@ -40,7 +53,7 @@
             display: flex; flex-direction: column; align-items: center;
         }
         #reverseBtn {
-            width: 80px; height: 80px; border-radius: 50%; border: 4px solid #333;
+            width: 70px; height: 70px; border-radius: 50%; border: 4px solid #333;
             background: rgba(0,0,0,0.6); color: #555; font-weight: bold; font-size: 0.7rem;
             display: flex; align-items: center; justify-content: center; cursor: not-allowed;
             transition: 0.3s; user-select: none;
@@ -51,15 +64,15 @@
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, 1px); } }
 
-        /* --- MASSIVE SHOP --- */
+        /* SHOP STYLES */
         #shop { justify-content: flex-start; padding-top: 10px; overflow-y: auto; display: block; text-align: center; }
-        .shop-container { display: inline-block; width: 100%; max-width: 500px; padding-bottom: 50px; }
-        .points-display { position: sticky; top: 0; background: rgba(0,0,0,0.95); z-index: 30; font-size: 1.3rem; color: #ff0; padding: 15px; border-bottom: 2px solid #0ff; margin-bottom: 15px; }
-        .preview-card { background: #0a0a0a; border: 2px solid #0ff; margin: 0 auto 20px auto; width: 280px; padding: 15px; border-radius: 12px; }
-        #previewRenderBox { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px auto; background: #111; border: 1px solid #333; overflow: hidden; }
-        .category-title { font-size: 0.8rem; color: #f0f; margin: 25px 0 10px 0; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #f0f; display: inline-block; padding: 0 10px; }
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 90%; margin: 0 auto; }
-        .item-btn { border: 1px solid #444; padding: 12px 5px; font-size: 0.65rem; color: #888; background: #050505; border-radius: 5px; }
+        .shop-container { display: inline-block; width: 100%; max-width: 500px; padding-bottom: 80px; }
+        .points-display { position: sticky; top: 0; background: rgba(0,0,0,0.95); z-index: 30; font-size: 1.1rem; color: #ff0; padding: 12px; border-bottom: 2px solid #0ff; margin-bottom: 10px; }
+        .preview-card { background: #0a0a0a; border: 2px solid #0ff; margin: 0 auto 15px auto; width: 260px; padding: 12px; border-radius: 12px; }
+        #previewRenderBox { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px auto; background: #111; border: 1px solid #333; overflow: hidden; }
+        .category-title { font-size: 0.7rem; color: #f0f; margin: 20px 0 8px 0; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #f0f; display: inline-block; padding: 0 10px; }
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 90%; margin: 0 auto; }
+        .item-btn { border: 1px solid #444; padding: 10px 5px; font-size: 0.6rem; color: #888; background: #050505; border-radius: 5px; width: 100%; cursor: pointer; font-family: 'Orbitron'; }
         .item-btn.owned { border-color: #0f0; color: #0f0; }
         .item-btn.active { background: #0ff; color: #000; border-color: #fff; font-weight: bold; }
     </style>
@@ -73,16 +86,23 @@
 
     <div id="reverseContainer" class="hidden">
         <div id="reverseBtn" onclick="activateReverse()">REVERSE</div>
-        <div style="font-size: 0.6rem; margin-top: 5px; color: #ff0; letter-spacing: 1px;">OVERDRIVE</div>
+        <div style="font-size: 0.5rem; margin-top: 5px; color: #ff0; letter-spacing: 1px;">OVERDRIVE</div>
     </div>
 
     <div id="menu" class="overlay">
         <img src="ChatGPT Image 6. Mai 2026, 18_30_59.png" alt="Title Art" class="title-img">
+        <h1 id="welcomeText">GLOW RUNNER</h1>
         
-        <h1>GLOW RUNNER</h1>
-        <button class="btn" onclick="startGame()" style="padding: 20px 60px; font-size: 1.5rem;">LAUNCH</button>
-        <button class="btn" onclick="openShop()" style="margin-top: 15px;">ARMORY & SHOP</button>
-        <p style="margin-top: 20px; color: #ff0;">TOTAL CRYSTALS: <span id="menuTotal">0</span></p>
+        <button class="btn" onclick="startGame()" style="border-color: #0f0; color: #0f0;">LAUNCH GAME</button>
+        <button class="btn" onclick="location.href='modes.html'">SELECT MODE</button>
+        <button class="btn" onclick="openShop()">ARMORY & SHOP</button>
+        <button class="btn" onclick="location.href='quests.html'">MISSIONS</button>
+        <button class="btn" onclick="location.href='leaderboard.html'">RANKING</button>
+
+        <div style="margin-top: 15px; text-align: center;">
+            <p style="color: #ff0; margin: 2px 0;">RECORD: <span id="menuHighscore" style="color: #0ff;">0</span></p>
+            <p style="color: #ff0; margin: 2px 0;">CRYSTALS: <span id="menuTotal" style="color: #0ff;">0</span></p>
+        </div>
 
         <div class="footer-logo-container">
             <span class="made-by">MADE BY</span>
@@ -92,47 +112,143 @@
 
     <div id="shop" class="overlay hidden">
         <div class="shop-container">
-            <div class="points-display">💰 <span id="shopPoints">0</span> CRYSTALS</div>
+            <div class="points-display">💎 <span id="shopPoints">0</span> CRYSTALS</div>
             
             <div class="preview-card">
                 <div id="previewRenderBox"><div id="shipPreview"></div></div>
-                <div id="previewMeta" style="font-size: 0.75rem; margin-bottom: 10px;">Select an item</div>
-                <button id="actionBtn" class="btn" style="width: 100%;" onclick="handleAction()">ACTION</button>
+                <div id="previewMeta" style="font-size: 0.7rem; margin-bottom: 8px;">Select an item</div>
+                <button id="actionBtn" class="btn" style="width: 100%; font-size: 0.7rem;" onclick="handleAction()">ACTION</button>
             </div>
 
             <div class="category-title">Vessel Tints</div>
             <div class="shop-grid">
-                <button class="btn item-btn" id="color-cyan" onclick="setPreview('color', 'cyan', 0)">CYAN (0)</button>
-                <button class="btn item-btn" id="color-#0f0" onclick="setPreview('color', '#0f0', 100)">LIME (100)</button>
-                <button class="btn item-btn" id="color-#f0f" onclick="setPreview('color', '#f0f', 250)">GHOST (250)</button>
-                <button class="btn item-btn" id="color-#ff0" onclick="setPreview('color', '#ff0', 500)">GOLD (500)</button>
-                <button class="btn item-btn" id="color-#ff4500" onclick="setPreview('color', '#ff4500', 1000)">PULSE RED (1000)</button>
-                <button class="btn item-btn" id="color-rainbow" onclick="setPreview('color', 'rainbow', 5000)">RAINBOW (5000)</button>
+                <button class="item-btn" id="color-cyan" onclick="setPreview('color', 'cyan', 0)">CYAN (0)</button>
+                <button class="item-btn" id="color-#0f0" onclick="setPreview('color', '#0f0', 100)">LIME (100)</button>
+                <button class="item-btn" id="color-#f0f" onclick="setPreview('color', '#f0f', 250)">GHOST (250)</button>
+                <button class="item-btn" id="color-#ff0" onclick="setPreview('color', '#ff0', 500)">GOLD (500)</button>
+                <button class="item-btn" id="color-#ff4500" onclick="setPreview('color', '#ff4500', 1000)">PULSE RED (1000)</button>
+                <button class="item-btn" id="color-rainbow" onclick="setPreview('color', 'rainbow', 5000)">RAINBOW (5000)</button>
             </div>
 
             <div class="category-title">Chassis Shapes</div>
             <div class="shop-grid">
-                <button class="btn item-btn" id="shape-circle" onclick="setPreview('shape', 'circle', 0)">ORB (0)</button>
-                <button class="btn item-btn" id="shape-square" onclick="setPreview('shape', 'square', 300)">CUBE (300)</button>
-                <button class="btn item-btn" id="shape-triangle" onclick="setPreview('shape', 'triangle', 750)">DELTA (750)</button>
-                <button class="btn item-btn" id="shape-star" onclick="setPreview('shape', 'star', 2000)">NOVA (2000)</button>
-                <button class="btn item-btn" id="shape-diamond" onclick="setPreview('shape', 'diamond', 5000)">DIAMOND (5000)</button>
-                <button class="btn item-btn" id="shape-phoenix" onclick="setPreview('shape', 'phoenix', 10000)">PHOENIX (10000)</button>
+                <button class="item-btn" id="shape-circle" onclick="setPreview('shape', 'circle', 0)">ORB (0)</button>
+                <button class="item-btn" id="shape-square" onclick="setPreview('shape', 'square', 300)">CUBE (300)</button>
+                <button class="item-btn" id="shape-triangle" onclick="setPreview('shape', 'triangle', 750)">DELTA (750)</button>
+                <button class="item-btn" id="shape-star" onclick="setPreview('shape', 'star', 2000)">NOVA (2000)</button>
+                <button class="item-btn" id="shape-diamond" onclick="setPreview('shape', 'diamond', 5000)">DIAMOND (5000)</button>
+                <button class="item-btn" id="shape-phoenix" onclick="setPreview('shape', 'phoenix', 10000)">PHOENIX (10000)</button>
             </div>
 
             <div class="category-title">Battle Zones</div>
             <div class="shop-grid">
-                <button class="btn item-btn" id="map-none" onclick="setPreview('map', 'none', 0)">VOID (0)</button>
-                <button class="btn item-btn" id="map-grid" onclick="setPreview('map', 'grid', 500)">CYBER GRID (500)</button>
-                <button class="btn item-btn" id="map-stars" onclick="setPreview('map', 'stars', 1200)">GALAXY (1200)</button>
-                <button class="btn item-btn" id="map-matrix" onclick="setPreview('map', 'matrix', 3000)">MAINFRAME (3000)</button>
+                <button class="item-btn" id="map-none" onclick="setPreview('map', 'none', 0)">VOID (0)</button>
+                <button class="item-btn" id="map-grid" onclick="setPreview('map', 'grid', 500)">CYBER GRID (500)</button>
+                <button class="item-btn" id="map-stars" onclick="setPreview('map', 'stars', 1200)">GALAXY (1200)</button>
+                <button class="item-btn" id="map-matrix" onclick="setPreview('map', 'matrix', 3000)">MAINFRAME (3000)</button>
             </div>
 
-            <button class="btn" onclick="closeShop()" style="margin: 40px; border-color: #f0f; color: #f0f; width: 80%;">BACK TO MENU</button>
+            <button class="btn" onclick="closeShop()" style="margin: 30px; border-color: #f0f; color: #f0f; width: 80%;">BACK TO MENU</button>
         </div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBB7Dbf_Y9ShE5InKfTIfHimXx-8UxlEg8",
+            authDomain: "glow-runner-bc6b9.firebaseapp.com",
+            projectId: "glow-runner-bc6b9",
+            databaseURL: "https://glow-runner-bc6b9-default-rtdb.europe-west1.firebasedatabase.app/",
+            appId: "1:962164006871:web:33a8ff5a2d4bf048287592"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // --- Global State ---
+        window.totalPoints = 0;
+        window.highscore = 0;
+        window.questLevel = 1;
+        window.boughtSkins = ['cyan'];
+        window.activeSkin = 'cyan';
+        window.boughtShapes = ['circle'];
+        window.activeShape = 'circle';
+        window.boughtMaps = ['none'];
+        window.activeMap = 'none';
+        window.username = "";
+
+        async function loadUserData() {
+    let storedUser = localStorage.getItem('glow_user_id');
+    
+    if(!storedUser) {
+        window.username = prompt("Pilot Name?");
+        if(!window.username) window.username = "Guest" + Math.floor(Math.random()*999);
+        localStorage.setItem('glow_user_id', window.username);
+        window.saveToDB(); 
+    } else { 
+        window.username = storedUser; 
+    }
+
+    const userRef = ref(db, 'users/' + window.username);
+    
+    onValue(userRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            
+            // --- DIE SPERRE ---
+            if (data.locked === true) {
+                // Wenn gesperrt: Menü ausblenden und Sperrbildschirm zeigen
+                document.body.innerHTML = `
+                    <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; color:red; font-family:'Orbitron'; text-align:center; padding:20px;">
+                        <h1 style="text-shadow: 0 0 20px red;">ACCESS DENIED</h1>
+                        <p style="color:white;">Your account has been locked by the administrator.</p>
+                        <div style="margin-top:20px; font-size:0.7rem; color:#444;">ID: ${window.username}</div>
+                    </div>`;
+                return; // Code hier abbrechen
+            }
+
+            window.totalPoints = data.points || 0;
+            window.highscore = data.highscore || 0;
+            // ... (restliche Daten wie gehabt)
+            window.boughtSkins = data.boughtSkins || ['cyan'];
+            window.activeSkin = data.activeSkin || 'cyan';
+            window.boughtShapes = data.boughtShapes || ['circle'];
+            window.activeShape = data.activeShape || 'circle';
+            window.boughtMaps = data.boughtMaps || ['none'];
+            window.activeMap = data.activeMap || 'none';
+            updateUI();
+        } else {
+            // Wenn der User in Firebase gelöscht wurde, nichts tun (kein Auto-Save!)
+            window.totalPoints = 0;
+            window.highscore = 0;
+            updateUI();
+        }
+    });
+    
+    document.getElementById('welcomeText').innerText = window.username;
+}
+
+        window.saveToDB = function() {
+            if(!window.username) return;
+            set(ref(db, 'users/' + window.username), {
+                points: window.totalPoints,
+                highscore: window.highscore,
+                questLevel: window.questLevel,
+                boughtSkins: window.boughtSkins,
+                activeSkin: window.activeSkin,
+                boughtShapes: window.boughtShapes,
+                activeShape: window.activeShape,
+                boughtMaps: window.boughtMaps,
+                activeMap: window.activeMap
+            });
+        };
+
+        loadUserData();
+    </script>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -141,29 +257,29 @@
         function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize); resize();
 
-        // Datenspeicher
-        let totalPoints = parseInt(localStorage.getItem('glow_pts_v3')) || 0;
-        let boughtSkins = JSON.parse(localStorage.getItem('glow_skins_v3')) || ['cyan'];
-        let activeSkin = localStorage.getItem('glow_active_skin_v3') || 'cyan';
-        let boughtShapes = JSON.parse(localStorage.getItem('glow_shapes_v3')) || ['circle'];
-        let activeShape = localStorage.getItem('glow_active_shape_v3') || 'circle';
-        let boughtMaps = JSON.parse(localStorage.getItem('glow_maps_v3')) || ['none'];
-        let activeMap = localStorage.getItem('glow_active_map_v3') || 'none';
-
         let currentSelection = { type: 'color', id: 'cyan', price: 0 };
-        let player = { x: 0, y: 0, r: 15, trail: [] };
+        let player = { x: 0, y: 0, r: 15 };
         let vortex = { x: 0, y: 0, tx: 0, ty: 0, speed: 1.2 };
         let target = { x: 0, y: 0 };
         let enemies = [], obstacles = [], particles = [], score = 0, gameActive = false, frame = 0;
-        
-        let reverseCharge = 0; 
-        let isReverseActive = false;
-        let reverseTimer = 0;
+        let reverseCharge = 0, isReverseActive = false, reverseTimer = 0;
 
         function updateUI() {
-            document.getElementById('totalPointsHud').innerText = totalPoints;
-            document.getElementById('menuTotal').innerText = totalPoints;
-            document.getElementById('shopPoints').innerText = totalPoints;
+            document.getElementById('totalPointsHud').innerText = window.totalPoints;
+            document.getElementById('menuTotal').innerText = window.totalPoints;
+            document.getElementById('menuHighscore').innerText = window.highscore;
+            document.getElementById('shopPoints').innerText = window.totalPoints;
+            
+            document.querySelectorAll('.item-btn').forEach(btn => {
+                const [type, id] = btn.id.split('-');
+                let list = type === 'color' ? window.boughtSkins : (type === 'shape' ? window.boughtShapes : window.boughtMaps);
+                let activeId = type === 'color' ? window.activeSkin : (type === 'shape' ? window.activeShape : window.activeMap);
+                
+                btn.classList.remove('owned', 'active');
+                if(list.includes(id)) btn.classList.add('owned');
+                if(activeId === id) btn.classList.add('active');
+            });
+
             if(gameActive) {
                 document.getElementById('currentScore').innerText = score;
                 const rBtn = document.getElementById('reverseBtn');
@@ -177,25 +293,21 @@
             }
         }
 
-        // --- SHOP ENGINE ---
         function setPreview(type, id, price) {
             currentSelection = { type, id, price };
             const ship = document.getElementById('shipPreview');
             const meta = document.getElementById('previewMeta');
             const btn = document.getElementById('actionBtn');
             
-            let color = type === 'color' ? (id === 'rainbow' ? 'white' : id) : (activeSkin === 'rainbow' ? 'white' : activeSkin);
-            let shape = type === 'shape' ? id : activeShape;
+            let color = type === 'color' ? (id === 'rainbow' ? 'white' : id) : (window.activeSkin === 'rainbow' ? 'white' : window.activeSkin);
+            let shape = type === 'shape' ? id : window.activeShape;
 
-            ship.style = "";
-            ship.innerHTML = "";
-            ship.style.width = "30px";
-            ship.style.height = "30px";
-            ship.style.position = "relative";
+            ship.style = ""; ship.innerHTML = "";
+            ship.style.width = "30px"; ship.style.height = "30px";
             ship.style.background = color;
             ship.style.boxShadow = `0 0 15px ${color}`;
 
-            if(id === 'rainbow' || (type !== 'color' && activeSkin === 'rainbow')) {
+            if(id === 'rainbow' || (type !== 'color' && window.activeSkin === 'rainbow')) {
                 ship.style.background = "linear-gradient(45deg, red, yellow, blue, red)";
                 ship.style.backgroundSize = "200%";
             }
@@ -211,37 +323,27 @@
             if(shape === 'star') { ship.style.clipPath = "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"; }
             if(shape === 'phoenix') { ship.style.clipPath = "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%, 50% 40%)"; }
             
-            let list = type === 'color' ? boughtSkins : (type === 'shape' ? boughtShapes : boughtMaps);
+            let list = type === 'color' ? window.boughtSkins : (type === 'shape' ? window.boughtShapes : window.boughtMaps);
             let isOwned = list.includes(id);
-            let isActive = (type === 'color' && activeSkin === id) || (type === 'shape' && activeShape === id) || (type === 'map' && activeMap === id);
+            let isActive = (type === 'color' && window.activeSkin === id) || (type === 'shape' && window.activeShape === id) || (type === 'map' && window.activeMap === id);
 
             meta.innerHTML = `<b style="color:#0ff">${id.toUpperCase()}</b><br>Price: ${price} Crystals`;
-            btn.innerText = isActive ? "EQUIPPED" : (isOwned ? "EQUIP" : (totalPoints >= price ? "BUY NOW" : "TOO EXPENSIVE"));
+            btn.innerText = isActive ? "EQUIPPED" : (isOwned ? "EQUIP" : (window.totalPoints >= price ? "BUY NOW" : "TOO EXPENSIVE"));
         }
 
         function handleAction() {
             const { type, id, price } = currentSelection;
-            let list = type === 'color' ? boughtSkins : (type === 'shape' ? boughtShapes : boughtMaps);
+            let list = type === 'color' ? window.boughtSkins : (type === 'shape' ? window.boughtShapes : window.boughtMaps);
             if(list.includes(id)) {
-                if(type === 'color') activeSkin = id; else if(type === 'shape') activeShape = id; else activeMap = id;
-            } else if (totalPoints >= price) {
-                totalPoints -= price; list.push(id);
-                if(type === 'color') activeSkin = id; else if(type === 'shape') activeShape = id; else activeMap = id;
+                if(type === 'color') window.activeSkin = id; else if(type === 'shape') window.activeShape = id; else window.activeMap = id;
+            } else if (window.totalPoints >= price) {
+                window.totalPoints -= price; list.push(id);
+                if(type === 'color') window.activeSkin = id; else if(type === 'shape') window.activeShape = id; else window.activeMap = id;
             }
-            save(); updateUI(); setPreview(type, id, price);
+            window.saveToDB(); updateUI(); setPreview(type, id, price);
         }
 
-        function save() {
-            localStorage.setItem('glow_pts_v3', totalPoints);
-            localStorage.setItem('glow_skins_v3', JSON.stringify(boughtSkins));
-            localStorage.setItem('glow_active_skin_v3', activeSkin);
-            localStorage.setItem('glow_shapes_v3', JSON.stringify(boughtShapes));
-            localStorage.setItem('glow_active_shape_v3', activeShape);
-            localStorage.setItem('glow_maps_v3', JSON.stringify(boughtMaps));
-            localStorage.setItem('glow_active_map_v3', activeMap);
-        }
-
-        function openShop() { document.getElementById('menu').classList.add('hidden'); document.getElementById('shop').classList.remove('hidden'); setPreview('color', activeSkin, 0); updateUI(); }
+        function openShop() { document.getElementById('menu').classList.add('hidden'); document.getElementById('shop').classList.remove('hidden'); setPreview('color', window.activeSkin, 0); updateUI(); }
         function closeShop() { document.getElementById('shop').classList.add('hidden'); document.getElementById('menu').classList.remove('hidden'); }
 
         function startGame() {
@@ -249,24 +351,14 @@
             document.getElementById('menu').classList.add('hidden');
             document.getElementById('hud').classList.remove('hidden');
             document.getElementById('reverseContainer').classList.remove('hidden');
-            score = 0; enemies = []; obstacles = []; particles = []; reverseCharge = 0; isReverseActive = false;
+            score = 0; enemies = []; obstacles = []; reverseCharge = 0; isReverseActive = false;
             vortex.x = (player.x > w/2) ? 50 : w - 50;
             vortex.y = (player.y > h/2) ? 50 : h - 50;
             vortex.tx = Math.random() * w; vortex.ty = Math.random() * h;
-            spawnEnemy(); spawnObstacle(); moveTarget(); animate();
+            spawnEnemy(); moveTarget(); animate();
         }
 
-        function activateReverse() {
-            if(reverseCharge >= 100 && !isReverseActive) {
-                isReverseActive = true; reverseTimer = 300; reverseCharge = 0;
-            }
-        }
-
-        function createExplosion(x, y, color) {
-            for(let i=0; i<15; i++) {
-                particles.push({ x, y, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12, life: 1, color });
-            }
-        }
+        function activateReverse() { if(reverseCharge >= 100 && !isReverseActive) { isReverseActive = true; reverseTimer = 300; reverseCharge = 0; } }
 
         function spawnEnemy() {
             if (!gameActive) return;
@@ -274,16 +366,7 @@
             setTimeout(spawnEnemy, Math.max(600, 2500 - (score*100)));
         }
 
-        function spawnObstacle() {
-            if (!gameActive) return;
-            if(activeMap !== 'none') obstacles.push({ x: Math.random()*w, y: -60, w: 70+Math.random()*100, h: 20, speed: 1.5 + Math.random()*2 });
-            setTimeout(spawnObstacle, 1800);
-        }
-
-        function moveTarget() {
-            target.x = 100 + Math.random()*(w-200);
-            target.y = 100 + Math.random()*(h-200);
-        }
+        function moveTarget() { target.x = 100 + Math.random()*(w-200); target.y = 100 + Math.random()*(h-200); }
 
         function animate() {
             if (!gameActive) return;
@@ -291,47 +374,32 @@
             ctx.fillStyle = "rgba(0, 0, 0, 0.25)"; 
             ctx.fillRect(0,0,w,h);
 
-            if(activeMap === 'grid') {
+            // Backgrounds
+            if(window.activeMap === 'grid') {
                 ctx.strokeStyle="rgba(0,255,255,0.15)"; ctx.lineWidth=1;
                 for(let i=0; i<w; i+=60) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
                 for(let i=0; i<h; i+=60) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(w,i); ctx.stroke(); }
-            } else if(activeMap === 'stars') {
+            } else if(window.activeMap === 'stars') {
                 ctx.fillStyle="white";
                 for(let i=0; i<50; i++) { ctx.fillRect((Math.sin(i)*10000)%w, (i*frame*0.5)%h, 2, 2); }
-            } else if(activeMap === 'matrix') {
+            } else if(window.activeMap === 'matrix') {
                 ctx.fillStyle="#0f0"; ctx.font="10px monospace";
                 for(let i=0; i<w; i+=25) { ctx.fillText(Math.random()>0.8?"1":"0", i, (frame*3 + i*2)%h); }
             }
 
+            // Vortex
             let dxV = vortex.tx - vortex.x; let dyV = vortex.ty - vortex.y;
             let distV = Math.hypot(dxV, dyV);
             if(distV < 20) { vortex.tx = Math.random()*w; vortex.ty = Math.random()*h; }
             vortex.x += dxV/distV * vortex.speed; vortex.y += dyV/distV * vortex.speed;
-
             let pulse = Math.sin(frame*0.1) * 8;
             let g = ctx.createRadialGradient(vortex.x, vortex.y, 5, vortex.x, vortex.y, 60+pulse);
-            g.addColorStop(0, "#fff"); g.addColorStop(0.2, "#f0f"); g.addColorStop(0.4, "#200040"); g.addColorStop(1, "transparent");
+            g.addColorStop(0, "#fff"); g.addColorStop(0.2, "#f0f"); g.addColorStop(1, "transparent");
             ctx.fillStyle = g; ctx.beginPath(); ctx.arc(vortex.x, vortex.y, 90+pulse, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = "#0ff"; ctx.lineWidth = 2; ctx.setLineDash([10, 15]);
-            ctx.beginPath(); ctx.arc(vortex.x, vortex.y, 40 + pulse, frame*0.05, frame*0.05 + Math.PI*2); ctx.stroke();
-            ctx.setLineDash([]); 
 
             if(Math.hypot(vortex.x-player.x, vortex.y-player.y) < 55) return endGame("VORTEX CONSUMED YOU");
 
-            if(isReverseActive) {
-                reverseTimer--;
-                if(reverseTimer <= 0) isReverseActive = false;
-                ctx.strokeStyle = `hsla(${frame%360}, 100%, 50%, 0.3)`; ctx.lineWidth = 10; ctx.strokeRect(0,0,w,h);
-            }
-
-            particles.forEach((p, i) => {
-                p.x += p.vx; p.y += p.vy; p.life -= 0.02;
-                if(p.life <= 0) particles.splice(i,1);
-                ctx.fillStyle = p.color; ctx.globalAlpha = p.life;
-                ctx.fillRect(p.x, p.y, 3, 3);
-            });
-            ctx.globalAlpha = 1;
-
+            // Enemies
             enemies.forEach((en, i) => {
                 let d = Math.hypot(player.x-en.x, player.y-en.y);
                 if (isReverseActive) {
@@ -341,65 +409,48 @@
                     en.x += (player.x-en.x)/d * en.speed; en.y += (player.y-en.y)/d * en.speed;
                     ctx.fillStyle = "#f00";
                 }
-                ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
                 ctx.beginPath(); ctx.arc(en.x, en.y, en.r, 0, Math.PI*2); ctx.fill();
-                ctx.shadowBlur = 0;
-                if(d < 25) {
-                    if(isReverseActive) { enemies.splice(i, 1); score += 2; totalPoints += 5; createExplosion(en.x, en.y, "#0f0");
-                    } else { return endGame("DESTRUCTION"); }
-                }
+                if(d < 25 && !isReverseActive) return endGame("DESTRUCTION");
+                if(d < 25 && isReverseActive) { enemies.splice(i, 1); score += 2; window.totalPoints += 5; }
             });
 
-            obstacles.forEach((ob, i) => {
-                ob.y += ob.speed; ctx.fillStyle = "#f0f"; ctx.shadowBlur = 10; ctx.shadowColor = "#f0f";
-                ctx.fillRect(ob.x, ob.y, ob.w, ob.h); ctx.shadowBlur = 0;
-                if(player.x > ob.x && player.x < ob.x+ob.w && player.y > ob.y && player.y < ob.y+ob.h && !isReverseActive) return endGame("COLLISION");
-                if(ob.y > h) obstacles.splice(i,1);
-            });
-
+            // Target
             if(Math.hypot(player.x-target.x, player.y-target.y) < 30) { 
-                score++; totalPoints += 10; if(!isReverseActive) reverseCharge = Math.min(100, reverseCharge + 8);
-                createExplosion(target.x, target.y, "#ff0"); moveTarget(); 
+                score++; window.totalPoints += 10; if(!isReverseActive) reverseCharge = Math.min(100, reverseCharge + 8);
+                moveTarget(); 
             }
-            ctx.fillStyle="#ff0"; ctx.shadowBlur=15; ctx.shadowColor="#ff0"; 
-            ctx.beginPath(); ctx.arc(target.x, target.y, 10, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+            ctx.fillStyle="#ff0"; ctx.beginPath(); ctx.arc(target.x, target.y, 10, 0, Math.PI*2); ctx.fill();
 
-            player.trail.push({x: player.x, y: player.y});
-            if(player.trail.length > 12) player.trail.shift();
-            player.trail.forEach((t, i) => {
-                ctx.globalAlpha = i/12; ctx.fillStyle = activeSkin === 'rainbow' ? `hsl(${frame+i*10},100%,50%)` : activeSkin;
-                // --- FIX START ---
-                ctx.save();
-                ctx.translate(t.x, t.y);
-                let trailSize = 15 * (i/12);
-                if(activeShape === 'circle') { ctx.beginPath(); ctx.arc(0,0,trailSize,0,Math.PI*2); ctx.fill(); }
-                else if(activeShape === 'square') { ctx.fillRect(-trailSize,-trailSize,trailSize*2,trailSize*2); }
-                else if(activeShape === 'triangle') { ctx.beginPath(); ctx.moveTo(0,-trailSize*1.3); ctx.lineTo(trailSize*1.2,trailSize*0.8); ctx.lineTo(-trailSize*1.2,trailSize*0.8); ctx.fill(); }
-                else if(activeShape === 'star') { ctx.beginPath(); for(let k=0;k<10;k++){ let r=k%2?trailSize*1.2:trailSize*0.5; let a=Math.PI*2/10*k; ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r); } ctx.fill(); }
-                else if(activeShape === 'diamond') { ctx.rotate(Math.PI/4); ctx.fillRect(-trailSize,-trailSize,trailSize*2,trailSize*2); }
-                else if(activeShape === 'phoenix') { ctx.beginPath(); ctx.moveTo(0,-trailSize*1.6); ctx.quadraticCurveTo(trailSize*1.3,0,0,trailSize*1.6); ctx.quadraticCurveTo(-trailSize*1.3,0,0,-trailSize*1.6); ctx.fill(); }
-                ctx.restore();
-                // --- FIX END ---
-            });
-            ctx.globalAlpha = 1;
-
+            // Player
             ctx.save(); ctx.translate(player.x, player.y);
-            let pColor = activeSkin === 'rainbow' ? `hsl(${frame%360},100%,50%)` : activeSkin;
+            let pColor = window.activeSkin === 'rainbow' ? `hsl(${frame%360},100%,50%)` : window.activeSkin;
             ctx.fillStyle = pColor; ctx.shadowBlur = 20; ctx.shadowColor = pColor;
-            if(activeShape === 'circle') { ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); }
-            else if(activeShape === 'square') { ctx.fillRect(-15,-15,30,30); }
-            else if(activeShape === 'triangle') { ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(18,12); ctx.lineTo(-18,12); ctx.fill(); }
-            else if(activeShape === 'star') { ctx.beginPath(); for(let i=0;i<10;i++){ let r=i%2?18:8; let a=Math.PI*2/10*i; ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r); } ctx.fill(); }
-            else if(activeShape === 'diamond') { ctx.rotate(Math.PI/4); ctx.fillRect(-15,-15,30,30); }
-            else if(activeShape === 'phoenix') { ctx.beginPath(); ctx.moveTo(0,-25); ctx.quadraticCurveTo(20,0,0,25); ctx.quadraticCurveTo(-20,0,0,-25); ctx.fill(); ctx.fillRect(-28,-4,56,3); }
+            
+            if(window.activeShape === 'circle') { ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); }
+            else if(window.activeShape === 'square') { ctx.fillRect(-15,-15,30,30); }
+            else if(window.activeShape === 'triangle') { ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(18,12); ctx.lineTo(-18,12); ctx.fill(); }
+            else if(window.activeShape === 'star') { ctx.beginPath(); for(let i=0;i<10;i++){ let r=i%2?18:8; let a=Math.PI*2/10*i; ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r); } ctx.fill(); }
+            else if(window.activeShape === 'diamond') { ctx.rotate(Math.PI/4); ctx.fillRect(-15,-15,30,30); }
+            else if(window.activeShape === 'phoenix') { ctx.beginPath(); ctx.moveTo(0,-25); ctx.quadraticCurveTo(20,0,0,25); ctx.quadraticCurveTo(-20,0,0,-25); ctx.fill(); }
             ctx.restore();
 
+            if(isReverseActive) { reverseTimer--; if(reverseTimer <= 0) isReverseActive = false; }
             updateUI();
             requestAnimationFrame(animate);
         }
 
+        // HIGHSCORE FIX HIER
         function endGame(m) { 
-            gameActive=false; alert(m + "\nSCORE: " + score); save(); updateUI(); 
+            gameActive = false;
+            // Highscore-Check: Nur speichern, wenn aktueller Score wirklich höher
+            if (score > window.highscore) {
+                window.highscore = score;
+            }
+            window.saveToDB(); // Sofort an Firebase senden
+            
+            alert(m + "\nSCORE: " + score + "\nBEST: " + window.highscore); 
+            
+            updateUI(); 
             document.getElementById('menu').classList.remove('hidden'); 
             document.getElementById('hud').classList.add('hidden');
             document.getElementById('reverseContainer').classList.add('hidden');
@@ -407,7 +458,6 @@
 
         const move = e => { let t = e.touches ? e.touches[0] : e; player.x = t.clientX; player.y = t.clientY; };
         window.addEventListener('mousemove', move); window.addEventListener('touchmove', move);
-        updateUI();
     </script>
 </body>
 </html>
