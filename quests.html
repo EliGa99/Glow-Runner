@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Glow Runner - Infinite Quests</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        body { background: #000; color: white; font-family: 'Orbitron'; text-align: center; padding: 20px; }
+        .quest-list { max-width: 500px; margin: 20px auto; text-align: left; }
+        .quest-item { 
+            background: #111; border: 1px solid #333; padding: 20px; 
+            margin-bottom: 15px; border-radius: 10px; position: relative;
+            border-left: 5px solid #0ff; transition: 0.3s;
+        }
+        .quest-item.can-claim { border-left-color: #0f0; box-shadow: 0 0 15px rgba(0,255,0,0.2); }
+        .quest-title { font-size: 1.1rem; color: #0ff; display: block; margin-bottom: 5px; }
+        .reward { color: #ff0; font-size: 0.9rem; font-weight: bold; }
+        .progress-bar { width: 100%; height: 8px; background: #222; border-radius: 4px; margin-top: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #0ff; width: 0%; transition: 0.5s; }
+        .btn-claim { 
+            position: absolute; right: 20px; top: 30px; 
+            background: #0f0; color: #000; border: none; padding: 8px 15px; 
+            border-radius: 5px; cursor: pointer; display: none; font-family: 'Orbitron';
+        }
+        .back { display: inline-block; margin-top: 30px; color: #888; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>DYNAMIC MISSIONS</h1>
+    <p id="levelDisplay">Pilot Level: 1</p>
+
+    <div class="quest-list" id="questList">
+        Generiere neue Herausforderungen...
+    </div>
+
+    <a href="index.html" class="back">ZURÜCK ZUM MENÜ</a>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBB7Dbf_Y9ShE5InKfTIfHimXx-8UxlEg8",
+            authDomain: "glow-runner-bc6b9.firebaseapp.com",
+            projectId: "glow-runner-bc6b9",
+            databaseURL: "https://glow-runner-bc6b9-default-rtdb.europe-west1.firebasedatabase.app/",
+            appId: "1:962164006871:web:33a8ff5a2d4bf048287592"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const username = localStorage.getItem('glow_user_v4') || "Pilot";
+
+        onValue(ref(db, 'users/' + username), (snap) => {
+            const data = snap.val();
+            if(!data) return;
+
+            // Sicherstellen, dass Basis-Daten existieren
+            if(!data.questLevel) data.questLevel = 1;
+            document.getElementById('levelDisplay').innerText = `Pilot Level: ${data.questLevel}`;
+
+            const questList = document.getElementById('questList');
+            questList.innerHTML = "";
+
+            // ALGORITHMUS: Generiere 3 Quests basierend auf dem Quest-Level
+            const generatedQuests = [
+                {
+                    id: 'score_' + data.questLevel,
+                    title: "Score Jäger",
+                    desc: `Erreiche einen Score von ${data.questLevel * 40}`,
+                    target: data.questLevel * 40,
+                    current: data.highscore,
+                    reward: data.questLevel * 150,
+                    type: 'points'
+                },
+                {
+                    id: 'crystal_' + data.questLevel,
+                    title: "Kristall Gier",
+                    desc: `Besitze insgesamt ${data.questLevel * 500} Kristalle`,
+                    target: data.questLevel * 500,
+                    current: data.points,
+                    reward: data.questLevel * 200,
+                    type: 'points'
+                }
+            ];
+
+            generatedQuests.forEach(q => {
+                const isCompleted = data.completedQuests && data.completedQuests[q.id];
+                const progress = Math.min(100, (q.current / q.target) * 100);
+                const canClaim = !isCompleted && q.current >= q.target;
+
+                const card = document.createElement('div');
+                card.className = `quest-item ${canClaim ? 'can-claim' : ''}`;
+                card.innerHTML = `
+                    <span class="quest-title">${q.title}</span>
+                    <p style="font-size:0.8rem; margin:5px 0;">${q.desc}</p>
+                    <span class="reward">+${q.reward} 💎</span>
+                    <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+                    <button class="btn-claim" id="btn-${q.id}" style="display: ${canClaim ? 'block' : 'none'}">BELOHNUNG</button>
+                    ${isCompleted ? '<span style="color:#0f0; position:absolute; right:20px; top:30px;">✓ FERTIG</span>' : ''}
+                `;
+                
+                questList.appendChild(card);
+
+                if(canClaim) {
+                    document.getElementById(`btn-${q.id}`).onclick = () => claimReward(q, data);
+                }
+            });
+        });
+
+        function claimReward(quest, data) {
+            if(!data.completedQuests) data.completedQuests = {};
+            
+            // Quest als erledigt markieren
+            data.completedQuests[quest.id] = true;
+            // Belohnung geben
+            data.points += quest.reward;
+            // Quest-Level erhöhen (dadurch werden beim nächsten Mal schwerere Ziele berechnet)
+            data.questLevel += 1;
+
+            set(ref(db, 'users/' + username), data).then(() => {
+                alert(`Glückwunsch! +${quest.reward} Kristalle erhalten. Dein Quest-Level ist nun ${data.questLevel}!`);
+            });
+        }
+    </script>
+</body>
+</html>
