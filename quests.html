@@ -2,10 +2,11 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Glow Runner - Infinite Quests</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-        body { background: #000; color: white; font-family: 'Orbitron'; text-align: center; padding: 20px; }
+        body { background: #000; color: white; font-family: 'Orbitron'; text-align: center; padding: 20px; margin: 0; }
         .quest-list { max-width: 500px; margin: 20px auto; text-align: left; }
         .quest-item { 
             background: #111; border: 1px solid #333; padding: 20px; 
@@ -21,8 +22,9 @@
             position: absolute; right: 20px; top: 30px; 
             background: #0f0; color: #000; border: none; padding: 8px 15px; 
             border-radius: 5px; cursor: pointer; display: none; font-family: 'Orbitron';
+            font-weight: bold;
         }
-        .back { display: inline-block; margin-top: 30px; color: #888; text-decoration: none; }
+        .back { display: inline-block; margin-top: 30px; color: #0ff; text-decoration: none; border: 1px solid #0ff; padding: 10px 20px; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -30,7 +32,7 @@
     <p id="levelDisplay">Pilot Level: 1</p>
 
     <div class="quest-list" id="questList">
-        Generiere neue Herausforderungen...
+        Lade Herausforderungen...
     </div>
 
     <a href="index.html" class="back">ZURÜCK ZUM MENÜ</a>
@@ -49,38 +51,41 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const username = localStorage.getItem('glow_user_v4') || "Pilot";
+        
+        // KORREKTUR: Nutze den gleichen Key wie in der index.html!
+        const username = localStorage.getItem('glow_user_id') || "Pilot";
 
         onValue(ref(db, 'users/' + username), (snap) => {
             const data = snap.val();
-            if(!data) return;
+            if(!data) {
+                document.getElementById('questList').innerText = "Keine Daten gefunden. Spiele erst eine Runde!";
+                return;
+            }
 
-            // Sicherstellen, dass Basis-Daten existieren
+            // Sicherstellen, dass questLevel existiert
             if(!data.questLevel) data.questLevel = 1;
             document.getElementById('levelDisplay').innerText = `Pilot Level: ${data.questLevel}`;
 
             const questList = document.getElementById('questList');
             questList.innerHTML = "";
 
-            // ALGORITHMUS: Generiere 3 Quests basierend auf dem Quest-Level
+            // Quests generieren
             const generatedQuests = [
                 {
                     id: 'score_' + data.questLevel,
                     title: "Score Jäger",
                     desc: `Erreiche einen Score von ${data.questLevel * 40}`,
                     target: data.questLevel * 40,
-                    current: data.highscore,
-                    reward: data.questLevel * 150,
-                    type: 'points'
+                    current: data.highscore || 0,
+                    reward: data.questLevel * 150
                 },
                 {
                     id: 'crystal_' + data.questLevel,
-                    title: "Kristall Gier",
+                    title: "Sammler",
                     desc: `Besitze insgesamt ${data.questLevel * 500} Kristalle`,
                     target: data.questLevel * 500,
-                    current: data.points,
-                    reward: data.questLevel * 200,
-                    type: 'points'
+                    current: data.points || 0,
+                    reward: data.questLevel * 200
                 }
             ];
 
@@ -111,15 +116,20 @@
         function claimReward(quest, data) {
             if(!data.completedQuests) data.completedQuests = {};
             
-            // Quest als erledigt markieren
+            // Quest markieren
             data.completedQuests[quest.id] = true;
-            // Belohnung geben
-            data.points += quest.reward;
-            // Quest-Level erhöhen (dadurch werden beim nächsten Mal schwerere Ziele berechnet)
-            data.questLevel += 1;
+            
+            // Belohnung hinzufügen (Number() stellt sicher, dass es keine Text-Verkettung gibt)
+            data.points = (Number(data.points) || 0) + quest.reward;
+            
+            // Level erhöhen
+            data.questLevel = (Number(data.questLevel) || 1) + 1;
 
             set(ref(db, 'users/' + username), data).then(() => {
-                alert(`Glückwunsch! +${quest.reward} Kristalle erhalten. Dein Quest-Level ist nun ${data.questLevel}!`);
+                alert(`Glückwunsch! +${quest.reward} Kristalle erhalten. Dein Pilot-Level ist nun ${data.questLevel}!`);
+            }).catch(err => {
+                console.error("Fehler beim Speichern:", err);
+                alert("Fehler beim Speichern der Belohnung.");
             });
         }
     </script>
