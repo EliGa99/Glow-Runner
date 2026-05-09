@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glow Runner - Matrix Rekalibrierung</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        
+        body { 
+            background: #050505; color: #0ff; font-family: 'Orbitron', sans-serif; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            height: 100vh; margin: 0; text-align: center; overflow: hidden;
+        }
+
+        /* Animierter Grid-Hintergrund mit Perspektive */
+        .bg-container {
+            position: absolute; width: 100%; height: 100%;
+            perspective: 1000px; z-index: -1; overflow: hidden;
+        }
+        .grid {
+            position: absolute; width: 200%; height: 200%; bottom: -50%; left: -50%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.2) 1px, transparent 1px);
+            background-size: 60px 60px;
+            transform: rotateX(60deg);
+            animation: move-grid 4s linear infinite;
+        }
+
+        /* Scan-Line Effekt */
+        body::before {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 10; background-size: 100% 4px, 3px 100%; pointer-events: none;
+        }
+
+        .container { 
+            border: 1px solid #0ff; padding: 50px; border-radius: 5px; 
+            background: rgba(0, 0, 0, 0.85); position: relative;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+
+        h1 { 
+            font-size: 3rem; text-shadow: 0 0 15px #0ff; margin: 0; letter-spacing: 10px;
+            animation: glitch 2s infinite;
+        }
+
+        .status-msg { color: #ff0; font-size: 0.9rem; margin-top: 15px; letter-spacing: 3px; }
+
+        #timer { font-size: 2.5rem; color: #fff; margin: 25px 0; text-shadow: 0 0 20px #fff; }
+
+        /* Lade-Balken */
+        .progress-box { width: 300px; height: 10px; border: 1px solid #0ff; margin: 20px auto; position: relative; overflow: hidden; }
+        .progress-bar { height: 100%; background: #0ff; width: 0%; box-shadow: 0 0 15px #0ff; animation: loading 3s infinite; }
+
+        @keyframes move-grid { from { background-position: 0 0; } to { background-position: 0 60px; } }
+        
+        @keyframes loading {
+            0% { width: 0%; left: 0%; }
+            50% { width: 100%; left: 0%; }
+            100% { width: 0%; left: 100%; }
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); text-shadow: 0 0 15px #0ff; }
+            2% { transform: translate(-3px, 2px); text-shadow: 2px 0 #f0f; }
+            4% { transform: translate(3px, -2px); text-shadow: -2px 0 #0f0; }
+            6% { transform: translate(0); }
+            100% { transform: translate(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-container"><div class="grid"></div></div>
+    
+    <div class="container">
+        <h1>Wartungsarbeiten</h1>
+        <div class="status-msg">BUG FIXES IN PROGRESS</div>
+        
+        <div id="timer">SYNCHRONIZING...</div>
+        
+        <div class="progress-box">
+            <div class="progress-bar"></div>
+        </div>
+
+        <p style="font-size: 0.6rem; color: #555; margin-top: 20px;">
+            PROTOCOL: 0x290171 | STANDBY FOR UPLINK
+        </p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBB7Dbf_Y9ShE5InKfTIfHimXx-8UxlEg8",
+            authDomain: "glow-runner-bc6b9.firebaseapp.com",
+            projectId: "glow-runner-bc6b9",
+            databaseURL: "https://glow-runner-bc6b9-default-rtdb.europe-west1.firebasedatabase.app/",
+            appId: "1:962164006871:web:33a8ff5a2d4bf048287592"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Live Check: Wartung beendet?
+        const wartungRef = ref(db, 'wartung');
+        onValue(wartungRef, (snapshot) => {
+            if (snapshot.val() !== true) {
+                window.location.href = "index.html";
+            }
+        });
+
+        // Countdown (Beispiel: 9. Mai 2026, 18:00 Uhr)
+        const zielDatum = new Date(2026, 4, 9, 18, 0, 0).getTime(); 
+
+        setInterval(() => {
+            const jetzt = new Date().getTime();
+            const diff = zielDatum - jetzt;
+
+            if (diff > 0) {
+                const h = Math.floor((diff / (1000 * 60 * 60)));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+                document.getElementById("timer").innerText = `${h}H ${m}M ${s}S`;
+            } else {
+                document.getElementById("timer").innerText = "UPLINK READY";
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
