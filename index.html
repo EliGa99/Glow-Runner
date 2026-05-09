@@ -94,6 +94,7 @@
         <h1 id="welcomeText">GLOW RUNNER</h1>
         
         <button class="btn" onclick="startGame()" style="border-color: #0f0; color: #0f0;">LAUNCH GAME</button>
+        <button class="btn" onclick="location.href='modes.html'">SELECT MODE</button>
         <button class="btn" onclick="openShop()">ARMORY & SHOP</button>
         <button class="btn" onclick="location.href='quests.html'">MISSIONS</button>
         <button class="btn" onclick="location.href='leaderboard.html'">RANKING</button>
@@ -154,101 +155,149 @@
     <canvas id="gameCanvas"></canvas>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBB7Dbf_Y9ShE5InKfTIfHimXx-8UxlEg8",
-            authDomain: "glow-runner-bc6b9.firebaseapp.com",
-            projectId: "glow-runner-bc6b9",
-            databaseURL: "https://glow-runner-bc6b9-default-rtdb.europe-west1.firebasedatabase.app/",
-            appId: "1:962164006871:web:33a8ff5a2d4bf048287592"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyBB7Dbf_Y9ShE5InKfTIfHimXx-8UxlEg8",
+        authDomain: "glow-runner-bc6b9.firebaseapp.com",
+        projectId: "glow-runner-bc6b9",
+        databaseURL: "https://glow-runner-bc6b9-default-rtdb.europe-west1.firebasedatabase.app/",
+        appId: "1:962164006871:web:33a8ff5a2d4bf048287592"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-        // --- Global State ---
-        window.totalPoints = 0;
-        window.highscore = 0;
-        window.questLevel = 1;
-        window.boughtSkins = ['cyan'];
-        window.activeSkin = 'cyan';
-        window.boughtShapes = ['circle'];
-        window.activeShape = 'circle';
-        window.boughtMaps = ['none'];
-        window.activeMap = 'none';
-        window.username = "";
+    // --- Global State ---
+    window.totalPoints = 0;
+    window.highscore = 0;
+    window.questLevel = 1;
+    window.boughtSkins = ['cyan'];
+    window.activeSkin = 'cyan';
+    window.boughtShapes = ['circle'];
+    window.activeShape = 'circle';
+    window.boughtMaps = ['none'];
+    window.activeMap = 'none';
+    window.username = "";
 
-        async function loadUserData() {
-    let storedUser = localStorage.getItem('glow_user_id');
-    
-    if(!storedUser) {
-        window.username = prompt("Pilot Name?");
-        if(!window.username) window.username = "Guest" + Math.floor(Math.random()*999);
-        localStorage.setItem('glow_user_id', window.username);
-        window.saveToDB(); 
-    } else { 
-        window.username = storedUser; 
+    // 1. Feste Runner-ID generieren oder laden
+    let runnerID = localStorage.getItem('glow_runner_id');
+    if (!runnerID) {
+        runnerID = 'RNR-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        localStorage.setItem('glow_runner_id', runnerID);
     }
 
-    const userRef = ref(db, 'users/' + window.username);
-    
-    onValue(userRef, (snapshot) => {
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            
-            // --- DIE SPERRE ---
-            if (data.locked === true) {
-                // Wenn gesperrt: Menü ausblenden und Sperrbildschirm zeigen
-                document.body.innerHTML = `
-                    <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; color:red; font-family:'Orbitron'; text-align:center; padding:20px;">
-                        <h1 style="text-shadow: 0 0 20px red;">ACCESS DENIED</h1>
-                        <p style="color:white;">Your account has been locked by the administrator.</p>
-                        <p style="color:white;">Please reload the website if your account is unblocked again.</p>
-                        <div style="margin-top:20px; font-size:0.7rem; color:#444;">ID: ${window.username}</div>
-                    </div>`;
-                return; // Code hier abbrechen
-            }
-
-            window.totalPoints = data.points || 0;
-            window.highscore = data.highscore || 0;
-            // ... (restliche Daten wie gehabt)
-            window.boughtSkins = data.boughtSkins || ['cyan'];
-            window.activeSkin = data.activeSkin || 'cyan';
-            window.boughtShapes = data.boughtShapes || ['circle'];
-            window.activeShape = data.activeShape || 'circle';
-            window.boughtMaps = data.boughtMaps || ['none'];
-            window.activeMap = data.activeMap || 'none';
-            updateUI();
-        } else {
-            // Wenn der User in Firebase gelöscht wurde, nichts tun (kein Auto-Save!)
-            window.totalPoints = 0;
-            window.highscore = 0;
-            updateUI();
+    async function loadUserData() {
+        // Username aus LocalStorage laden
+        window.username = localStorage.getItem('glow_username');
+        
+        if(!window.username) {
+            window.username = prompt("Runner Name?");
+            if(!window.username) window.username = "Runner_" + runnerID.substr(4, 4);
+            localStorage.setItem('glow_username', window.username);
+            window.saveToDB(); 
         }
-    });
-    
-    document.getElementById('welcomeText').innerText = window.username;
-}
 
-        window.saveToDB = function() {
-            if(!window.username) return;
-            set(ref(db, 'users/' + window.username), {
-                points: window.totalPoints,
-                highscore: window.highscore,
-                questLevel: window.questLevel,
-                boughtSkins: window.boughtSkins,
-                activeSkin: window.activeSkin,
-                boughtShapes: window.boughtShapes,
-                activeShape: window.activeShape,
-                boughtMaps: window.boughtMaps,
-                activeMap: window.activeMap
+        const userRef = ref(db, 'users/' + runnerID);
+        
+        onValue(userRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                
+                // 1. CHECK: ADMIN-SPERRE
+                if (data.locked === true) {
+                    document.body.innerHTML = `
+                        <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; color:red; font-family:'Orbitron'; text-align:center; padding:20px;">
+                            <h1 style="text-shadow: 0 0 20px red;">ACCESS DENIED</h1>
+                            <p style="color:white;">Your account has been locked by the administrator.</p>
+                            <p style="color:white;">Please reload the website if your account is unblocked again.</p>
+                            <div style="margin-top:20px; font-size:0.7rem; color:#444;">ID: ${runnerID}</div>
+                        </div>`;
+                    return;
+                }
+
+                // 2. CHECK: NACHRICHTEN (Neu integriert)
+                if (data.message) {
+                    window.showRunnerMessage(data.message);
+                }
+
+                // 3. DATEN LADEN
+                window.totalPoints = data.points || 0;
+                window.highscore = data.highscore || 0;
+                window.questLevel = data.questLevel || 1;
+                window.boughtSkins = data.boughtSkins || ['cyan'];
+                window.activeSkin = data.activeSkin || 'cyan';
+                window.boughtShapes = data.boughtShapes || ['circle'];
+                window.activeShape = data.activeShape || 'circle';
+                window.boughtMaps = data.boughtMaps || ['none'];
+                window.activeMap = data.activeMap || 'none';
+
+                // Falls der Admin den Namen in der DB geändert hat, lokal übernehmen
+                if(data.username && data.username !== window.username) {
+                    window.username = data.username;
+                    localStorage.setItem('glow_username', window.username);
+                }
+
+                updateUI();
+            } else {
+                // Neuer Account oder gelöscht
+                window.totalPoints = 0;
+                window.highscore = 0;
+                updateUI();
+            }
+        });
+        
+        document.getElementById('welcomeText').innerText = window.username;
+    }
+
+    // Die Nachrichten-Funktion muss global verfügbar sein
+    window.showRunnerMessage = function(msgText) {
+        if (document.getElementById('runnerPopup')) return;
+
+        const popup = document.createElement('div');
+        popup.id = 'runnerPopup';
+        popup.style = `
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95); border: 2px solid #0ff; color: #fff;
+            padding: 25px; z-index: 1000; text-align: center; border-radius: 10px;
+            box-shadow: 0 0 30px #0ff; font-family: 'Orbitron', sans-serif; min-width: 280px;
+        `;
+        
+        popup.innerHTML = `
+            <h3 style="margin-top:0; color:#0ff; letter-spacing:2px;">INCOMING TRANSMISSION</h3>
+            <p style="margin: 20px 0; line-height:1.5;">${msgText}</p>
+            <button id="closeMsgBtn" class="btn" style="width:100%; border-color:#0f0; color:#0f0;">GELESEN</button>
+        `;
+        
+        document.body.appendChild(popup);
+
+        document.getElementById('closeMsgBtn').onclick = () => {
+            const userMessageRef = ref(db, 'users/' + runnerID + '/message');
+            set(userMessageRef, null).then(() => {
+                popup.remove();
             });
         };
+    };
 
-        loadUserData();
-    </script>
+    window.saveToDB = function() {
+        if(!runnerID) return;
+        set(ref(db, 'users/' + runnerID), {
+            username: window.username, // Der Name wird nun als Feld gespeichert
+            points: window.totalPoints,
+            highscore: window.highscore,
+            questLevel: window.questLevel,
+            boughtSkins: window.boughtSkins,
+            activeSkin: window.activeSkin,
+            boughtShapes: window.boughtShapes,
+            activeShape: window.activeShape,
+            boughtMaps: window.boughtMaps,
+            activeMap: window.activeMap
+        });
+    };
+
+    loadUserData();
+</script>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
