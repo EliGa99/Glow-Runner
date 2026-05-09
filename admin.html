@@ -57,8 +57,8 @@
                 <input type="text" id="globalMsgInput" placeholder="Nachricht an alle...">
                 <button onclick="sendGlobalMessage()" class="btn-msg">MSG AN ALLE</button>
                 <br><br>
-                <input type="number" id="globalPointsInput" placeholder="Punkte-Anzahl">
-                <button onclick="addGlobalPoints()" style="background:#44ff44">PUNKTE AN ALLE</button>
+                <input type="number" id="globalPointsInput" placeholder="Kristalle-Anzahl">
+                <button onclick="addGlobalPoints()" style="background:#44ff44">KRISTALLE AN ALLE</button>
             </div>
 
             <div style="margin-bottom: 20px;">
@@ -202,11 +202,12 @@
             if(snapshot.exists()) {
                 const updates = {};
                 snapshot.forEach(child => {
-                    const current = child.val().highscore || 0;
-                    updates[`users/${child.key}/highscore`] = current + pts;
+                    // Hier wird nun das Feld 'points' statt 'highscore' verwendet
+                    const current = child.val().points || 0;
+                    updates[`users/${child.key}/points`] = current + pts;
                 });
                 await update(ref(db), updates);
-                alert(pts + " Punkte an alle gegeben!");
+                alert(pts + " Kristalle an alle gegeben!");
                 document.getElementById('globalPointsInput').value = "";
             }
         };
