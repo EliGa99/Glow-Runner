@@ -29,6 +29,9 @@
         .hidden { display: none; }
         .btn-msg { background: #f0f; color: white; }
         .btn-name { background: #555; color: white; }
+
+        /* Style für Global Box */
+        .global-box { border: 2px solid #0ff; padding: 20px; margin-bottom: 30px; border-radius: 10px; background: rgba(0,255,255,0.05); }
     </style>
 </head>
 <body>
@@ -47,6 +50,15 @@
                 <h3>WARTUNGSMODUS: <span id="mStatus" class="m-active">PRÜFE...</span></h3>
                 <button onclick="setMaintenance(true)" style="background:#ff0">WARTUNG AN</button>
                 <button onclick="setMaintenance(false)" style="background:#44ff44">WARTUNG AUS</button>
+            </div>
+
+            <div class="global-box">
+                <h3>GLOBAL ACTIONS (ALLE SPIELER)</h3>
+                <input type="text" id="globalMsgInput" placeholder="Nachricht an alle...">
+                <button onclick="sendGlobalMessage()" class="btn-msg">MSG AN ALLE</button>
+                <br><br>
+                <input type="number" id="globalPointsInput" placeholder="Punkte-Anzahl">
+                <button onclick="addGlobalPoints()" style="background:#44ff44">PUNKTE AN ALLE</button>
             </div>
 
             <div style="margin-bottom: 20px;">
@@ -70,7 +82,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+        import { getDatabase, ref, onValue, update, set, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBB7Dbf_Y9ShE5InKfTIfHimXx-8UxlEg8",
@@ -159,9 +171,43 @@
         window.sendMessage = function(id) {
             const msg = prompt("Nachricht an Runner senden:");
             if (msg !== null) {
-                // Setzt das message-Feld in Firebase
                 update(ref(db, 'users/' + id), { message: msg });
                 alert("Nachricht gesendet!");
+            }
+        };
+
+        // --- NEUE GLOBAL FUNKTIONEN ---
+
+        window.sendGlobalMessage = async function() {
+            const msg = document.getElementById('globalMsgInput').value;
+            if(!msg) return alert("Text eingeben!");
+            
+            const snapshot = await get(ref(db, 'users'));
+            if(snapshot.exists()) {
+                const updates = {};
+                snapshot.forEach(child => {
+                    updates[`users/${child.key}/message`] = msg;
+                });
+                await update(ref(db), updates);
+                alert("Nachricht an alle verteilt!");
+                document.getElementById('globalMsgInput').value = "";
+            }
+        };
+
+        window.addGlobalPoints = async function() {
+            const pts = parseInt(document.getElementById('globalPointsInput').value);
+            if(isNaN(pts)) return alert("Zahl eingeben!");
+
+            const snapshot = await get(ref(db, 'users'));
+            if(snapshot.exists()) {
+                const updates = {};
+                snapshot.forEach(child => {
+                    const current = child.val().highscore || 0;
+                    updates[`users/${child.key}/highscore`] = current + pts;
+                });
+                await update(ref(db), updates);
+                alert(pts + " Punkte an alle gegeben!");
+                document.getElementById('globalPointsInput').value = "";
             }
         };
 
