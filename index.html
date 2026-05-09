@@ -250,8 +250,23 @@
 
                 if (typeof updateUI === "function") updateUI();
             } else {
-                // Wenn ID neu ist, einmalig Grunddaten hochladen
-                window.saveToDB();
+                // BUGFIX: Falls ID lokal existiert, aber nicht in Firebase -> Account wurde gelöscht
+                if (localStorage.getItem('glow_username')) {
+                    // Lokale Werte resetten, damit sie nicht wieder hochgeladen werden
+                    window.totalPoints = 0;
+                    window.highscore = 0;
+                    window.questLevel = 1;
+                    window.boughtSkins = ['cyan'];
+                    window.activeSkin = 'cyan';
+                    window.boughtShapes = ['circle'];
+                    window.activeShape = 'circle';
+                    window.boughtMaps = ['none'];
+                    window.activeMap = 'none';
+                    if (typeof updateUI === "function") updateUI();
+                } else {
+                    // Wirklich neuer User
+                    window.saveToDB();
+                }
             }
             
             // UI Update für den Namen
