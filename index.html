@@ -188,10 +188,19 @@
         localStorage.setItem('glow_runner_id', runnerID);
     }
 
+    // --- WARTUNGS-CHECK (Global) ---
+    const wartungRef = ref(db, 'wartung');
+    onValue(wartungRef, (snapshot) => {
+        if (snapshot.exists() && snapshot.val() === true) {
+            window.location.href = "wartung.html";
+        }
+    });
+
     async function loadUserData() {
         // Username aus LocalStorage laden
         window.username = localStorage.getItem('glow_username');
         
+        // Falls kein Name da ist, fragen und direkt in DB initialisieren
         if(!window.username) {
             window.username = prompt("Runner Name?");
             if(!window.username) window.username = "Runner_" + runnerID.substr(4, 4);
@@ -217,7 +226,7 @@
                     return;
                 }
 
-                // 2. CHECK: NACHRICHTEN (Neu integriert)
+                // 2. CHECK: NACHRICHTEN
                 if (data.message) {
                     window.showRunnerMessage(data.message);
                 }
@@ -233,25 +242,25 @@
                 window.boughtMaps = data.boughtMaps || ['none'];
                 window.activeMap = data.activeMap || 'none';
 
-                // Falls der Admin den Namen in der DB geändert hat, lokal übernehmen
+                // Falls der Name in der DB geändert wurde (z.B. durch Admin), lokal übernehmen
                 if(data.username && data.username !== window.username) {
                     window.username = data.username;
                     localStorage.setItem('glow_username', window.username);
                 }
 
-                updateUI();
+                if (typeof updateUI === "function") updateUI();
             } else {
-                // Neuer Account oder gelöscht
-                window.totalPoints = 0;
-                window.highscore = 0;
-                updateUI();
+                // Wenn ID neu ist, einmalig Grunddaten hochladen
+                window.saveToDB();
             }
+            
+            // UI Update für den Namen
+            const welcomeText = document.getElementById('welcomeText');
+            if(welcomeText) welcomeText.innerText = window.username;
         });
-        
-        document.getElementById('welcomeText').innerText = window.username;
     }
 
-    // Die Nachrichten-Funktion muss global verfügbar sein
+    // Nachrichten-System
     window.showRunnerMessage = function(msgText) {
         if (document.getElementById('runnerPopup')) return;
 
@@ -267,7 +276,7 @@
         popup.innerHTML = `
             <h3 style="margin-top:0; color:#0ff; letter-spacing:2px;">INCOMING TRANSMISSION</h3>
             <p style="margin: 20px 0; line-height:1.5;">${msgText}</p>
-            <button id="closeMsgBtn" class="btn" style="width:100%; border-color:#0f0; color:#0f0;">GELESEN</button>
+            <button id="closeMsgBtn" class="btn" style="width:100%; border-color:#0f0; color:#0f0; background:transparent; padding:10px; cursor:pointer; font-family:'Orbitron';">GELESEN</button>
         `;
         
         document.body.appendChild(popup);
@@ -283,7 +292,7 @@
     window.saveToDB = function() {
         if(!runnerID) return;
         set(ref(db, 'users/' + runnerID), {
-            username: window.username, // Der Name wird nun als Feld gespeichert
+            username: window.username,
             points: window.totalPoints,
             highscore: window.highscore,
             questLevel: window.questLevel,
