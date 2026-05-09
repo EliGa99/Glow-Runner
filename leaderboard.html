@@ -7,25 +7,36 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
         body { background: #000; color: white; font-family: 'Orbitron'; text-align: center; padding: 20px; }
-        .leaderboard-box { max-width: 400px; margin: 0 auto; border: 2px solid #f0f; border-radius: 15px; padding: 20px; background: rgba(255,0,255,0.05); }
-        .entry { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
-        .rank { color: #f0f; font-weight: bold; }
-        .score { color: #0ff; }
-        .back { display: inline-block; margin-top: 30px; color: #888; text-decoration: none; border: 1px solid #888; padding: 10px 20px; border-radius: 5px; }
+        .leaderboard-box { max-width: 450px; margin: 0 auto; border: 2px solid #f0f; border-radius: 15px; padding: 20px; background: rgba(255,0,255,0.05); }
+        .entry { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #333; align-items: center; }
+        .rank { color: #f0f; font-weight: bold; margin-right: 10px; width: 30px; display: inline-block; }
+        .name-container { flex-grow: 1; text-align: left; display: flex; align-items: center; }
+        .score { color: #0ff; font-weight: bold; }
+        .back { display: inline-block; margin-top: 20px; color: #888; text-decoration: none; border: 1px solid #888; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        
+        /* Admin Style */
+        .admin-tag { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px #ffd700; font-size: 0.7rem; margin-left: 8px; border: 1px solid #ffd700; padding: 2px 4px; border-radius: 3px; }
+        .admin-entry { border-left: 4px solid #ffd700 !important; background: rgba(255, 215, 0, 0.1) !important; }
+        
+        .btn-privacy { background: transparent; border: 1px solid #ff0; color: #ff0; padding: 12px; border-radius: 5px; font-family: 'Orbitron'; cursor: pointer; margin-top: 20px; width: 100%; max-width: 450px; transition: 0.3s; }
+        .btn-privacy:hover { background: rgba(255, 255, 0, 0.1); }
     </style>
 </head>
 <body>
-    <h1>GLOBAL RANKING</h1>
+    <h1 style="text-shadow: 0 0 10px #f0f;">GLOBAL RANKING</h1>
+    
     <div class="leaderboard-box" id="leaderboard">
-        Lade Daten aus der Cloud...
+        Initialisiere System...
     </div>
+
+    <button id="togglePrivacyBtn" class="btn-privacy">DATENSCHUTZ LADEN...</button>
+    <br>
     <a href="index.html" class="back">ZURÜCK ZUM MENÜ</a>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getDatabase, ref, query, orderByChild, limitToLast, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+        import { getDatabase, ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
-        // DEINE FIREBASE CONFIG (Muss in jeder Seite gleich sein)
         const firebaseConfig = {
             apiKey: "AIzaSyBB7Dbf_Y9ShE5InKfTIfHimXx-8UxlEg8",
             authDomain: "glow-runner-bc6b9.firebaseapp.com",
@@ -36,28 +47,84 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const runnerID = localStorage.getItem('glow_runner_id');
+
+        // --- WARTUNGS-CHECK ---
+        onValue(ref(db, 'wartung'), (snapshot) => {
+            if (snapshot.exists() && snapshot.val() === true) {
+                window.location.href = "wartung.html";
+            }
+        });
 
         // Bestenliste laden
-        const topRef = query(ref(db, 'users'), orderByChild('highscore'), limitToLast(10));
-        onValue(topRef, (snap) => {
+        const usersRef = ref(db, 'users');
+        onValue(usersRef, (snap) => {
             const data = snap.val();
             const listDiv = document.getElementById('leaderboard');
             listDiv.innerHTML = "";
             
             if(data) {
-                // Firebase gibt Daten unsortiert, wir sortieren sie absteigend
-                const sorted = Object.entries(data).sort((a,b) => b[1].highscore - a[1].highscore);
-                sorted.forEach(([name, val], i) => {
+                // In Array umwandeln für Sortierung
+                const usersArray = [];
+                for (let id in data) {
+                    // Wir nehmen nur Einträge, die auch wirklich ein Highscore-Feld haben
+                    if (data[id].highscore !== undefined) {
+                        usersArray.push({ id: id, ...data[id] });
+                    }
+                }
+
+                // Absteigend nach Highscore sortieren
+                usersArray.sort((a, b) => (b.highscore || 0) - (a.highscore || 0));
+                
+                usersArray.slice(0, 25).forEach((user, i) => {
+                    const isAdmin = user.admin === true;
+                    const isHidden = user.hidden === true;
+                    const isMe = user.id === runnerID;
+                    
+                    // Name Logik
+                    let displayName = isHidden ? "???" : (user.username || "Unbekannter Runner");
+                    if (isMe && isHidden) displayName = "??? (DU)";
+
+                    const adminHtml = isAdmin ? `<span class="admin-tag">SYSTEM-ADMIN</span>` : "";
+                    const entryClass = isAdmin ? "entry admin-entry" : "entry";
+                    const meStyle = isMe ? "background: rgba(0,255,255,0.15); border: 1px solid #0ff;" : "";
+
                     listDiv.innerHTML += `
-                        <div class="entry">
-                            <span><span class="rank">#${i+1}</span> ${name}</span>
-                            <span class="score">${val.highscore}</span>
+                        <div class="${entryClass}" style="${meStyle}">
+                            <div class="name-container">
+                                <span class="rank">#${i+1}</span>
+                                <span style="color: ${isMe ? '#0ff' : 'white'}">${displayName}</span>
+                                ${adminHtml}
+                            </div>
+                            <span class="score">${user.highscore || 0}</span>
                         </div>`;
+                    
+                    // Privacy Button Text aktualisieren
+                    if (isMe) {
+                        document.getElementById('togglePrivacyBtn').innerText = isHidden ? "NAME VERSTECKEN: AN" : "NAME VERSTECKEN: AUS";
+                    }
                 });
             } else {
-                listDiv.innerHTML = "Noch keine Einträge.";
+                listDiv.innerHTML = "Keine Daten verfügbar.";
             }
         });
+
+        // Datenschutz Funktion
+        document.getElementById('togglePrivacyBtn').onclick = async function() {
+            if(!runnerID) {
+                alert("Fehler: Keine Runner-ID gefunden!");
+                return;
+            }
+            const userRef = ref(db, 'users/' + runnerID);
+            const snap = await get(userRef);
+            if(snap.exists()) {
+                const currentStatus = snap.val().hidden || false;
+                update(userRef, { hidden: !currentStatus });
+            } else {
+                alert("Bitte spiele erst eine Runde, um dein Profil zu erstellen!");
+            }
+        };
+
     </script>
 </body>
 </html>
