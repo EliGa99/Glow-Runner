@@ -8,15 +8,33 @@
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
         body { background: #000; color: white; font-family: 'Orbitron'; text-align: center; padding: 20px; }
         .leaderboard-box { max-width: 450px; margin: 0 auto; border: 2px solid #f0f; border-radius: 15px; padding: 20px; background: rgba(255,0,255,0.05); }
-        .entry { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #333; align-items: center; }
-        .rank { color: #f0f; font-weight: bold; margin-right: 10px; width: 30px; display: inline-block; }
+        .entry { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #333; align-items: center; transition: 0.3s; }
+        .rank { font-weight: bold; margin-right: 10px; width: 35px; display: inline-block; }
         .name-container { flex-grow: 1; text-align: left; display: flex; align-items: center; }
         .score { color: #0ff; font-weight: bold; }
         .back { display: inline-block; margin-top: 20px; color: #888; text-decoration: none; border: 1px solid #888; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
         
-        /* Admin Style */
-        .admin-tag { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px #ffd700; font-size: 0.7rem; margin-left: 8px; border: 1px solid #ffd700; padding: 2px 4px; border-radius: 3px; }
-        .admin-entry { border-left: 4px solid #ffd700 !important; background: rgba(255, 215, 0, 0.1) !important; }
+        /* --- Podium Styles --- */
+        @keyframes glowPulse {
+            0% { box-shadow: inset 0 0 5px rgba(255,255,255,0.1); }
+            50% { box-shadow: inset 0 0 20px var(--glow-color); }
+            100% { box-shadow: inset 0 0 5px rgba(255,255,255,0.1); }
+        }
+
+        .rank-1 { --glow-color: rgba(255, 215, 0, 0.4); border-left: 5px solid #ffd700; background: rgba(255, 215, 0, 0.1) !important; animation: glowPulse 2s infinite; }
+        .rank-1 .rank { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
+
+        .rank-2 { --glow-color: rgba(192, 192, 192, 0.3); border-left: 5px solid #c0c0c0; background: rgba(192, 192, 192, 0.08) !important; animation: glowPulse 2.5s infinite; }
+        .rank-2 .rank { color: #c0c0c0; text-shadow: 0 0 10px #c0c0c0; }
+
+        .rank-3 { --glow-color: rgba(205, 127, 50, 0.2); border-left: 5px solid #cd7f32; background: rgba(205, 127, 50, 0.05) !important; animation: glowPulse 3s infinite; }
+        .rank-3 .rank { color: #cd7f32; text-shadow: 0 0 10px #cd7f32; }
+
+        .rank-default { color: #f0f; }
+
+        /* Admin Style (Statisch & Markant) */
+        .admin-tag { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px #ffd700; font-size: 0.7rem; margin-left: 8px; border: 1px solid #ffd700; padding: 2px 4px; border-radius: 3px; background: rgba(0,0,0,0.5); }
+        .admin-entry { border-right: 4px solid #ffd700 !important; } /* Admin bekommt Rand rechts zur Unterscheidung */
         
         .btn-privacy { background: transparent; border: 1px solid #ff0; color: #ff0; padding: 12px; border-radius: 5px; font-family: 'Orbitron'; cursor: pointer; margin-top: 20px; width: 100%; max-width: 450px; transition: 0.3s; }
         .btn-privacy:hover { background: rgba(255, 255, 0, 0.1); }
@@ -49,14 +67,12 @@
         const db = getDatabase(app);
         const runnerID = localStorage.getItem('glow_runner_id');
 
-        // --- WARTUNGS-CHECK ---
         onValue(ref(db, 'wartung'), (snapshot) => {
             if (snapshot.exists() && snapshot.val() === true) {
                 window.location.href = "wartung.html";
             }
         });
 
-        // Bestenliste laden
         const usersRef = ref(db, 'users');
         onValue(usersRef, (snap) => {
             const data = snap.val();
@@ -64,42 +80,46 @@
             listDiv.innerHTML = "";
             
             if(data) {
-                // In Array umwandeln für Sortierung
                 const usersArray = [];
                 for (let id in data) {
-                    // Wir nehmen nur Einträge, die auch wirklich ein Highscore-Feld haben
                     if (data[id].highscore !== undefined) {
                         usersArray.push({ id: id, ...data[id] });
                     }
                 }
 
-                // Absteigend nach Highscore sortieren
                 usersArray.sort((a, b) => (b.highscore || 0) - (a.highscore || 0));
                 
                 usersArray.slice(0, 25).forEach((user, i) => {
                     const isAdmin = user.admin === true;
                     const isHidden = user.hidden === true;
                     const isMe = user.id === runnerID;
+                    const rank = i + 1;
                     
-                    // Name Logik
                     let displayName = isHidden ? "???" : (user.username || "Unbekannter Runner");
                     if (isMe && isHidden) displayName = "??? (DU)";
 
                     const adminHtml = isAdmin ? `<span class="admin-tag">SYSTEM-ADMIN</span>` : "";
-                    const entryClass = isAdmin ? "entry admin-entry" : "entry";
-                    const meStyle = isMe ? "background: rgba(0,255,255,0.15); border: 1px solid #0ff;" : "";
+                    
+                    // Klassen-Logik für Podium
+                    let rankClass = "rank-default";
+                    let podiumClass = "";
+                    if(rank === 1) podiumClass = "rank-1";
+                    else if(rank === 2) podiumClass = "rank-2";
+                    else if(rank === 3) podiumClass = "rank-3";
+                    
+                    const adminEntryClass = isAdmin ? "admin-entry" : "";
+                    const meStyle = isMe ? "outline: 1px solid #0ff; z-index: 10;" : "";
 
                     listDiv.innerHTML += `
-                        <div class="${entryClass}" style="${meStyle}">
+                        <div class="entry ${podiumClass} ${adminEntryClass}" style="${meStyle}">
                             <div class="name-container">
-                                <span class="rank">#${i+1}</span>
+                                <span class="rank ${rankClass}">#${rank}</span>
                                 <span style="color: ${isMe ? '#0ff' : 'white'}">${displayName}</span>
                                 ${adminHtml}
                             </div>
                             <span class="score">${user.highscore || 0}</span>
                         </div>`;
                     
-                    // Privacy Button Text aktualisieren
                     if (isMe) {
                         document.getElementById('togglePrivacyBtn').innerText = isHidden ? "NAME VERSTECKEN: AN" : "NAME VERSTECKEN: AUS";
                     }
@@ -109,19 +129,13 @@
             }
         });
 
-        // Datenschutz Funktion
         document.getElementById('togglePrivacyBtn').onclick = async function() {
-            if(!runnerID) {
-                alert("Fehler: Keine Runner-ID gefunden!");
-                return;
-            }
+            if(!runnerID) return;
             const userRef = ref(db, 'users/' + runnerID);
             const snap = await get(userRef);
             if(snap.exists()) {
                 const currentStatus = snap.val().hidden || false;
                 update(userRef, { hidden: !currentStatus });
-            } else {
-                alert("Bitte spiele erst eine Runde, um dein Profil zu erstellen!");
             }
         };
 
