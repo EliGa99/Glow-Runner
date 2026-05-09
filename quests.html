@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Glow Runner - Infinite Quests</title>
+    <title>Glow Runner - Missions</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
         body { background: #000; color: white; font-family: 'Orbitron'; text-align: center; padding: 20px; margin: 0; }
@@ -52,84 +52,87 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        // KORREKTUR: Nutze den gleichen Key wie in der index.html!
-        const username = localStorage.getItem('glow_user_id') || "Pilot";
-
-        onValue(ref(db, 'users/' + username), (snap) => {
-            const data = snap.val();
-            if(!data) {
-                document.getElementById('questList').innerText = "Keine Daten gefunden. Spiele erst eine Runde!";
-                return;
+        // --- WARTUNGS-CHECK ---
+        const wartungRef = ref(db, 'wartung');
+        onValue(wartungRef, (snapshot) => {
+            if (snapshot.exists() && snapshot.val() === true) {
+                window.location.href = "wartung.html";
             }
-
-            // Sicherstellen, dass questLevel existiert
-            if(!data.questLevel) data.questLevel = 1;
-            document.getElementById('levelDisplay').innerText = `Pilot Level: ${data.questLevel}`;
-
-            const questList = document.getElementById('questList');
-            questList.innerHTML = "";
-
-            // Quests generieren
-            const generatedQuests = [
-                {
-                    id: 'score_' + data.questLevel,
-                    title: "Score Jäger",
-                    desc: `Erreiche einen Score von ${data.questLevel * 40}`,
-                    target: data.questLevel * 40,
-                    current: data.highscore || 0,
-                    reward: data.questLevel * 150
-                },
-                {
-                    id: 'crystal_' + data.questLevel,
-                    title: "Sammler",
-                    desc: `Besitze insgesamt ${data.questLevel * 500} Kristalle`,
-                    target: data.questLevel * 500,
-                    current: data.points || 0,
-                    reward: data.questLevel * 200
-                }
-            ];
-
-            generatedQuests.forEach(q => {
-                const isCompleted = data.completedQuests && data.completedQuests[q.id];
-                const progress = Math.min(100, (q.current / q.target) * 100);
-                const canClaim = !isCompleted && q.current >= q.target;
-
-                const card = document.createElement('div');
-                card.className = `quest-item ${canClaim ? 'can-claim' : ''}`;
-                card.innerHTML = `
-                    <span class="quest-title">${q.title}</span>
-                    <p style="font-size:0.8rem; margin:5px 0;">${q.desc}</p>
-                    <span class="reward">+${q.reward} 💎</span>
-                    <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
-                    <button class="btn-claim" id="btn-${q.id}" style="display: ${canClaim ? 'block' : 'none'}">BELOHNUNG</button>
-                    ${isCompleted ? '<span style="color:#0f0; position:absolute; right:20px; top:30px;">✓ FERTIG</span>' : ''}
-                `;
-                
-                questList.appendChild(card);
-
-                if(canClaim) {
-                    document.getElementById(`btn-${q.id}`).onclick = () => claimReward(q, data);
-                }
-            });
         });
+
+        // WICHTIG: Nutze die runnerID wie in der index.html
+        const runnerID = localStorage.getItem('glow_runner_id');
+
+        if (!runnerID) {
+            document.getElementById('questList').innerText = "Fehler: Keine Runner-ID gefunden. Bitte starte das Spiel neu.";
+        } else {
+            onValue(ref(db, 'users/' + runnerID), (snap) => {
+                const data = snap.val();
+                if(!data) {
+                    document.getElementById('questList').innerText = "Keine Daten gefunden. Spiele erst eine Runde!";
+                    return;
+                }
+
+                if(!data.questLevel) data.questLevel = 1;
+                document.getElementById('levelDisplay').innerText = `Pilot Level: ${data.questLevel}`;
+
+                const questList = document.getElementById('questList');
+                questList.innerHTML = "";
+
+                // Quests generieren
+                const generatedQuests = [
+                    {
+                        id: 'score_easy_' + data.questLevel,
+                        title: "Score Jäger",
+                        desc: `Erreiche einen Score von ${data.questLevel * 50}`,
+                        target: data.questLevel * 50,
+                        current: data.highscore || 0,
+                        reward: data.questLevel * 100
+                    },
+                    {
+                        id: 'score_hard_' + data.questLevel,
+                        title: "Highscore Master",
+                        desc: `Erreiche einen Highscore von ${data.questLevel * 120}`,
+                        target: data.questLevel * 120,
+                        current: data.highscore || 0,
+                        reward: data.questLevel * 250
+                    }
+                ];
+
+                generatedQuests.forEach(q => {
+                    const isCompleted = data.completedQuests && data.completedQuests[q.id];
+                    const progress = Math.min(100, (q.current / q.target) * 100);
+                    const canClaim = !isCompleted && q.current >= q.target;
+
+                    const card = document.createElement('div');
+                    card.className = `quest-item ${canClaim ? 'can-claim' : ''}`;
+                    card.innerHTML = `
+                        <span class="quest-title">${q.title}</span>
+                        <p style="font-size:0.8rem; margin:5px 0;">${q.desc}</p>
+                        <span class="reward">+${q.reward} 💎</span>
+                        <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+                        <button class="btn-claim" id="btn-${q.id}" style="display: ${canClaim ? 'block' : 'none'}">BELOHNUNG</button>
+                        ${isCompleted ? '<span style="color:#0f0; position:absolute; right:20px; top:30px;">✓ FERTIG</span>' : ''}
+                    `;
+                    
+                    questList.appendChild(card);
+
+                    if(canClaim) {
+                        document.getElementById(`btn-${q.id}`).onclick = () => claimReward(q, data);
+                    }
+                });
+            });
+        }
 
         function claimReward(quest, data) {
             if(!data.completedQuests) data.completedQuests = {};
             
-            // Quest markieren
             data.completedQuests[quest.id] = true;
-            
-            // Belohnung hinzufügen (Number() stellt sicher, dass es keine Text-Verkettung gibt)
             data.points = (Number(data.points) || 0) + quest.reward;
-            
-            // Level erhöhen
             data.questLevel = (Number(data.questLevel) || 1) + 1;
 
-            set(ref(db, 'users/' + username), data).then(() => {
-                alert(`Glückwunsch! +${quest.reward} Kristalle erhalten. Dein Pilot-Level ist nun ${data.questLevel}!`);
-            }).catch(err => {
-                console.error("Fehler beim Speichern:", err);
-                alert("Fehler beim Speichern der Belohnung.");
+            set(ref(db, 'users/' + runnerID), data).then(() => {
+                alert(`Mission erfüllt! +${quest.reward} Kristalle erhalten.`);
             });
         }
     </script>
