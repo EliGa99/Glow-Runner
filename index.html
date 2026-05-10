@@ -156,7 +156,8 @@
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    // Hier wurde 'update' zum Import hinzugefügt
+    import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBB7Dbf_Y9ShE5InKfTIfHimXx-8UxlEg8",
@@ -238,7 +239,7 @@
                 window.boughtSkins = data.boughtSkins || ['cyan'];
                 window.activeSkin = data.activeSkin || 'cyan';
                 window.boughtShapes = data.boughtShapes || ['circle'];
-                window.activeShape = data.activeShape || 'circle';
+                window.activeShape = 'circle';
                 window.boughtMaps = data.boughtMaps || ['none'];
                 window.activeMap = data.activeMap || 'none';
 
@@ -304,9 +305,10 @@
         };
     };
 
+    // FIX: Hier wird nun 'update' statt 'set' verwendet
     window.saveToDB = function() {
         if(!runnerID) return;
-        set(ref(db, 'users/' + runnerID), {
+        update(ref(db, 'users/' + runnerID), {
             username: window.username,
             points: window.totalPoints,
             highscore: window.highscore,
