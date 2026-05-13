@@ -3,57 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glow Runner - Bestenliste</title>
+    <title>Glow Runner - Global Ranking</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-        body { background: #000; color: white; font-family: 'Orbitron'; text-align: center; padding: 20px; }
-        .leaderboard-box { max-width: 450px; margin: 0 auto; border: 2px solid #f0f; border-radius: 15px; padding: 20px; background: rgba(255,0,255,0.05); }
-        .entry { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #333; align-items: center; transition: 0.3s; }
-        .rank { font-weight: bold; margin-right: 10px; width: 45px; display: inline-block; }
-        .name-container { flex-grow: 1; text-align: left; display: flex; align-items: center; }
-        .score { color: #0ff; font-weight: bold; }
-        .back { display: inline-block; margin-top: 20px; color: #888; text-decoration: none; border: 1px solid #888; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
         
-        /* --- Podium & Spezial Styles --- */
-        @keyframes glowPulse {
-            0% { box-shadow: inset 0 0 5px rgba(255,255,255,0.1); }
-            50% { box-shadow: inset 0 0 20px var(--glow-color); }
-            100% { box-shadow: inset 0 0 5px rgba(255,255,255,0.1); }
+        body { 
+            background: #000; color: white; font-family: 'Orbitron', sans-serif; 
+            text-align: center; padding: 20px; margin: 0;
         }
 
-        .rank-1 { --glow-color: rgba(255, 215, 0, 0.4); border-left: 5px solid #ffd700; background: rgba(255, 215, 0, 0.1) !important; animation: glowPulse 2s infinite; }
-        .rank-1 .rank { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
+        h1 { text-shadow: 0 0 10px #f0f; margin-bottom: 5px; letter-spacing: 3px; }
 
-        .rank-2 { --glow-color: rgba(192, 192, 192, 0.3); border-left: 5px solid #c0c0c0; background: rgba(192, 192, 192, 0.08) !important; animation: glowPulse 2.5s infinite; }
-        .rank-2 .rank { color: #c0c0c0; text-shadow: 0 0 10px #c0c0c0; }
+        #userCount { color: #888; font-size: 0.8rem; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; }
 
-        .rank-3 { --glow-color: rgba(205, 127, 50, 0.2); border-left: 5px solid #cd7f32; background: rgba(205, 127, 50, 0.05) !important; animation: glowPulse 3s infinite; }
-        .rank-3 .rank { color: #cd7f32; text-shadow: 0 0 10px #cd7f32; }
+        /* Online Anzeige Style */
+        #onlineCount { color: #0f0; font-size: 0.7rem; margin-bottom: 20px; letter-spacing: 1px; }
 
-        .rank-default { color: #f0f; }
+        .leaderboard-box { 
+            max-width: 450px; margin: 0 auto; border: 2px solid #f0f; 
+            border-radius: 15px; padding: 10px; background: rgba(255,0,255,0.05); 
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.1);
+        }
+        
+        .entry { 
+            display: flex; justify-content: space-between; padding: 12px; 
+            border-bottom: 1px solid #333; align-items: center; 
+            transition: background 0.5s, transform 0.2s; cursor: pointer; position: relative;
+        }
 
-        /* User außerhalb Top 25 */
+        .entry:hover { background: rgba(0, 255, 255, 0.1); transform: scale(1.02); z-index: 5; }
+        
+        .flash-update { animation: flashGreen 1s ease-out; }
+        @keyframes flashGreen {
+            0% { background: rgba(0, 255, 0, 0.5); }
+            100% { background: transparent; }
+        }
+
+        .rank { font-weight: bold; width: 45px; text-align: left; font-size: 0.9rem; }
+        .name-container { flex-grow: 1; text-align: left; display: flex; align-items: center; gap: 8px; }
+        .score { color: #0ff; font-weight: bold; }
+        
+        .rank-1 { border-left: 5px solid #ffd700; color: #ffd700; background: rgba(255, 215, 0, 0.05); }
+        .rank-2 { border-left: 5px solid #c0c0c0; color: #c0c0c0; background: rgba(192, 192, 192, 0.05); }
+        .rank-3 { border-left: 5px solid #cd7f32; color: #cd7f32; background: rgba(205, 127, 50, 0.05); }
+
         .your-rank-separator { margin: 20px 0 10px 0; border-top: 2px dashed #444; padding-top: 10px; font-size: 0.7rem; color: #888; letter-spacing: 2px; }
-        .entry.is-me { outline: 1px solid #0ff; background: rgba(0, 255, 255, 0.1) !important; }
 
-        .admin-tag { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px #ffd700; font-size: 0.6rem; margin-left: 8px; border: 1px solid #ffd700; padding: 2px 4px; border-radius: 3px; background: rgba(0,0,0,0.5); }
-        .btn-privacy { background: transparent; border: 1px solid #ff0; color: #ff0; padding: 12px; border-radius: 5px; font-family: 'Orbitron'; cursor: pointer; margin-top: 20px; width: 100%; max-width: 450px; transition: 0.3s; }
+        #runnerCard {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95); border: 2px solid #0ff; padding: 25px;
+            z-index: 100; border-radius: 15px; display: none; min-width: 280px;
+            box-shadow: 0 0 40px #0ff; text-align: center; backdrop-filter: blur(10px);
+        }
+        .preview-box { width: 80px; height: 80px; margin: 15px auto; display: flex; align-items: center; justify-content: center; background: #111; border: 1px solid #333; overflow: hidden; }
+        .overlay-bg { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:90; display:none; }
+        .admin-tag { color: #ffd700; font-size: 0.6rem; border: 1px solid #ffd700; padding: 1px 4px; border-radius: 3px; background: rgba(255, 215, 0, 0.1); }
+        .btn-privacy { background: transparent; border: 1px solid #ff0; color: #ff0; padding: 12px; border-radius: 5px; font-family: 'Orbitron'; cursor: pointer; margin-top: 15px; width: 100%; max-width: 450px; transition: 0.3s; }
+        .btn-privacy:hover { background: rgba(255, 255, 0, 0.1); }
+        .back { display: inline-block; margin-top: 20px; color: #888; text-decoration: none; border: 1px solid #888; padding: 10px 20px; border-radius: 5px; transition: 0.3s; }
     </style>
 </head>
 <body>
-    <h1 style="text-shadow: 0 0 10px #f0f;">GLOBAL RANKING</h1>
+
+    <h1>GLOBAL RANKING</h1>
+    <div id="userCount">LADE RUNNER-DATEN...</div>
+    <div id="onlineCount">
+        ● <span id="onlineVal">0</span> RUNNER LIVE
+    </div>
     
-    <div class="leaderboard-box" id="leaderboard">
-        Initialisiere System...
+    <div class="leaderboard-box" id="leaderboard">Initialisiere Verbindung...</div>
+
+    <button id="togglePrivacyBtn" class="btn-privacy">DATENSCHUTZ LADEN...</button><br>
+    <a href="index.html" class="back">ZURÜCK ZUM HAUPTMENÜ</a>
+
+    <div id="overlay" class="overlay-bg" onclick="closeCard()"></div>
+    <div id="runnerCard">
+        <h3 id="cardName" style="color:#0ff; margin: 0 0 5px 0;">Runner</h3>
+        <div id="cardRank" style="font-size:0.8rem; color:#888; margin-bottom: 10px;">#?</div>
+        <div class="preview-box"><div id="skinPreview"></div></div>
+        <div id="cardStats" style="font-size:0.7rem; color:#ff0; margin-bottom:20px; line-height: 1.5;"></div>
+        <button class="btn-privacy" style="border-color:#f0f; color:#f0f; margin: 0;" onclick="closeCard()">SCHLIESSEN</button>
     </div>
 
-    <button id="togglePrivacyBtn" class="btn-privacy">DATENSCHUTZ LADEN...</button>
-    <br>
-    <a href="index.html" class="back">ZURÜCK ZUM MENÜ</a>
-
     <script type="module">
+        // ALLE IMPORTE IN EINEM BLOCK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getDatabase, ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+        import { getDatabase, ref, onValue, update, get, set, onDisconnect } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBB7Dbf_Y9ShE5InKfTIfHimXx-8UxlEg8",
@@ -66,103 +101,170 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const runnerID = localStorage.getItem('glow_runner_id');
+        let lastScores = {};
 
-        // Hilfsfunktion zum Rendern eines Eintrags
-        function createEntryHtml(user, rank, isMe) {
-            const isAdmin = user.admin === true;
-            const isHidden = user.hidden === true;
-            
-            let displayName = isHidden ? "???" : (user.username || "Unbekannter Runner");
-            if (isMe && isHidden) displayName = "??? (DU)";
+        // --- 1. ONLINE PRÄSENZ LOGIK (JETZT KORREKT INTEGRIERT) ---
+        if (runnerID) {
+            const connectedRef = ref(db, '.info/connected');
+            const myOnlineRef = ref(db, 'online_users/' + runnerID);
 
-            const adminHtml = isAdmin ? `<span class="admin-tag">SYSTEM-ADMIN</span>` : "";
-            
-            let podiumClass = "";
-            if(rank === 1) podiumClass = "rank-1";
-            else if(rank === 2) podiumClass = "rank-2";
-            else if(rank === 3) podiumClass = "rank-3";
-            
-            const meClass = isMe ? "is-me" : "";
+            onValue(connectedRef, (snap) => {
+                if (snap.val() === true) {
+                    onDisconnect(myOnlineRef).remove();
+                    set(myOnlineRef, true);
+                }
+            });
 
-            return `
-                <div class="entry ${podiumClass} ${meClass}">
-                    <div class="name-container">
-                        <span class="rank rank-default">#${rank}</span>
-                        <span style="color: ${isMe ? '#0ff' : 'white'}">${displayName}</span>
-                        ${adminHtml}
-                    </div>
-                    <span class="score">${user.highscore || 0}</span>
-                </div>`;
+            // Online Zähler Anzeige
+            const onlineValElem = document.getElementById('onlineVal');
+            onValue(ref(db, 'online_users'), (snapshot) => {
+                const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+                if(onlineValElem) onlineValElem.innerText = count;
+            });
         }
 
-        onValue(ref(db, 'users'), (snap) => {
-            const data = snap.val();
-            const listDiv = document.getElementById('leaderboard');
-            listDiv.innerHTML = "";
-            
-            if(data) {
-                const usersArray = [];
-                for (let id in data) {
-                    if (data[id].highscore !== undefined) {
-                        usersArray.push({ id: id, ...data[id] });
-                    }
-                }
-
-                // Sortiere alle User nach Highscore
-                usersArray.sort((a, b) => (b.highscore || 0) - (a.highscore || 0));
-                
-                let myRank = 0;
-                let myData = null;
-                let isTop25 = false;
-
-                // Finde meinen Rang in der Gesamteiste
-                usersArray.forEach((u, index) => {
-                    if(u.id === runnerID) {
-                        myRank = index + 1;
-                        myData = u;
-                        if(index < 25) isTop25 = true;
-                    }
-                });
-
-                // Top 25 anzeigen
-                const top25 = usersArray.slice(0, 25);
-                top25.forEach((user, i) => {
-                    listDiv.innerHTML += createEntryHtml(user, i + 1, user.id === runnerID);
-                });
-
-                // Falls ich NICHT in den Top 25 bin, hänge mich unten dran
-                if(!isTop25 && myData) {
-                    listDiv.innerHTML += `<div class="your-rank-separator">DEINE PLATZIERUNG</div>`;
-                    listDiv.innerHTML += createEntryHtml(myData, myRank, true);
-                }
-
-                // Datenschutz-Button Text aktualisieren
-                if(myData) {
-                    document.getElementById('togglePrivacyBtn').innerText = myData.hidden ? "NAME VERSTECKEN: AN" : "NAME VERSTECKEN: AUS";
-                }
-
-            } else {
-                listDiv.innerHTML = "Keine Daten verfügbar.";
-            }
-        });
-
-        // Datenschutz Toggle
-        document.getElementById('togglePrivacyBtn').onclick = async function() {
-            if(!runnerID) return;
-            const userRef = ref(db, 'users/' + runnerID);
-            const snap = await get(userRef);
-            if(snap.exists()) {
-                const currentStatus = snap.val().hidden || false;
-                update(userRef, { hidden: !currentStatus });
-            }
-        };
-
-        // Wartungs-Check
+        // --- 2. WARTUNGS-CHECK ---
         onValue(ref(db, 'wartung'), (snapshot) => {
             if (snapshot.exists() && snapshot.val() === true) {
                 window.location.href = "wartung.html";
             }
         });
+
+        // --- 3. LEADERBOARD RENDERING ---
+        onValue(ref(db, 'users'), (snap) => {
+            const data = snap.val();
+            const listDiv = document.getElementById('leaderboard');
+            const countDiv = document.getElementById('userCount');
+            
+            if(!data) {
+                listDiv.innerHTML = "Keine Daten verfügbar.";
+                countDiv.innerText = "0 RUNNER REGISTRIERT";
+                return;
+            }
+
+            const usersArray = Object.keys(data)
+                .map(id => ({ id, ...data[id] }))
+                .filter(u => u.highscore !== undefined)
+                .sort((a, b) => b.highscore - a.highscore);
+
+            countDiv.innerHTML = `<span style="color: #0ff;">${usersArray.length}</span> RUNNER REGISTRIERT`;
+
+            listDiv.innerHTML = "";
+            let myRank = 0;
+            let myData = null;
+            let isTop25 = false;
+
+            usersArray.forEach((u, index) => {
+                if(u.id === runnerID) {
+                    myRank = index + 1;
+                    myData = u;
+                    if(index < 25) isTop25 = true;
+                }
+            });
+
+            usersArray.forEach((user, i) => {
+                if(i >= 25) return;
+                const rank = i + 1;
+                const isMe = user.id === runnerID;
+                const isHidden = user.hidden === true;
+                const hasChanged = lastScores[user.id] !== undefined && lastScores[user.id] !== user.highscore;
+                lastScores[user.id] = user.highscore;
+
+                const entry = document.createElement('div');
+                let podium = rank <= 3 ? `rank-${rank}` : "";
+                entry.className = `entry ${podium} ${hasChanged ? 'flash-update' : ''}`;
+                if(isMe) entry.style.outline = "1px solid #0ff";
+                
+                let displayName = isHidden ? "???" : (user.username || 'Runner');
+                if(isMe && isHidden) displayName = "??? (DU)";
+
+                entry.innerHTML = `
+                    <div class="name-container">
+                        <span class="rank">#${rank}</span>
+                        <span style="color:${isMe ? '#0ff' : 'white'}">${displayName}</span>
+                        ${user.admin ? '<span class="admin-tag">ADMIN</span>' : ''}
+                    </div>
+                    <span class="score">${user.highscore}</span>
+                `;
+                entry.onclick = () => showRunnerCard(user, rank);
+                listDiv.appendChild(entry);
+            });
+
+            if(!isTop25 && myData) {
+                listDiv.innerHTML += `<div class="your-rank-separator">DEINE PLATZIERUNG</div>`;
+                const myEntry = document.createElement('div');
+                myEntry.className = `entry`;
+                myEntry.style.outline = "1px solid #0ff";
+                myEntry.style.background = "rgba(0, 255, 255, 0.1)";
+                let myDisplayName = myData.hidden ? "??? (DU)" : (myData.username || 'Runner');
+                myEntry.innerHTML = `
+                    <div class="name-container">
+                        <span class="rank">#${myRank}</span>
+                        <span style="color:#0ff">${myDisplayName}</span>
+                        ${myData.admin ? '<span class="admin-tag">ADMIN</span>' : ''}
+                    </div>
+                    <span class="score">${myData.highscore}</span>
+                `;
+                myEntry.onclick = () => showRunnerCard(myData, myRank);
+                listDiv.appendChild(myEntry);
+            }
+
+            if(myData) {
+                document.getElementById('togglePrivacyBtn').innerText = myData.hidden ? "NAME VERSTECKEN: AN" : "NAME VERSTECKEN: AUS";
+            }
+        });
+
+        // Runner Card Logik
+        window.showRunnerCard = function(user, rank) {
+            const isMe = user.id === runnerID;
+            if(user.hidden && !isMe) {
+                alert("Dieser Runner möchte anonym bleiben.");
+                return;
+            }
+            document.getElementById('cardName').innerText = user.username || "Unbekannter Runner";
+            document.getElementById('cardRank').innerText = "GLOBALER RANG: #" + rank;
+            document.getElementById('cardStats').innerHTML = `BESTSCORE: ${user.highscore}<br>CRYSTALS: ${user.points || 0}<br>MISSIONS-LEVEL: ${user.questLevel || 1}`;
+            const preview = document.getElementById('skinPreview');
+            preview.style = ""; preview.innerHTML = "";
+            preview.style.width = "40px"; preview.style.height = "40px";
+            let color = user.activeSkin || 'cyan';
+            let shape = user.activeShape || 'circle';
+            if(color === 'rainbow') {
+                preview.style.background = "linear-gradient(45deg, red, yellow, green, blue, purple, red)";
+                preview.style.backgroundSize = "200%";
+                preview.style.boxShadow = "0 0 20px white";
+            } else {
+                preview.style.background = color;
+                preview.style.boxShadow = `0 0 20px ${color}`;
+            }
+            if(shape === 'circle') preview.style.borderRadius = "50%";
+            if(shape === 'square') preview.style.borderRadius = "0%";
+            if(shape === 'triangle') {
+                preview.style.background = "none"; preview.style.boxShadow = "none"; preview.style.width = "0"; preview.style.height = "0";
+                preview.style.borderLeft = "20px solid transparent"; preview.style.borderRight = "20px solid transparent";
+                preview.style.borderBottom = `40px solid ${color === 'rainbow' ? 'white' : color}`;
+            }
+            if(shape === 'diamond') preview.style.transform = "rotate(45deg)";
+            if(shape === 'star') preview.style.clipPath = "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)";
+            if(shape === 'phoenix') preview.style.clipPath = "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%, 50% 40%)";
+            document.getElementById('runnerCard').style.display = "block";
+            document.getElementById('overlay').style.display = "block";
+        };
+
+        window.closeCard = () => {
+            document.getElementById('runnerCard').style.display = "none";
+            document.getElementById('overlay').style.display = "none";
+        };
+
+        document.getElementById('togglePrivacyBtn').onclick = async () => {
+            if(!runnerID) return;
+            const userRef = ref(db, 'users/' + runnerID);
+            const snap = await get(userRef);
+            if(snap.exists()) {
+                const current = snap.val().hidden || false;
+                update(userRef, { hidden: !current });
+            }
+        };
     </script>
 </body>
 </html>
