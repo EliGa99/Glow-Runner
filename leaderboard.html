@@ -9,12 +9,12 @@
         body { background: #000; color: white; font-family: 'Orbitron'; text-align: center; padding: 20px; }
         .leaderboard-box { max-width: 450px; margin: 0 auto; border: 2px solid #f0f; border-radius: 15px; padding: 20px; background: rgba(255,0,255,0.05); }
         .entry { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #333; align-items: center; transition: 0.3s; }
-        .rank { font-weight: bold; margin-right: 10px; width: 35px; display: inline-block; }
+        .rank { font-weight: bold; margin-right: 10px; width: 45px; display: inline-block; }
         .name-container { flex-grow: 1; text-align: left; display: flex; align-items: center; }
         .score { color: #0ff; font-weight: bold; }
         .back { display: inline-block; margin-top: 20px; color: #888; text-decoration: none; border: 1px solid #888; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
         
-        /* --- Podium Styles --- */
+        /* --- Podium & Spezial Styles --- */
         @keyframes glowPulse {
             0% { box-shadow: inset 0 0 5px rgba(255,255,255,0.1); }
             50% { box-shadow: inset 0 0 20px var(--glow-color); }
@@ -32,12 +32,12 @@
 
         .rank-default { color: #f0f; }
 
-        /* Admin Style (Statisch & Markant) */
-        .admin-tag { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px #ffd700; font-size: 0.7rem; margin-left: 8px; border: 1px solid #ffd700; padding: 2px 4px; border-radius: 3px; background: rgba(0,0,0,0.5); }
-        .admin-entry { border-right: 4px solid #ffd700 !important; } /* Admin bekommt Rand rechts zur Unterscheidung */
-        
+        /* User außerhalb Top 25 */
+        .your-rank-separator { margin: 20px 0 10px 0; border-top: 2px dashed #444; padding-top: 10px; font-size: 0.7rem; color: #888; letter-spacing: 2px; }
+        .entry.is-me { outline: 1px solid #0ff; background: rgba(0, 255, 255, 0.1) !important; }
+
+        .admin-tag { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px #ffd700; font-size: 0.6rem; margin-left: 8px; border: 1px solid #ffd700; padding: 2px 4px; border-radius: 3px; background: rgba(0,0,0,0.5); }
         .btn-privacy { background: transparent; border: 1px solid #ff0; color: #ff0; padding: 12px; border-radius: 5px; font-family: 'Orbitron'; cursor: pointer; margin-top: 20px; width: 100%; max-width: 450px; transition: 0.3s; }
-        .btn-privacy:hover { background: rgba(255, 255, 0, 0.1); }
     </style>
 </head>
 <body>
@@ -67,14 +67,35 @@
         const db = getDatabase(app);
         const runnerID = localStorage.getItem('glow_runner_id');
 
-        onValue(ref(db, 'wartung'), (snapshot) => {
-            if (snapshot.exists() && snapshot.val() === true) {
-                window.location.href = "wartung.html";
-            }
-        });
+        // Hilfsfunktion zum Rendern eines Eintrags
+        function createEntryHtml(user, rank, isMe) {
+            const isAdmin = user.admin === true;
+            const isHidden = user.hidden === true;
+            
+            let displayName = isHidden ? "???" : (user.username || "Unbekannter Runner");
+            if (isMe && isHidden) displayName = "??? (DU)";
 
-        const usersRef = ref(db, 'users');
-        onValue(usersRef, (snap) => {
+            const adminHtml = isAdmin ? `<span class="admin-tag">SYSTEM-ADMIN</span>` : "";
+            
+            let podiumClass = "";
+            if(rank === 1) podiumClass = "rank-1";
+            else if(rank === 2) podiumClass = "rank-2";
+            else if(rank === 3) podiumClass = "rank-3";
+            
+            const meClass = isMe ? "is-me" : "";
+
+            return `
+                <div class="entry ${podiumClass} ${meClass}">
+                    <div class="name-container">
+                        <span class="rank rank-default">#${rank}</span>
+                        <span style="color: ${isMe ? '#0ff' : 'white'}">${displayName}</span>
+                        ${adminHtml}
+                    </div>
+                    <span class="score">${user.highscore || 0}</span>
+                </div>`;
+        }
+
+        onValue(ref(db, 'users'), (snap) => {
             const data = snap.val();
             const listDiv = document.getElementById('leaderboard');
             listDiv.innerHTML = "";
@@ -87,48 +108,45 @@
                     }
                 }
 
+                // Sortiere alle User nach Highscore
                 usersArray.sort((a, b) => (b.highscore || 0) - (a.highscore || 0));
                 
-                usersArray.slice(0, 25).forEach((user, i) => {
-                    const isAdmin = user.admin === true;
-                    const isHidden = user.hidden === true;
-                    const isMe = user.id === runnerID;
-                    const rank = i + 1;
-                    
-                    let displayName = isHidden ? "???" : (user.username || "Unbekannter Runner");
-                    if (isMe && isHidden) displayName = "??? (DU)";
+                let myRank = 0;
+                let myData = null;
+                let isTop25 = false;
 
-                    const adminHtml = isAdmin ? `<span class="admin-tag">SYSTEM-ADMIN</span>` : "";
-                    
-                    // Klassen-Logik für Podium
-                    let rankClass = "rank-default";
-                    let podiumClass = "";
-                    if(rank === 1) podiumClass = "rank-1";
-                    else if(rank === 2) podiumClass = "rank-2";
-                    else if(rank === 3) podiumClass = "rank-3";
-                    
-                    const adminEntryClass = isAdmin ? "admin-entry" : "";
-                    const meStyle = isMe ? "outline: 1px solid #0ff; z-index: 10;" : "";
-
-                    listDiv.innerHTML += `
-                        <div class="entry ${podiumClass} ${adminEntryClass}" style="${meStyle}">
-                            <div class="name-container">
-                                <span class="rank ${rankClass}">#${rank}</span>
-                                <span style="color: ${isMe ? '#0ff' : 'white'}">${displayName}</span>
-                                ${adminHtml}
-                            </div>
-                            <span class="score">${user.highscore || 0}</span>
-                        </div>`;
-                    
-                    if (isMe) {
-                        document.getElementById('togglePrivacyBtn').innerText = isHidden ? "NAME VERSTECKEN: AN" : "NAME VERSTECKEN: AUS";
+                // Finde meinen Rang in der Gesamteiste
+                usersArray.forEach((u, index) => {
+                    if(u.id === runnerID) {
+                        myRank = index + 1;
+                        myData = u;
+                        if(index < 25) isTop25 = true;
                     }
                 });
+
+                // Top 25 anzeigen
+                const top25 = usersArray.slice(0, 25);
+                top25.forEach((user, i) => {
+                    listDiv.innerHTML += createEntryHtml(user, i + 1, user.id === runnerID);
+                });
+
+                // Falls ich NICHT in den Top 25 bin, hänge mich unten dran
+                if(!isTop25 && myData) {
+                    listDiv.innerHTML += `<div class="your-rank-separator">DEINE PLATZIERUNG</div>`;
+                    listDiv.innerHTML += createEntryHtml(myData, myRank, true);
+                }
+
+                // Datenschutz-Button Text aktualisieren
+                if(myData) {
+                    document.getElementById('togglePrivacyBtn').innerText = myData.hidden ? "NAME VERSTECKEN: AN" : "NAME VERSTECKEN: AUS";
+                }
+
             } else {
                 listDiv.innerHTML = "Keine Daten verfügbar.";
             }
         });
 
+        // Datenschutz Toggle
         document.getElementById('togglePrivacyBtn').onclick = async function() {
             if(!runnerID) return;
             const userRef = ref(db, 'users/' + runnerID);
@@ -139,6 +157,12 @@
             }
         };
 
+        // Wartungs-Check
+        onValue(ref(db, 'waretung'), (snapshot) => {
+            if (snapshot.exists() && snapshot.val() === true) {
+                window.location.href = "wartung.html";
+            }
+        });
     </script>
 </body>
 </html>
