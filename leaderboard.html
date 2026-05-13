@@ -158,7 +158,7 @@
         };
 
         // Wartungs-Check
-        onValue(ref(db, 'waretung'), (snapshot) => {
+        onValue(ref(db, 'wartung'), (snapshot) => {
             if (snapshot.exists() && snapshot.val() === true) {
                 window.location.href = "wartung.html";
             }
