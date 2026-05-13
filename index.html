@@ -92,6 +92,10 @@
         <img src="ChatGPT Image 6. Mai 2026, 18_30_59.png" alt="Title Art" class="title-img">
         <h1 id="welcomeText">GLOW RUNNER</h1>
         
+        <div style="color: #0f0; font-size: 0.7rem; margin-bottom: 15px; letter-spacing: 1px;">
+            ● <span id="onlineVal">0</span> RUNNER LIVE
+        </div>
+        
         <button class="btn" onclick="startGame()" style="border-color: #0f0; color: #0f0;">LAUNCH GAME</button>
         <button class="btn" onclick="location.href='modes.html'">SELECT MODE</button>
         <button class="btn" onclick="openShop()">ARMORY & SHOP</button>
@@ -155,7 +159,7 @@
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    import { getDatabase, ref, set, get, onValue, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBB7Dbf_Y9ShE5InKfTIfHimXx-8UxlEg8",
@@ -185,6 +189,24 @@
         runnerID = 'RNR-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         localStorage.setItem('glow_runner_id', runnerID);
     }
+
+    // --- ONLINE SYSTEM LOGIK ---
+    const myOnlineRef = ref(db, 'online_users/' + runnerID);
+    const connectedRef = ref(db, '.info/connected');
+
+    onValue(connectedRef, (snap) => {
+        if (snap.val() === true) {
+            onDisconnect(myOnlineRef).remove();
+            set(myOnlineRef, true);
+        }
+    });
+
+    onValue(ref(db, 'online_users'), (snap) => {
+        const onlineValElem = document.getElementById('onlineVal');
+        if (onlineValElem) {
+            onlineValElem.innerText = snap.exists() ? Object.keys(snap.val()).length : 0;
+        }
+    });
 
     const wartungRef = ref(db, 'wartung');
     onValue(wartungRef, (snapshot) => {
