@@ -25,11 +25,18 @@
             font-weight: bold;
         }
         .back { display: inline-block; margin-top: 30px; color: #0ff; text-decoration: none; border: 1px solid #0ff; padding: 10px 20px; border-radius: 5px; }
+        
+        /* Online Anzeige Style */
+        #onlineCount { color: #0f0; font-size: 0.7rem; margin-top: 10px; margin-bottom: 10px; letter-spacing: 1px; }
     </style>
 </head>
 <body>
     <h1>DYNAMIC MISSIONS</h1>
     <p id="levelDisplay">Pilot Level: 1</p>
+    
+    <div id="onlineCount">
+        ● <span id="onlineVal">0</span> RUNNER LIVE
+    </div>
 
     <div class="quest-list" id="questList">
         Lade Herausforderungen...
@@ -39,7 +46,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+        import { getDatabase, ref, onValue, set, onDisconnect, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBB7Dbf_Y9ShE5InKfTIfHimXx-8UxlEg8",
@@ -52,6 +59,29 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
+        // WICHTIG: Nutze die runnerID wie in der index.html
+        const runnerID = localStorage.getItem('glow_runner_id');
+
+        // --- ONLINE PRÄSENZ LOGIK ---
+        if (runnerID) {
+            const connectedRef = ref(db, '.info/connected');
+            const myOnlineRef = ref(db, 'online_users/' + runnerID);
+
+            onValue(connectedRef, (snap) => {
+                if (snap.val() === true) {
+                    onDisconnect(myOnlineRef).remove();
+                    set(myOnlineRef, true);
+                }
+            });
+
+            // Online-Zähler Anzeige aktualisieren
+            const onlineValElem = document.getElementById('onlineVal');
+            onValue(ref(db, 'online_users'), (snapshot) => {
+                const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+                if(onlineValElem) onlineValElem.innerText = count;
+            });
+        }
+
         // --- WARTUNGS-CHECK ---
         const wartungRef = ref(db, 'wartung');
         onValue(wartungRef, (snapshot) => {
@@ -59,9 +89,6 @@
                 window.location.href = "wartung.html";
             }
         });
-
-        // WICHTIG: Nutze die runnerID wie in der index.html
-        const runnerID = localStorage.getItem('glow_runner_id');
 
         if (!runnerID) {
             document.getElementById('questList').innerText = "Fehler: Keine Runner-ID gefunden. Bitte starte das Spiel neu.";
@@ -131,7 +158,8 @@
             data.points = (Number(data.points) || 0) + quest.reward;
             data.questLevel = (Number(data.questLevel) || 1) + 1;
 
-            set(ref(db, 'users/' + runnerID), data).then(() => {
+            // Update statt Set nutzen, um sicherzugehen, dass andere Daten erhalten bleiben
+            update(ref(db, 'users/' + runnerID), data).then(() => {
                 alert(`Mission erfüllt! +${quest.reward} Kristalle erhalten.`);
             });
         }
