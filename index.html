@@ -19,7 +19,6 @@
 
         .title-img { max-width: 80%; max-height: 150px; margin-bottom: 10px; filter: drop-shadow(0 0 10px #0ff); }
         
-        /* LOGO FIX: Absolut am Boden, damit es nicht im Text stört */
         .footer-logo-container { 
             position: absolute; 
             bottom: 10px; 
@@ -156,7 +155,6 @@
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    // Hier wurde 'update' zum Import hinzugefügt
     import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -182,14 +180,12 @@
     window.activeMap = 'none';
     window.username = "";
 
-    // 1. Feste Runner-ID generieren oder laden
     let runnerID = localStorage.getItem('glow_runner_id');
     if (!runnerID) {
         runnerID = 'RNR-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         localStorage.setItem('glow_runner_id', runnerID);
     }
 
-    // --- WARTUNGS-CHECK (Global) ---
     const wartungRef = ref(db, 'wartung');
     onValue(wartungRef, (snapshot) => {
         if (snapshot.exists() && snapshot.val() === true) {
@@ -198,114 +194,68 @@
     });
 
     async function loadUserData() {
-        // Username aus LocalStorage laden
         window.username = localStorage.getItem('glow_username');
-        
-        // Falls kein Name da ist, fragen und direkt in DB initialisieren
         if(!window.username) {
             window.username = prompt("Runner Name?");
             if(!window.username) window.username = "Runner_" + runnerID.substr(4, 4);
             localStorage.setItem('glow_username', window.username);
-            window.saveToDB(); 
         }
 
         const userRef = ref(db, 'users/' + runnerID);
+        const lockedRef = ref(db, 'locked/' + runnerID);
+
+        // Check Locked-Status separat (außerhalb des User-Knotens)
+        onValue(lockedRef, (snapshot) => {
+            if (snapshot.exists() && snapshot.val() === true) {
+                document.body.innerHTML = `
+                    <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; color:red; font-family:'Orbitron'; text-align:center; padding:20px;">
+                        <h1 style="text-shadow: 0 0 20px red;">ACCESS DENIED</h1>
+                        <p style="color:white;">Your account has been locked by the administrator.</p>
+                        <div style="margin-top:20px; font-size:0.7rem; color:#444;">ID: ${runnerID}</div>
+                    </div>`;
+            }
+        });
         
         onValue(userRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
-                
-                // 1. CHECK: ADMIN-SPERRE
-                if (data.locked === true) {
-                    document.body.innerHTML = `
-                        <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; color:red; font-family:'Orbitron'; text-align:center; padding:20px;">
-                            <h1 style="text-shadow: 0 0 20px red;">ACCESS DENIED</h1>
-                            <p style="color:white;">Your account has been locked by the administrator.</p>
-                            <p style="color:white;">Please reload the website if your account is unblocked again.</p>
-                            <div style="margin-top:20px; font-size:0.7rem; color:#444;">ID: ${runnerID}</div>
-                        </div>`;
-                    return;
-                }
+                if (data.message) window.showRunnerMessage(data.message);
 
-                // 2. CHECK: NACHRICHTEN
-                if (data.message) {
-                    window.showRunnerMessage(data.message);
-                }
-
-                // 3. DATEN LADEN
                 window.totalPoints = data.points || 0;
                 window.highscore = data.highscore || 0;
                 window.questLevel = data.questLevel || 1;
                 window.boughtSkins = data.boughtSkins || ['cyan'];
                 window.activeSkin = data.activeSkin || 'cyan';
                 window.boughtShapes = data.boughtShapes || ['circle'];
-                window.activeShape = 'circle';
+                window.activeShape = data.activeShape || 'circle';
                 window.boughtMaps = data.boughtMaps || ['none'];
                 window.activeMap = data.activeMap || 'none';
 
-                // Falls der Name in der DB geändert wurde (z.B. durch Admin), lokal übernehmen
                 if(data.username && data.username !== window.username) {
                     window.username = data.username;
                     localStorage.setItem('glow_username', window.username);
                 }
-
                 if (typeof updateUI === "function") updateUI();
             } else {
-                // BUGFIX: Falls ID lokal existiert, aber nicht in Firebase -> Account wurde gelöscht
-                if (localStorage.getItem('glow_username')) {
-                    // Lokale Werte resetten, damit sie nicht wieder hochgeladen werden
-                    window.totalPoints = 0;
-                    window.highscore = 0;
-                    window.questLevel = 1;
-                    window.boughtSkins = ['cyan'];
-                    window.activeSkin = 'cyan';
-                    window.boughtShapes = ['circle'];
-                    window.activeShape = 'circle';
-                    window.boughtMaps = ['none'];
-                    window.activeMap = 'none';
-                    if (typeof updateUI === "function") updateUI();
-                } else {
-                    // Wirklich neuer User
-                    window.saveToDB();
-                }
+                window.saveToDB();
             }
-            
-            // UI Update für den Namen
             const welcomeText = document.getElementById('welcomeText');
             if(welcomeText) welcomeText.innerText = window.username;
         });
     }
 
-    // Nachrichten-System
     window.showRunnerMessage = function(msgText) {
         if (document.getElementById('runnerPopup')) return;
-
         const popup = document.createElement('div');
         popup.id = 'runnerPopup';
-        popup.style = `
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.95); border: 2px solid #0ff; color: #fff;
-            padding: 25px; z-index: 1000; text-align: center; border-radius: 10px;
-            box-shadow: 0 0 30px #0ff; font-family: 'Orbitron', sans-serif; min-width: 280px;
-        `;
-        
-        popup.innerHTML = `
-            <h3 style="margin-top:0; color:#0ff; letter-spacing:2px;">INCOMING TRANSMISSION</h3>
-            <p style="margin: 20px 0; line-height:1.5;">${msgText}</p>
-            <button id="closeMsgBtn" class="btn" style="width:100%; border-color:#0f0; color:#0f0; background:transparent; padding:10px; cursor:pointer; font-family:'Orbitron';">GELESEN</button>
-        `;
-        
+        popup.style = `position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.95); border: 2px solid #0ff; color: #fff; padding: 25px; z-index: 1000; text-align: center; border-radius: 10px; box-shadow: 0 0 30px #0ff; font-family: 'Orbitron', sans-serif; min-width: 280px;`;
+        popup.innerHTML = `<h3 style="margin-top:0; color:#0ff; letter-spacing:2px;">INCOMING TRANSMISSION</h3><p style="margin: 20px 0; line-height:1.5;">${msgText}</p><button id="closeMsgBtn" class="btn" style="width:100%; border-color:#0f0; color:#0f0; background:transparent; padding:10px; cursor:pointer; font-family:'Orbitron';">GELESEN</button>`;
         document.body.appendChild(popup);
-
         document.getElementById('closeMsgBtn').onclick = () => {
-            const userMessageRef = ref(db, 'users/' + runnerID + '/message');
-            set(userMessageRef, null).then(() => {
-                popup.remove();
-            });
+            update(ref(db, 'users/' + runnerID), { message: null }).then(() => popup.remove());
         };
     };
 
-    // FIX: Hier wird nun 'update' statt 'set' verwendet
     window.saveToDB = function() {
         if(!runnerID) return;
         update(ref(db, 'users/' + runnerID), {
@@ -318,8 +268,9 @@
             boughtShapes: window.boughtShapes,
             activeShape: window.activeShape,
             boughtMaps: window.boughtMaps,
-            activeMap: window.activeMap
-        });
+            activeMap: window.activeMap,
+            rnrId: runnerID
+        }).catch(err => console.error("Update failed (Check locked status):", err));
     };
 
     loadUserData();
@@ -340,10 +291,10 @@
         let reverseCharge = 0, isReverseActive = false, reverseTimer = 0;
 
         function updateUI() {
-            document.getElementById('totalPointsHud').innerText = window.totalPoints;
-            document.getElementById('menuTotal').innerText = window.totalPoints;
-            document.getElementById('menuHighscore').innerText = window.highscore;
-            document.getElementById('shopPoints').innerText = window.totalPoints;
+            if(document.getElementById('totalPointsHud')) document.getElementById('totalPointsHud').innerText = window.totalPoints;
+            if(document.getElementById('menuTotal')) document.getElementById('menuTotal').innerText = window.totalPoints;
+            if(document.getElementById('menuHighscore')) document.getElementById('menuHighscore').innerText = window.highscore;
+            if(document.getElementById('shopPoints')) document.getElementById('shopPoints').innerText = window.totalPoints;
             
             document.querySelectorAll('.item-btn').forEach(btn => {
                 const [type, id] = btn.id.split('-');
@@ -449,7 +400,6 @@
             ctx.fillStyle = "rgba(0, 0, 0, 0.25)"; 
             ctx.fillRect(0,0,w,h);
 
-            // Backgrounds
             if(window.activeMap === 'grid') {
                 ctx.strokeStyle="rgba(0,255,255,0.15)"; ctx.lineWidth=1;
                 for(let i=0; i<w; i+=60) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
@@ -462,7 +412,6 @@
                 for(let i=0; i<w; i+=25) { ctx.fillText(Math.random()>0.8?"1":"0", i, (frame*3 + i*2)%h); }
             }
 
-            // Vortex
             let dxV = vortex.tx - vortex.x; let dyV = vortex.ty - vortex.y;
             let distV = Math.hypot(dxV, dyV);
             if(distV < 20) { vortex.tx = Math.random()*w; vortex.ty = Math.random()*h; }
@@ -474,7 +423,6 @@
 
             if(Math.hypot(vortex.x-player.x, vortex.y-player.y) < 55) return endGame("VORTEX CONSUMED YOU");
 
-            // Enemies
             enemies.forEach((en, i) => {
                 let d = Math.hypot(player.x-en.x, player.y-en.y);
                 if (isReverseActive) {
@@ -489,14 +437,12 @@
                 if(d < 25 && isReverseActive) { enemies.splice(i, 1); score += 2; window.totalPoints += 5; }
             });
 
-            // Target
             if(Math.hypot(player.x-target.x, player.y-target.y) < 30) { 
                 score++; window.totalPoints += 10; if(!isReverseActive) reverseCharge = Math.min(100, reverseCharge + 8);
                 moveTarget(); 
             }
             ctx.fillStyle="#ff0"; ctx.beginPath(); ctx.arc(target.x, target.y, 10, 0, Math.PI*2); ctx.fill();
 
-            // Player
             ctx.save(); ctx.translate(player.x, player.y);
             let pColor = window.activeSkin === 'rainbow' ? `hsl(${frame%360},100%,50%)` : window.activeSkin;
             ctx.fillStyle = pColor; ctx.shadowBlur = 20; ctx.shadowColor = pColor;
@@ -514,14 +460,12 @@
             requestAnimationFrame(animate);
         }
 
-        // HIGHSCORE FIX HIER
         function endGame(m) { 
             gameActive = false;
-            // Highscore-Check: Nur speichern, wenn aktueller Score wirklich höher
             if (score > window.highscore) {
                 window.highscore = score;
             }
-            window.saveToDB(); // Sofort an Firebase senden
+            window.saveToDB(); 
             
             alert(m + "\nSCORE: " + score + "\nBEST: " + window.highscore); 
             
