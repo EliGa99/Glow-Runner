@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GLOW RUNNER: GHOST CHALLENGE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Orbitron', sans-serif; touch-action: none; color: white; }
+        canvas { display: block; filter: contrast(1.1) brightness(1.1); }
+        
+        .overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            background: rgba(0,0,0,0.9); z-index: 20; backdrop-filter: blur(10px);
+            box-sizing: border-box; padding-top: 20px; overflow-y: auto;
+        }
+        .hidden { display: none !important; }
+
+        .title-img { max-width: 60%; max-height: 100px; margin-bottom: 5px; filter: drop-shadow(0 0 10px #0ff); }
+        
+        .footer-logo-container { 
+            margin-top: 30px; margin-bottom: 20px; display: flex; 
+            flex-direction: column; align-items: center; gap: 5px; opacity: 0.6; pointer-events: none;
+        }
+        .footer-logo { width: 40px; height: auto; border-radius: 5px; }
+        .made-by { font-size: 0.5rem; letter-spacing: 2px; color: #888; }
+
+        h1 { font-size: 1.8rem; color: #f0f; text-shadow: 0 0 20px #f0f; margin: 5px 0; letter-spacing: 3px; text-align: center; }
+        .subtitle { color: #0ff; font-size: 0.7rem; margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase; }
+        
+        .btn { 
+            background: rgba(0,255,255,0.1); border: 2px solid #0ff; color: #0ff; 
+            padding: 12px 20px; font-family: 'Orbitron'; font-size: 0.9rem; 
+            cursor: pointer; transition: 0.3s; border-radius: 8px; text-transform: uppercase;
+            width: 280px; margin: 6px 0; box-sizing: border-box;
+        }
+        .btn:hover { background: #0ff; color: #000; box-shadow: 0 0 20px #0ff; }
+        .btn-back { border-color: #ff0; color: #ff0; }
+        .btn-back:hover { background: #ff0; color: #000; box-shadow: 0 0 20px #ff0; }
+        .btn-solo { border-color: #f0f; color: #f0f; margin-bottom: 15px; }
+        .btn-solo:hover { background: #f0f; color: #000; box-shadow: 0 0 20px #f0f; }
+
+        .search-box { display: flex; gap: 10px; width: 90%; max-width: 400px; margin-bottom: 15px; }
+        .search-input {
+            flex: 1; background: #0a0a0a; border: 2px solid #f0f; border-radius: 8px;
+            color: #fff; padding: 10px; font-family: 'Orbitron'; font-size: 0.9rem; outline: none;
+        }
+        .btn-search { width: auto; margin: 0; padding: 0 20px; border-color: #f0f; color: #f0f; }
+
+        .leaderboard-container {
+            width: 90%; max-width: 400px; background: rgba(10,10,10,0.8); 
+            border: 1px solid #333; border-radius: 12px; padding: 15px; box-sizing: border-box;
+        }
+        .section-title { font-size: 0.8rem; color: #ff0; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; text-align: left; }
+        .mode-info {
+            width: 90%; max-width: 400px; margin-top: 18px; color: #9ff;
+            font-size: 0.62rem; line-height: 1.6; letter-spacing: 1px; text-align: center;
+            text-transform: uppercase; text-shadow: 0 0 8px rgba(0,255,255,0.8);
+        }
+        .mode-info strong { color: #ff0; text-shadow: 0 0 10px #ff0; }
+        .mode-lang-switch { margin-top: 10px; display: flex; justify-content: center; gap: 8px; }
+        .mode-lang-btn {
+            background: rgba(0,0,0,0.5); border: 1px solid #444; color: #777;
+            font-family: 'Orbitron'; font-size: 0.58rem; padding: 5px 10px;
+            border-radius: 999px; cursor: pointer; letter-spacing: 1px;
+        }
+        .mode-lang-btn.active { border-color: #0ff; color: #0ff; box-shadow: 0 0 12px rgba(0,255,255,0.7); }
+        
+        .player-row { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #222; }
+        .player-info { display: flex; flex-direction: column; text-align: left; }
+        .player-name { font-size: 0.9rem; color: #fff; font-weight: bold; }
+        .player-score { font-size: 0.75rem; color: #0ff; }
+        .ghost-action-btn {
+            background: transparent; border: 1px solid #f0f; color: #f0f;
+            font-family: 'Orbitron'; font-size: 0.65rem; padding: 5px 10px; border-radius: 4px; cursor: pointer;
+        }
+        .ghost-action-btn:hover { background: #f0f; color: #000; }
+
+        #hud { position: absolute; top: 10px; width: 100%; text-align: center; pointer-events: none; z-index: 10; }
+        .hud-val { color: #0ff; font-weight: bold; font-size: 1.2rem; text-shadow: 0 0 10px #0ff; }
+        .ghost-hud-info { color: #f0f; font-size: 0.8rem; margin-top: 4px; text-shadow: 0 0 5px #f0f; }
+        
+        #reverseContainer { position: absolute; bottom: 20px; left: 20px; z-index: 30; display: flex; flex-direction: column; align-items: center; }
+        #reverseBtn {
+            width: 70px; height: 70px; border-radius: 50%; border: 4px solid #333;
+            background: rgba(0,0,0,0.6); color: #555; font-weight: bold; font-size: 0.7rem;
+            display: flex; align-items: center; justify-content: center; cursor: not-allowed; transition: 0.3s;
+        }
+        #reverseBtn.ready { border-color: #ff0; color: #ff0; cursor: pointer; box-shadow: 0 0 20px #ff0; }
+        #reverseBtn.active { border-color: #f0f; color: #fff; background: #f0f; }
+    </style>
+</head>
+<body>
+
+    <div id="hud" class="hidden">
+        SCORE: <span id="currentScore" class="hud-val">0</span> | 
+        💎: <span id="totalPointsHud" class="hud-val">0</span>
+        <div id="ghostHudMeta" class="ghost-hud-info">MODE: SOLO RUN</div>
+    </div>
+
+    <div id="reverseContainer" class="hidden">
+        <div id="reverseBtn" onclick="activateReverse()">REVERSE</div>
+        <div style="font-size: 0.5rem; margin-top: 5px; color: #ff0; letter-spacing: 1px;">OVERDRIVE</div>
+    </div>
+
+    <div id="menu" class="overlay">
+        <img src="ChatGPT Image 6. Mai 2026, 18_30_59.png" alt="Title Art" class="title-img">
+        <h1>GHOST STATION</h1>
+        <div class="subtitle">Race against shadows</div>
+        
+        <div class="search-box">
+            <input type="text" id="ghostSearchInput" class="search-input" placeholder="SEARCH RUNNER...">
+            <button class="btn btn-search" onclick="searchGhostPlayer()">FIND</button>
+        </div>
+
+        <button class="btn btn-solo" onclick="window.startGameWithGhost(null, 'NONE')">START SOLO RUN</button>
+
+        <div class="leaderboard-container">
+            <div id="listTitle" class="section-title">Top 10 Global Ghosts</div>
+            <div id="ghostList">
+                <div style="color: #666; font-size: 0.8rem; padding: 10px; text-align: center;">Loading data...</div>
+            </div>
+        </div>
+
+        <button class="btn btn-back" onclick="location.href='index.html'" style="margin-top: 25px;">RETURN TO HUB</button>
+
+        <div class="mode-info">
+            <div id="modeInfoText">
+                <strong>So funktioniert es:</strong> Waehle einen Runner und spiele seinen besten Ghost-Run nach.
+                Gelbe Felder sind deine Route, Lila zeigt den aufgezeichneten Schatten.
+                Schlage die Route, um einen staerkeren Ghost zu erstellen.
+            </div>
+            <div class="mode-lang-switch">
+                <button id="modeLangDe" class="mode-lang-btn active" onclick="setModeInfoLang('de')">DE</button>
+                <button id="modeLangEn" class="mode-lang-btn" onclick="setModeInfoLang('en')">EN</button>
+            </div>
+        </div>
+
+        <div class="footer-logo-container">
+            <span class="made-by">MADE BY</span>
+            <img src="EliX Tag.png" alt="Logo" class="footer-logo">
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getDatabase, ref, set, get, onValue, update, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBB7Dbf_Y9ShE5InKfTIfHimXx-8UxlEg8",
+            authDomain: "glow-runner-bc6b9.firebaseapp.com",
+            projectId: "glow-runner-bc6b9",
+            databaseURL: "https://glow-runner-bc6b9-default-rtdb.europe-west1.firebasedatabase.app/",
+            appId: "1:962164006871:web:33a8ff5a2d4bf048287592"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.totalPoints = 0;
+        window.highscore = 0;       
+        window.ghostHighscore = 0;  
+        window.activeSkin = 'cyan';
+        window.activeShape = 'circle';
+        window.activeMap = 'none';
+        window.username = "";
+
+        let runnerID = localStorage.getItem('glow_runner_id');
+        if (!runnerID) {
+            runnerID = 'RNR-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            localStorage.setItem('glow_runner_id', runnerID);
+        }
+
+        onValue(ref(db, 'wartung'), (snapshot) => {
+            if (snapshot.exists() && snapshot.val() === true) window.location.href = "wartung.html";
+        });
+
+        async function loadUserData() {
+            const userRef = ref(db, 'users/' + runnerID);
+            onValue(userRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    window.totalPoints = data.points || 0;
+                    window.highscore = data.highscore || 0;
+                    window.ghostHighscore = data.ghostHighscore || 0; 
+                    window.activeSkin = data.activeSkin || 'cyan';
+                    window.activeShape = data.activeShape || 'circle';
+                    window.activeMap = data.activeMap || 'none';
+                    window.username = data.username || "Runner_" + runnerID.substr(4, 4);
+                }
+                updateUI();
+            });
+        }
+
+        function loadTopTenGhosts() {
+            const usersRef = ref(db, 'users');
+            const topQuery = query(usersRef, orderByChild('ghostHighscore'), limitToLast(10));
+            onValue(topQuery, (snapshot) => {
+                const ghostListDiv = document.getElementById('ghostList');
+                if(!ghostListDiv) return;
+                ghostListDiv.innerHTML = "";
+                let players = [];
+                snapshot.forEach((childSnapshot) => {
+                    const val = childSnapshot.val();
+                    if(val.username && val.ghostHighscore !== undefined) {
+                        players.push({ id: childSnapshot.key, username: val.username, ghostHighscore: val.ghostHighscore, ghostData: val.glowGhostDataPackage || val.ghostData || null });
+                    }
+                });
+                players.reverse();
+                renderPlayerRows(players);
+            });
+        }
+
+        function renderPlayerRows(players) {
+            const ghostListDiv = document.getElementById('ghostList');
+            ghostListDiv.innerHTML = "";
+            players.forEach((player) => {
+                const row = document.createElement('div');
+                row.className = "player-row";
+                const hasGhost = player.ghostData ? true : false;
+                const isMe = (player.id === runnerID);
+                const displayName = isMe ? player.username + " (YOU)" : player.username;
+                const btnText = hasGhost ? (isMe ? "VS MYSELF" : "CHALLENGE") : "NO GHOST";
+                const btnStyle = hasGhost ? "" : "border-color:#444; color:#444; cursor:not-allowed;";
+                row.innerHTML = `<div class="player-info"><span class="player-name"></span><span class="player-score"></span></div><button class="ghost-action-btn" style="${btnStyle}">${btnText}</button>`;
+                row.querySelector('.player-name').innerText = displayName;
+                row.querySelector('.player-score').innerText = `GHOST RECORD: ${player.ghostHighscore}`;
+                if(hasGhost) {
+                    row.querySelector('.ghost-action-btn').addEventListener('click', () => window.setupGhostChallenge(player.id, player.username));
+                }
+                ghostListDiv.appendChild(row);
+            });
+        }
+
+        window.searchGhostPlayer = function() {
+            const queryText = document.getElementById('ghostSearchInput').value.trim().toLowerCase();
+            if(queryText === "") { loadTopTenGhosts(); return; }
+            get(ref(db, 'users')).then((snapshot) => {
+                if(!snapshot.exists()) return;
+                let results = [];
+                snapshot.forEach((child) => {
+                    const u = child.val();
+                    if(u.username && u.username.toLowerCase().includes(queryText)) {
+                        results.push({ id: child.key, username: u.username, ghostHighscore: u.ghostHighscore || 0, ghostData: u.glowGhostDataPackage || u.ghostData || null });
+                    }
+                });
+                results.sort((a,b) => b.ghostHighscore - a.ghostHighscore);
+                renderPlayerRows(results);
+            });
+        };
+
+        window.setupGhostChallenge = function(targetId, targetName) {
+            get(ref(db, `users/${targetId}`)).then((snapshot) => {
+                if(!snapshot.exists()) return;
+
+                const userData = snapshot.val();
+                let ghostObj = userData.glowGhostDataPackage || userData.ghostData || null;
+                if(ghostObj) {
+                    ghostObj.map = ghostObj.map || userData.activeMap || 'none';
+                    ghostObj.recordScore = ghostObj.recordScore || userData.ghostHighscore || 0;
+                }
+
+                const labelName = (targetId === runnerID) ? "YOURSELF" : targetName;
+                window.startGameWithGhost(ghostObj, labelName);
+            });
+        };
+
+        window.saveToDBWithGhost = function(ghostObject) {
+            if(!runnerID) return;
+            let updateData = {
+                username: window.username, points: window.totalPoints, highscore: window.highscore, ghostHighscore: window.ghostHighscore,
+                activeSkin: window.activeSkin, activeShape: window.activeShape, activeMap: window.activeMap, rnrId: runnerID
+            };
+            if(ghostObject) {
+                ghostObject.map = ghostObject.map || window.activeMap;
+                ghostObject.recordScore = window.ghostHighscore;
+                updateData.glowGhostDataPackage = ghostObject;
+            }
+            update(ref(db, 'users/' + runnerID), updateData).catch(err => console.error(err));
+        };
+
+        loadUserData(); loadTopTenGhosts();
+    </script>
+
+    <script>
+        function setModeInfoLang(lang) {
+            const infoText = document.getElementById('modeInfoText');
+            const deBtn = document.getElementById('modeLangDe');
+            const enBtn = document.getElementById('modeLangEn');
+            if(!infoText || !deBtn || !enBtn) return;
+
+            if(lang === 'en') {
+                infoText.innerHTML = '<strong>How it works:</strong> Pick a runner and replay their best Ghost run. Yellow fields are your route, purple marks the recorded shadow. Beat the route to create a stronger ghost.';
+                deBtn.classList.remove('active');
+                enBtn.classList.add('active');
+            } else {
+                infoText.innerHTML = '<strong>So funktioniert es:</strong> Waehle einen Runner und spiele seinen besten Ghost-Run nach. Gelbe Felder sind deine Route, Lila zeigt den aufgezeichneten Schatten. Schlage die Route, um einen staerkeren Ghost zu erstellen.';
+                enBtn.classList.remove('active');
+                deBtn.classList.add('active');
+            }
+        }
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
+
+        let enemySpawnSeed = 1;
+        function randomEnemySpawn() { let x = Math.sin(enemySpawnSeed++) * 10000; return x - Math.floor(x); }
+
+        let player = { x: 0, y: 0, r: 15 };
+        let vortex = { x: 0, y: 0, tx: 0, ty: 0, speed: 1.2 };
+        let playerTarget = { x: 0, y: 0 };
+
+        let enemies = [], score = 0, gameActive = false, frame = 0;
+        let reverseCharge = 0, isReverseActive = false, reverseTimer = 0;
+        let nextEnemyFrame = 0;
+
+        let fxParticles = [];
+        let recordedWaypoints = [];
+        let currentGhostObject = null;
+        let ghostOpponentName = "NONE";
+        let currentRunMap = 'none';
+        let replayTargets = [];
+        let playerTargetIndex = 0;
+        
+        // Ghost State
+        let ghostPos = { 
+            x: 0, y: 0, active: false, isOverdrive: false, 
+            currentScore: 0, lastScore: 0, isDead: false,
+            targetX: 0, targetY: 0
+        };
+
+        function updateUI() {
+            if(document.getElementById('totalPointsHud')) document.getElementById('totalPointsHud').innerText = window.totalPoints;
+            if(gameActive) {
+                document.getElementById('currentScore').innerText = score;
+                const rBtn = document.getElementById('reverseBtn');
+                if(isReverseActive) { rBtn.innerText = Math.ceil(reverseTimer/60) + "s"; rBtn.className = "active"; }
+                else { rBtn.innerText = Math.floor(reverseCharge) + "%"; rBtn.className = reverseCharge >= 100 ? "ready" : ""; }
+                
+                if(ghostOpponentName !== "NONE") {
+                    let metaText = `VS ${ghostOpponentName.toUpperCase()} [G-SCORE: ${ghostPos.currentScore}]`;
+                    if(ghostPos.isDead) metaText = `VS ${ghostOpponentName.toUpperCase()} [GHOST: DEAD]`;
+                    document.getElementById('ghostHudMeta').innerText = metaText;
+                } else {
+                    document.getElementById('ghostHudMeta').innerText = "MODE: SOLO RUN";
+                }
+            }
+        }
+
+        function spawnFX(x, y, color, count = 10) {
+            for(let i=0; i<count; i++) {
+                let angle = Math.random() * Math.PI * 2;
+                let speed = 1 + Math.random() * 5;
+                fxParticles.push({
+                    x: x, y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 25 + Math.random() * 20,
+                    maxLife: 45,
+                    color: color
+                });
+            }
+        }
+
+        function clampTargetToCanvas(target) {
+            return {
+                x: Math.max(30, Math.min(w - 30, target.x)),
+                y: Math.max(30, Math.min(h - 30, target.y))
+            };
+        }
+
+        function pushReplayTarget(targets, x, y) {
+            if(!Number.isFinite(x) || !Number.isFinite(y)) return;
+
+            const target = clampTargetToCanvas({ x, y });
+            const last = targets[targets.length - 1];
+            if(!last || Math.hypot(last.x - target.x, last.y - target.y) > 4) {
+                targets.push(target);
+            }
+        }
+
+        function getGhostWaypoints(ghostObj = currentGhostObject) {
+            if(!ghostObj || !ghostObj.waypoints) return [];
+            if(Array.isArray(ghostObj.waypoints)) return ghostObj.waypoints.filter(Boolean);
+
+            return Object.keys(ghostObj.waypoints)
+                .sort((a, b) => Number(a) - Number(b))
+                .map(key => ghostObj.waypoints[key])
+                .filter(Boolean);
+        }
+
+        function buildReplayTargets(ghostObj) {
+            const wp = getGhostWaypoints(ghostObj);
+            if(wp.length === 0) return [];
+
+            const targets = [];
+
+            if(wp[0].tx && wp[0].ty) {
+                pushReplayTarget(targets, wp[0].tx, wp[0].ty);
+            }
+
+            for(let i = 1; i < wp.length; i++) {
+                if(wp[i].tx && wp[i].ty) {
+                    pushReplayTarget(targets, wp[i].tx, wp[i].ty);
+                }
+            }
+
+            // Legacy-Fallback fuer alte Ghosts ohne gespeicherte Zielpunkte.
+            if(targets.length === 0) {
+                let lastScore = wp[0].s || 0;
+                for(let i = 1; i < wp.length; i++) {
+                    const scoreAtFrame = wp[i].s || 0;
+                    if(scoreAtFrame > lastScore && wp[i].x && wp[i].y) {
+                        pushReplayTarget(targets, wp[i].x, wp[i].y);
+                        lastScore = scoreAtFrame;
+                    }
+                }
+            }
+
+            return targets;
+        }
+
+        function getGhostTargetAtFrame(targetFrame) {
+            let wp = getGhostWaypoints();
+            if (wp.length === 0) return null;
+            let safeFrame = Math.max(0, Math.min(targetFrame, wp.length - 1));
+            
+            if (wp[safeFrame] && wp[safeFrame].tx && wp[safeFrame].ty) {
+                return clampTargetToCanvas({ x: wp[safeFrame].tx, y: wp[safeFrame].ty });
+            }
+
+            for (let i = safeFrame; i >= 0; i--) {
+                if (wp[i] && wp[i].tx && wp[i].ty) {
+                    return clampTargetToCanvas({ x: wp[i].tx, y: wp[i].ty });
+                }
+            }
+
+            return replayTargets[0] || null;
+        }
+
+        function generateFallbackTarget() {
+            playerTarget.x = 100 + Math.random() * (w - 200);
+            playerTarget.y = 100 + Math.random() * (h - 200);
+        }
+
+        function getLevelScore() {
+            return getGhostWaypoints().length > 0 ? ghostPos.currentScore : score;
+        }
+
+        function movePlayerTargetToNextPoint() {
+            playerTargetIndex++;
+            if(replayTargets[playerTargetIndex]) {
+                playerTarget.x = replayTargets[playerTargetIndex].x;
+                playerTarget.y = replayTargets[playerTargetIndex].y;
+            } else {
+                generateFallbackTarget();
+            }
+        }
+
+        window.startGameWithGhost = function(ghostObj, opponentName) {
+            gameActive = true;
+            currentGhostObject = ghostObj;
+            ghostOpponentName = opponentName || "NONE";
+            currentRunMap = (currentGhostObject && currentGhostObject.map) ? currentGhostObject.map : window.activeMap;
+            replayTargets = buildReplayTargets(currentGhostObject);
+            playerTargetIndex = 0;
+            
+            // Wenn wir gegen einen Geist spielen, laden wir SEINEN Seed, damit die Gegner EXAKT identisch fliegen!
+            if(currentGhostObject && currentGhostObject.seed) {
+                enemySpawnSeed = currentGhostObject.seed;
+            } else {
+                enemySpawnSeed = Math.floor(Date.now() % 90000);
+            }
+            
+            // Merke den Seed für spätere Speicherungen
+            window.currentRoundSeed = enemySpawnSeed;
+
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('reverseContainer').classList.remove('hidden');
+            
+            score = 0; enemies = []; reverseCharge = 0; isReverseActive = false; frame = 0; nextEnemyFrame = 0;
+            recordedWaypoints = []; fxParticles = [];
+            ghostPos.active = false; ghostPos.isOverdrive = false; 
+            ghostPos.currentScore = 0; ghostPos.lastScore = 0; ghostPos.isDead = false;
+            
+            player.x = w / 2; player.y = h / 2;
+            vortex.x = (player.x > w/2) ? 50 : w - 50; vortex.y = (player.y > h/2) ? 50 : h - 50;
+            vortex.tx = Math.random() * w; vortex.ty = Math.random() * h;
+
+            // Erste Münzen initialisieren
+            let firstLoc = replayTargets[0] || getGhostTargetAtFrame(0);
+            if (firstLoc) {
+                ghostPos.targetX = firstLoc.x;
+                ghostPos.targetY = firstLoc.y;
+                playerTarget.x = firstLoc.x;
+                playerTarget.y = firstLoc.y;
+            } else {
+                generateFallbackTarget();
+            }
+
+            window.activeGhostRecording = { waypoints: recordedWaypoints, seed: window.currentRoundSeed, map: currentRunMap, recordScore: score };
+            animate();
+        };
+
+        function activateReverse() { if(reverseCharge >= 100 && !isReverseActive) { isReverseActive = true; reverseTimer = 300; reverseCharge = 0; spawnFX(player.x, player.y, "#0f0", 30); } }
+
+        function animate() {
+            if (!gameActive) return;
+            frame++;
+            ctx.fillStyle = "rgba(0, 0, 0, 0.25)"; ctx.fillRect(0,0,w,h);
+
+            // DATEN DES AKTUELLEN SPIELERS AUFZEICHNEN
+            recordedWaypoints.push({
+                x: Math.round(player.x), y: Math.round(player.y),
+                o: isReverseActive ? 1 : 0, s: score,
+                tx: Math.round(playerTarget.x), ty: Math.round(playerTarget.y)
+            });
+
+            // GEISTER STEUERUNG (Synchronisiert zur Zeitachse)
+            const ghostWaypoints = getGhostWaypoints();
+            if(ghostWaypoints.length > 0 && !ghostPos.isDead) {
+                let index = frame - 1;
+                if(index < ghostWaypoints.length) {
+                    let pt = ghostWaypoints[index];
+                    ghostPos.x = pt.x; ghostPos.y = pt.y;
+                    ghostPos.isOverdrive = (pt.o === 1);
+                    ghostPos.currentScore = pt.s || 0;
+                    ghostPos.active = true;
+
+                    // Dynamisch auslesen, wo die Münze des Geistes liegt
+                    let loc = getGhostTargetAtFrame(index);
+                    if(loc) {
+                        ghostPos.targetX = loc.x;
+                        ghostPos.targetY = loc.y;
+                    }
+
+                    // Partikeleffekt wenn der Geist punktet
+                    if(ghostPos.currentScore > ghostPos.lastScore) {
+                        spawnFX(ghostPos.targetX, ghostPos.targetY, "#f0f", 20); 
+                        ghostPos.lastScore = ghostPos.currentScore;
+                    }
+
+                    if(ghostPos.isOverdrive && frame % 2 === 0) {
+                        spawnFX(ghostPos.x, ghostPos.y, "#0f0", 3); 
+                    }
+                } else {
+                    ghostPos.isDead = true; ghostPos.active = false;
+                    spawnFX(ghostPos.x, ghostPos.y, "#f0f", 40); 
+                }
+            }
+
+            // Partikel-System zeichnen
+            fxParticles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.life--;
+                ctx.fillStyle = p.color; ctx.globalAlpha = p.life / p.maxLife;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 2.5, 0, Math.PI*2); ctx.fill();
+                if(p.life <= 0) fxParticles.splice(i, 1);
+            });
+            ctx.globalAlpha = 1.0;
+
+            // GEGNER SPAWNS (Absolut synchronisiert dank identischem Seed!)
+            if(frame >= nextEnemyFrame) {
+                let levelScore = getLevelScore();
+                enemies.push({ x: randomEnemySpawn()*w, y: -50, r: 12, speed: 2 + (levelScore/15) });
+                nextEnemyFrame = frame + Math.max(36, Math.floor(150 - (levelScore * 6)));
+            }
+
+            // Maps rendern
+            if(currentRunMap === 'grid') {
+                ctx.strokeStyle="rgba(0,255,255,0.15)"; ctx.lineWidth=1;
+                for(let i=0; i<w; i+=60) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
+                for(let i=0; i<h; i+=60) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(w,i); ctx.stroke(); }
+            } else if(currentRunMap === 'stars') {
+                ctx.fillStyle="white"; for(let i=0; i<50; i++) { ctx.fillRect((Math.sin(i)*10000)%w, (i*frame*0.5)%h, 2, 2); }
+            } else if(currentRunMap === 'matrix') {
+                ctx.fillStyle="#0f0"; ctx.font="10px monospace"; for(let i=0; i<w; i+=25) { ctx.fillText(Math.random()>0.8?"1":"0", i, (frame*3 + i*2)%h); }
+            }
+
+            // Vortex Logik
+            let dxV = vortex.tx - vortex.x; let dyV = vortex.ty - vortex.y; let distV = Math.hypot(dxV, dyV);
+            if(distV < 20) { vortex.tx = Math.random()*w; vortex.ty = Math.random()*h; }
+            vortex.x += dxV/distV * vortex.speed; vortex.y += dyV/distV * vortex.speed;
+            let pulse = Math.sin(frame*0.1) * 8;
+            let g = ctx.createRadialGradient(vortex.x, vortex.y, 5, vortex.x, vortex.y, 60+pulse);
+            g.addColorStop(0, "#fff"); g.addColorStop(0.2, "#f0f"); g.addColorStop(1, "transparent");
+            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(vortex.x, vortex.y, 90+pulse, 0, Math.PI*2); ctx.fill();
+
+            if(Math.hypot(vortex.x-player.x, vortex.y-player.y) < 55) return endGame("VORTEX CONSUMED YOU");
+
+            // Gegner bewegen & Kollisionen (FÜR BEIDE IDENTISCH)
+            enemies.forEach((en, i) => {
+                let d = Math.hypot(player.x-en.x, player.y-en.y);
+                if (isReverseActive) {
+                    en.x -= (player.x-en.x)/d * (en.speed * 1.2); en.y -= (player.y-en.y)/d * (en.speed * 1.2); ctx.fillStyle = "#0f0";
+                } else {
+                    en.x += (player.x-en.x)/d * en.speed; en.y += (player.y-en.y)/d * en.speed; ctx.fillStyle = "#f00";
+                }
+                ctx.beginPath(); ctx.arc(en.x, en.y, en.r, 0, Math.PI*2); ctx.fill();
+                if(d < 25 && !isReverseActive) return endGame("DESTRUCTION");
+                if(d < 25 && isReverseActive) { enemies.splice(i, 1); score += 2; window.totalPoints += 5; spawnFX(en.x, en.y, "#0f0", 8); }
+            });
+
+            // ZEICHNE GEISTER-MÜNZE (Lila Neon-Ring)
+            if(ghostPos.active && !ghostPos.isDead && ghostPos.targetX > 0) {
+                ctx.save();
+                ctx.strokeStyle = "rgba(240, 0, 240, 0.6)"; ctx.lineWidth = 3;
+                ctx.shadowBlur = 15; ctx.shadowColor = "#f0f";
+                let ghostPulse = 11 + Math.sin(frame * 0.2) * 4;
+                ctx.beginPath(); ctx.arc(ghostPos.targetX, ghostPos.targetY, ghostPulse, 0, Math.PI * 2); ctx.stroke();
+                ctx.restore();
+            }
+
+            // EIGENE SPIELER-MÜNZE KASSIEREN (Solider gelber Kreis)
+            if(Math.hypot(player.x-playerTarget.x, player.y-playerTarget.y) < 30) { 
+                score++; window.totalPoints += 10; if(!isReverseActive) reverseCharge = Math.min(100, reverseCharge + 8);
+                spawnFX(playerTarget.x, playerTarget.y, "#ff0", 15);
+
+                // Direkt den nächsten Spieler-Punkt setzen, ohne auf den Geist zu warten.
+                movePlayerTargetToNextPoint();
+            }
+            
+            ctx.fillStyle="#ff0"; ctx.beginPath(); ctx.arc(playerTarget.x, playerTarget.y, 10, 0, Math.PI*2); ctx.fill();
+
+            // GEIST RENDERN
+            if(ghostPos.active && !ghostPos.isDead) {
+                ctx.save(); ctx.translate(ghostPos.x, ghostPos.y);
+                let ghostColor = ghostPos.isOverdrive ? "#0f0" : "#f0f";
+                let ghostSize = ghostPos.isOverdrive ? 19 : 14; 
+                ctx.globalAlpha = ghostPos.isOverdrive ? 0.7 : 0.35;
+                ctx.fillStyle = ghostColor; ctx.shadowBlur = ghostPos.isOverdrive ? 35 : 15; ctx.shadowColor = ghostColor;
+                ctx.beginPath(); ctx.arc(0, 0, ghostSize, 0, Math.PI*2); ctx.fill(); 
+                ctx.restore();
+            }
+
+            // SPIELER RENDERN
+            ctx.save(); ctx.translate(player.x, player.y);
+            let pColor = window.activeSkin === 'rainbow' ? `hsl(${frame%360},100%,50%)` : window.activeSkin;
+            ctx.fillStyle = pColor; ctx.shadowBlur = 20; ctx.shadowColor = pColor;
+            
+            if(window.activeShape === 'circle') { ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); }
+            else if(window.activeShape === 'square') { ctx.fillRect(-15,-15,30,30); }
+            else if(window.activeShape === 'triangle') { ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(18,12); ctx.lineTo(-18,12); ctx.fill(); }
+            else if(window.activeShape === 'star') { ctx.beginPath(); for(let i=0;i<10;i++){ let r=i%2?18:8; let a=Math.PI*2/10*i; ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r); } ctx.fill(); }
+            else if(window.activeShape === 'diamond') { ctx.rotate(Math.PI/4); ctx.fillRect(-15,-15,30,30); }
+            else if(window.activeShape === 'phoenix') { ctx.beginPath(); ctx.moveTo(0,-25); ctx.quadraticCurveTo(20,0,0,25); ctx.quadraticCurveTo(-20,0,0,-25); ctx.fill(); }
+            ctx.restore();
+
+            if(isReverseActive) { reverseTimer--; if(reverseTimer <= 0) isReverseActive = false; }
+            updateUI();
+            requestAnimationFrame(animate);
+        }
+
+        function endGame(m) { 
+            gameActive = false;
+            let isNewGhostHighscore = false;
+            if (score > window.ghostHighscore) { window.ghostHighscore = score; isNewGhostHighscore = true; }
+            
+            if(isNewGhostHighscore) {
+                window.activeGhostRecording.map = currentRunMap;
+                window.activeGhostRecording.recordScore = score;
+                window.saveToDBWithGhost(window.activeGhostRecording);
+                alert("NEW GHOST RECORD!\n" + m + "\nSCORE: " + score + "\nYour ghost has been updated!");
+            } else {
+                window.saveToDBWithGhost(null);
+                alert(m + "\nSCORE: " + score + "\nBEST GHOST SCORE: " + window.ghostHighscore); 
+            }
+            
+            updateUI(); 
+            document.getElementById('menu').classList.remove('hidden'); 
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('reverseContainer').classList.add('hidden');
+        }
+
+        const move = e => { let t = e.touches ? e.touches[0] : e; player.x = t.clientX; player.y = t.clientY; };
+        window.addEventListener('mousemove', move); window.addEventListener('touchmove', move);
+    </script>
+</body>
+</html>
