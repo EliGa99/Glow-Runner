@@ -43,6 +43,29 @@
             width: 280px; margin: 6px 0;
         }
         .btn:hover { background: #0ff; color: #000; box-shadow: 0 0 20px #0ff; }
+        .daily-rift-btn {
+            position: relative;
+            overflow: hidden;
+            border-color: #ff0;
+            color: #ff0;
+            background: rgba(255,255,0,0.08);
+            box-shadow: 0 0 14px rgba(255,255,0,0.55), inset 0 0 18px rgba(255,0,255,0.15);
+            animation: dailyRiftPulse 1.4s infinite ease-in-out;
+        }
+        .daily-rift-btn::after {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,0,255,0.8);
+            opacity: 0;
+            animation: dailyRiftRing 1.4s infinite;
+        }
+        .daily-rift-btn:hover {
+            background: #ff0;
+            color: #000;
+            box-shadow: 0 0 28px #ff0, 0 0 45px #f0f;
+        }
         .ghost-station-btn {
             position: relative;
             overflow: hidden;
@@ -86,6 +109,12 @@
 
         #hud { position: absolute; top: 10px; width: 100%; text-align: center; pointer-events: none; z-index: 10; }
         .hud-val { color: #0ff; font-weight: bold; font-size: 1.2rem; text-shadow: 0 0 10px #0ff; }
+        #eventHud { color: #ff0; font-size: 0.78rem; margin-top: 4px; text-shadow: 0 0 10px #ff0; letter-spacing: 1px; }
+        #comboHud {
+            color: #f0f; font-size: 0.82rem; margin-top: 4px; letter-spacing: 2px;
+            text-shadow: 0 0 10px #f0f; transform-origin: center;
+        }
+        #comboHud.surge { color: #ff0; text-shadow: 0 0 12px #ff0, 0 0 22px #f0f; animation: comboPop 0.45s infinite alternate; }
         
         #reverseContainer { 
             position: absolute; bottom: 20px; left: 20px; z-index: 30; 
@@ -102,6 +131,18 @@
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, 1px); } }
+        @keyframes comboPop {
+            from { transform: scale(1); }
+            to { transform: scale(1.08); }
+        }
+        @keyframes dailyRiftPulse {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.035); filter: brightness(1.35); }
+        }
+        @keyframes dailyRiftRing {
+            0% { opacity: 0.8; transform: scale(0.96); }
+            100% { opacity: 0; transform: scale(1.16); }
+        }
         @keyframes ghostStationPulse {
             0%, 100% { transform: scale(1); filter: hue-rotate(0deg); }
             50% { transform: scale(1.045); filter: hue-rotate(55deg); }
@@ -127,6 +168,155 @@
         .item-btn { border: 1px solid #444; padding: 10px 5px; font-size: 0.6rem; color: #888; background: #050505; border-radius: 5px; width: 100%; cursor: pointer; font-family: 'Orbitron'; }
         .item-btn.owned { border-color: #0f0; color: #0f0; }
         .item-btn.active { background: #0ff; color: #000; border-color: #fff; font-weight: bold; }
+
+        .run-result-card {
+            width: min(92vw, 430px);
+            border: 2px solid #0ff;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(0,20,28,0.96), rgba(0,0,0,0.96));
+            box-shadow: 0 0 35px rgba(0,255,255,0.7), inset 0 0 28px rgba(255,0,255,0.14);
+            padding: 24px;
+            text-align: center;
+        }
+        .result-title {
+            color: #ff0;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-shadow: 0 0 14px #ff0;
+            margin-bottom: 10px;
+        }
+        .result-message {
+            color: #0ff;
+            font-size: 1.55rem;
+            line-height: 1.1;
+            margin: 0 0 18px 0;
+            text-shadow: 0 0 18px #0ff;
+        }
+        .result-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 18px 0;
+        }
+        .result-stat {
+            border: 1px solid rgba(0,255,255,0.35);
+            border-radius: 12px;
+            padding: 12px;
+            background: rgba(0,255,255,0.06);
+        }
+        .result-stat span {
+            display: block;
+            color: #888;
+            font-size: 0.58rem;
+            letter-spacing: 2px;
+            margin-bottom: 7px;
+        }
+        .result-stat b {
+            color: #fff;
+            font-size: 1.15rem;
+            text-shadow: 0 0 10px #0ff;
+        }
+        .result-actions {
+            display: grid;
+            gap: 9px;
+        }
+        .replay-badge {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 18;
+            padding: 10px 15px;
+            border: 1px solid #f0f;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.72);
+            color: #fff;
+            text-shadow: 0 0 12px #f0f;
+            letter-spacing: 2px;
+            font-size: 0.7rem;
+            box-shadow: 0 0 22px rgba(255,0,255,0.45);
+        }
+        .replay-timeline {
+            position: absolute;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            z-index: 18;
+            width: min(88vw, 680px);
+            border: 1px solid rgba(0,255,255,0.45);
+            border-radius: 16px;
+            background: rgba(0,0,0,0.72);
+            box-shadow: 0 0 24px rgba(0,255,255,0.28);
+            padding: 12px 14px;
+        }
+        .replay-time-row {
+            display: flex;
+            justify-content: space-between;
+            color: #fff;
+            font-size: 0.62rem;
+            letter-spacing: 2px;
+            margin-bottom: 9px;
+        }
+        .replay-track {
+            height: 9px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.12);
+            cursor: pointer;
+        }
+        #replayProgress {
+            display: block;
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #0ff, #f0f, #ff0);
+            box-shadow: 0 0 14px #0ff;
+        }
+        .replay-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 11px;
+        }
+        .replay-controls button {
+            border: 1px solid rgba(0,255,255,0.45);
+            border-radius: 10px;
+            background: rgba(0,255,255,0.08);
+            color: #0ff;
+            padding: 8px 6px;
+            font-family: 'Orbitron';
+            font-size: 0.62rem;
+            letter-spacing: 1px;
+        }
+        .replay-controls button:last-child {
+            border-color: rgba(255,255,0,0.55);
+            color: #ff0;
+        }
+        #surgeFrame {
+            position: absolute;
+            inset: 0;
+            z-index: 12;
+            pointer-events: none;
+            border: 7px solid transparent;
+            box-shadow:
+                inset 0 0 28px #0ff,
+                inset 0 0 52px #f0f,
+                0 0 28px #ff0;
+            background:
+                linear-gradient(90deg, rgba(0,255,255,0.18), rgba(255,0,255,0.12), rgba(255,255,0,0.16), rgba(0,255,255,0.18));
+            mix-blend-mode: screen;
+            opacity: 0;
+        }
+        #surgeFrame.active {
+            opacity: 1;
+            animation: surgeFrameFlicker 0.18s infinite alternate;
+        }
+        @keyframes surgeFrameFlicker {
+            0% { filter: hue-rotate(0deg) brightness(1.15); clip-path: inset(0 0 0 0); }
+            35% { filter: hue-rotate(95deg) brightness(1.75); clip-path: inset(1% 0 0 0); }
+            70% { filter: hue-rotate(210deg) brightness(1.3); clip-path: inset(0 1% 1% 0); }
+            100% { filter: hue-rotate(330deg) brightness(2); clip-path: inset(0 0 1% 1%); }
+        }
     </style>
 </head>
 <body>
@@ -134,6 +324,8 @@
     <div id="hud" class="hidden">
         SCORE: <span id="currentScore" class="hud-val">0</span> | 
         💎: <span id="totalPointsHud" class="hud-val">0</span>
+        <div id="eventHud" class="hidden">DAILY RIFT: <span id="riftTimer">60</span>s | 2X FIELDS</div>
+        <div id="comboHud" class="hidden">COMBO x<span id="comboMult">1</span> | <span id="comboTime">0</span>s</div>
     </div>
 
     <div id="reverseContainer" class="hidden">
@@ -150,6 +342,7 @@
         </div>
         
         <button class="btn" onclick="startGame()" style="border-color: #0f0; color: #0f0;">LAUNCH GAME</button>
+        <button class="btn daily-rift-btn" onclick="startDailyRift()">DAILY RIFT</button>
         <button class="btn ghost-station-btn" onclick="location.href='ghost-runner-beta.html'">
             GHOST STATION
             <span class="new-badge">NEW</span>
@@ -211,6 +404,40 @@
             <button class="btn" onclick="closeShop()" style="margin: 30px; border-color: #f0f; color: #f0f; width: 80%;">BACK TO MENU</button>
         </div>
     </div>
+
+    <div id="runResult" class="overlay hidden">
+        <div class="run-result-card">
+            <div class="result-title">RUN COMPLETE</div>
+            <h2 id="resultMessage" class="result-message">DESTRUCTION</h2>
+            <div class="result-stats">
+                <div class="result-stat"><span>SCORE</span><b id="resultScore">0</b></div>
+                <div class="result-stat"><span>BEST</span><b id="resultBest">0</b></div>
+                <div class="result-stat"><span>COMBO</span><b id="resultCombo">0</b></div>
+                <div class="result-stat"><span>MODE</span><b id="resultMode">NORMAL</b></div>
+            </div>
+            <div class="result-actions">
+                <button class="btn" onclick="startReplay()" style="width:100%; border-color:#f0f; color:#f0f;">REPLAY CAMERA</button>
+                <button class="btn" onclick="startGame()" style="width:100%; border-color:#0ff; color:#0ff;">NOCH EIN SPIEL</button>
+                <button class="btn" onclick="closeRunResult()" style="width:100%; border-color:#0f0; color:#0f0;">BACK TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="replayBadge" class="replay-badge hidden">REPLAY CAMERA</div>
+    <div id="replayTimeline" class="replay-timeline hidden">
+        <div class="replay-time-row">
+            <span id="replayTime">00:00</span>
+            <span id="replayTotal">00:00</span>
+        </div>
+        <div id="replayTrack" class="replay-track"><i id="replayProgress"></i></div>
+        <div class="replay-controls">
+            <button onclick="seekReplay(-30)">- SKIP</button>
+            <button onclick="seekReplay(30)">+ SKIP</button>
+            <button id="replayPauseBtn" onclick="toggleReplayPause()">PAUSE</button>
+            <button onclick="leaveReplay()">LEAVE</button>
+        </div>
+    </div>
+    <div id="surgeFrame"></div>
 
     <canvas id="gameCanvas"></canvas>
 
@@ -368,6 +595,11 @@
         let target = { x: 0, y: 0 };
         let enemies = [], obstacles = [], particles = [], score = 0, gameActive = false, frame = 0;
         let reverseCharge = 0, isReverseActive = false, reverseTimer = 0;
+        let dailyRiftActive = false, dailyRiftTimer = 0;
+        let comboCount = 0, comboTimer = 0, surgeTimer = 0;
+        let popups = [];
+        let replayFrames = [], replayActive = false, replayPaused = false, lastRunStats = null;
+        let replayIndex = 0, replayTick = 0;
 
         function updateUI() {
             if(document.getElementById('totalPointsHud')) document.getElementById('totalPointsHud').innerText = window.totalPoints;
@@ -387,6 +619,18 @@
 
             if(gameActive) {
                 document.getElementById('currentScore').innerText = score;
+                const eventHud = document.getElementById('eventHud');
+                if(eventHud) eventHud.classList.toggle('hidden', !dailyRiftActive);
+                if(dailyRiftActive && document.getElementById('riftTimer')) {
+                    document.getElementById('riftTimer').innerText = Math.max(0, Math.ceil(dailyRiftTimer / 60));
+                }
+                const comboHud = document.getElementById('comboHud');
+                if(comboHud) {
+                    comboHud.classList.toggle('hidden', comboCount < 2 && surgeTimer <= 0);
+                    comboHud.classList.toggle('surge', surgeTimer > 0);
+                    document.getElementById('comboMult').innerText = getComboMultiplier();
+                    document.getElementById('comboTime').innerText = surgeTimer > 0 ? "SURGE" : Math.ceil(comboTimer / 60);
+                }
                 const rBtn = document.getElementById('reverseBtn');
                 if(isReverseActive) {
                     rBtn.innerText = Math.ceil(reverseTimer/60) + "s";
@@ -451,12 +695,24 @@
         function openShop() { document.getElementById('menu').classList.add('hidden'); document.getElementById('shop').classList.remove('hidden'); setPreview('color', window.activeSkin, 0); updateUI(); }
         function closeShop() { document.getElementById('shop').classList.add('hidden'); document.getElementById('menu').classList.remove('hidden'); }
 
-        function startGame() {
+        function startDailyRift() {
+            startGame('dailyRift');
+        }
+
+        function startGame(mode = 'normal') {
+            replayActive = false;
             gameActive = true;
+            dailyRiftActive = mode === 'dailyRift';
+            dailyRiftTimer = dailyRiftActive ? 3600 : 0;
+            document.getElementById('runResult').classList.add('hidden');
+            document.getElementById('replayBadge').classList.add('hidden');
+            document.getElementById('replayTimeline').classList.add('hidden');
             document.getElementById('menu').classList.add('hidden');
             document.getElementById('hud').classList.remove('hidden');
             document.getElementById('reverseContainer').classList.remove('hidden');
-            score = 0; enemies = []; obstacles = []; reverseCharge = 0; isReverseActive = false;
+            score = 0; enemies = []; obstacles = []; reverseCharge = 0; isReverseActive = false; frame = 0;
+            comboCount = 0; comboTimer = 0; surgeTimer = 0; popups = [];
+            replayFrames = [];
             vortex.x = (player.x > w/2) ? 50 : w - 50;
             vortex.y = (player.y > h/2) ? 50 : h - 50;
             vortex.tx = Math.random() * w; vortex.ty = Math.random() * h;
@@ -467,17 +723,56 @@
 
         function spawnEnemy() {
             if (!gameActive) return;
-            enemies.push({ x: Math.random()*w, y: -50, r: 12, speed: 2 + (score/15) });
-            setTimeout(spawnEnemy, Math.max(600, 2500 - (score*100)));
+            enemies.push({ x: Math.random()*w, y: -50, r: 12, speed: 2 + (score/15) + (dailyRiftActive ? 0.7 : 0) });
+            setTimeout(spawnEnemy, Math.max(dailyRiftActive ? 420 : 600, 2500 - (score*100)));
         }
 
         function moveTarget() { target.x = 100 + Math.random()*(w-200); target.y = 100 + Math.random()*(h-200); }
+
+        function getComboMultiplier() {
+            if(surgeTimer > 0) return dailyRiftActive ? 5 : 4;
+            if(comboCount >= 12) return dailyRiftActive ? 4 : 3;
+            if(comboCount >= 7) return dailyRiftActive ? 3 : 2;
+            if(comboCount >= 3) return 2;
+            return dailyRiftActive ? 2 : 1;
+        }
+
+        function addPopup(text, x, y, color = "#ff0") {
+            popups.push({ text, x, y, vy: -1.4, life: 70, maxLife: 70, color });
+        }
+
+        function collectField() {
+            comboCount++;
+            comboTimer = dailyRiftActive ? 240 : 180;
+
+            if(comboCount === 8 || comboCount === 16) {
+                surgeTimer = 360;
+                addPopup("SURGE!", player.x, player.y - 35, "#ff0");
+            }
+
+            const mult = getComboMultiplier();
+            const baseScore = dailyRiftActive ? 2 : 1;
+            const baseCrystals = dailyRiftActive ? 20 : 10;
+            score += baseScore * mult;
+            window.totalPoints += baseCrystals * mult;
+            if(!isReverseActive) reverseCharge = Math.min(100, reverseCharge + (dailyRiftActive ? 12 : 8) + mult);
+            addPopup(`x${mult}`, target.x, target.y - 20, surgeTimer > 0 ? "#ff0" : "#0ff");
+            moveTarget();
+        }
 
         function animate() {
             if (!gameActive) return;
             frame++;
             ctx.fillStyle = "rgba(0, 0, 0, 0.25)"; 
             ctx.fillRect(0,0,w,h);
+
+            if(dailyRiftActive) {
+                dailyRiftTimer--;
+                if(dailyRiftTimer <= 0) return endGame("DAILY RIFT COMPLETE");
+            }
+            if(comboTimer > 0) comboTimer--;
+            else comboCount = 0;
+            if(surgeTimer > 0) surgeTimer--;
 
             if(window.activeMap === 'grid') {
                 ctx.strokeStyle="rgba(0,255,255,0.15)"; ctx.lineWidth=1;
@@ -489,6 +784,22 @@
             } else if(window.activeMap === 'matrix') {
                 ctx.fillStyle="#0f0"; ctx.font="10px monospace";
                 for(let i=0; i<w; i+=25) { ctx.fillText(Math.random()>0.8?"1":"0", i, (frame*3 + i*2)%h); }
+            }
+
+            if(dailyRiftActive) {
+                ctx.save();
+                ctx.strokeStyle = `hsla(${frame % 360}, 100%, 60%, ${surgeTimer > 0 ? 0.42 : 0.22})`;
+                ctx.lineWidth = surgeTimer > 0 ? 4 : 2;
+                ctx.translate(w / 2, h / 2);
+                ctx.rotate(frame * 0.015);
+                for(let i = 0; i < 8; i++) {
+                    ctx.rotate(Math.PI / 4);
+                    ctx.beginPath();
+                    ctx.moveTo(80, 0);
+                    ctx.lineTo(Math.max(w, h), 0);
+                    ctx.stroke();
+                }
+                ctx.restore();
             }
 
             let dxV = vortex.tx - vortex.x; let dyV = vortex.ty - vortex.y;
@@ -517,10 +828,25 @@
             });
 
             if(Math.hypot(player.x-target.x, player.y-target.y) < 30) { 
-                score++; window.totalPoints += 10; if(!isReverseActive) reverseCharge = Math.min(100, reverseCharge + 8);
-                moveTarget(); 
+                collectField();
             }
-            ctx.fillStyle="#ff0"; ctx.beginPath(); ctx.arc(target.x, target.y, 10, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = surgeTimer > 0 ? "#ff0" : (dailyRiftActive ? "#0ff" : "#ff0");
+            ctx.shadowBlur = dailyRiftActive || surgeTimer > 0 ? 24 : 0;
+            ctx.shadowColor = surgeTimer > 0 ? "#ff0" : (dailyRiftActive ? "#0ff" : "transparent");
+            ctx.beginPath(); ctx.arc(target.x, target.y, surgeTimer > 0 ? 15 : (dailyRiftActive ? 12 : 10), 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            popups.forEach((p, i) => {
+                p.y += p.vy;
+                p.life--;
+                ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+                ctx.fillStyle = p.color;
+                ctx.font = "bold 18px Orbitron";
+                ctx.textAlign = "center";
+                ctx.fillText(p.text, p.x, p.y);
+                if(p.life <= 0) popups.splice(i, 1);
+            });
+            ctx.globalAlpha = 1;
 
             ctx.save(); ctx.translate(player.x, player.y);
             let pColor = window.activeSkin === 'rainbow' ? `hsl(${frame%360},100%,50%)` : window.activeSkin;
@@ -534,10 +860,202 @@
             else if(window.activeShape === 'phoenix') { ctx.beginPath(); ctx.moveTo(0,-25); ctx.quadraticCurveTo(20,0,0,25); ctx.quadraticCurveTo(-20,0,0,-25); ctx.fill(); }
             ctx.restore();
 
+            if(frame % 3 === 0) captureReplayFrame();
+
             if(isReverseActive) { reverseTimer--; if(reverseTimer <= 0) isReverseActive = false; }
             updateUI();
             requestAnimationFrame(animate);
         }
+
+        function captureReplayFrame() {
+            replayFrames.push({
+                player: { x: player.x, y: player.y },
+                vortex: { x: vortex.x, y: vortex.y },
+                target: { x: target.x, y: target.y },
+                enemies: enemies.slice(0, 14).map(en => ({ x: en.x, y: en.y, r: en.r })),
+                score,
+                combo: comboCount,
+                activeSkin: window.activeSkin,
+                activeShape: window.activeShape,
+                activeMap: window.activeMap,
+                frame,
+                surge: surgeTimer > 0,
+                daily: dailyRiftActive
+            });
+            if(replayFrames.length > 520) replayFrames.shift();
+        }
+
+        function drawReplaySnapshot(snapshot, index) {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+            ctx.fillRect(0, 0, w, h);
+
+            if(snapshot.activeMap === 'grid') {
+                ctx.strokeStyle="rgba(0,255,255,0.15)"; ctx.lineWidth=1;
+                for(let i=0; i<w; i+=60) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
+                for(let i=0; i<h; i+=60) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(w,i); ctx.stroke(); }
+            } else if(snapshot.activeMap === 'stars') {
+                ctx.fillStyle="white";
+                for(let i=0; i<50; i++) { ctx.fillRect((Math.sin(i)*10000)%w, (i*snapshot.frame*0.5)%h, 2, 2); }
+            } else if(snapshot.activeMap === 'matrix') {
+                ctx.fillStyle="#0f0"; ctx.font="10px monospace";
+                for(let i=0; i<w; i+=25) { ctx.fillText(Math.random()>0.8?"1":"0", i, (snapshot.frame*3 + i*2)%h); }
+            }
+
+            if(snapshot.daily) {
+                ctx.save();
+                ctx.strokeStyle = `hsla(${snapshot.frame % 360}, 100%, 60%, ${snapshot.surge ? 0.42 : 0.22})`;
+                ctx.lineWidth = snapshot.surge ? 4 : 2;
+                ctx.translate(w / 2, h / 2);
+                ctx.rotate(snapshot.frame * 0.015);
+                for(let i = 0; i < 8; i++) {
+                    ctx.rotate(Math.PI / 4);
+                    ctx.beginPath();
+                    ctx.moveTo(80, 0);
+                    ctx.lineTo(Math.max(w, h), 0);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            let pulse = Math.sin(snapshot.frame * 0.1) * 8;
+            let g = ctx.createRadialGradient(snapshot.vortex.x, snapshot.vortex.y, 5, snapshot.vortex.x, snapshot.vortex.y, 70 + pulse);
+            g.addColorStop(0, "#fff"); g.addColorStop(0.2, "#f0f"); g.addColorStop(1, "transparent");
+            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(snapshot.vortex.x, snapshot.vortex.y, 90 + pulse, 0, Math.PI * 2); ctx.fill();
+
+            ctx.fillStyle = snapshot.surge ? "#ff0" : (snapshot.daily ? "#0ff" : "#ff0");
+            ctx.shadowBlur = 24;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.beginPath(); ctx.arc(snapshot.target.x, snapshot.target.y, snapshot.surge ? 15 : 10, 0, Math.PI * 2); ctx.fill();
+
+            ctx.shadowBlur = 16;
+            ctx.shadowColor = "#f00";
+            ctx.fillStyle = "#f00";
+            snapshot.enemies.forEach(en => {
+                ctx.beginPath(); ctx.arc(en.x, en.y, en.r, 0, Math.PI * 2); ctx.fill();
+            });
+
+            ctx.save(); ctx.translate(snapshot.player.x, snapshot.player.y);
+            let pColor = snapshot.activeSkin === 'rainbow' ? `hsl(${snapshot.frame%360},100%,50%)` : snapshot.activeSkin;
+            ctx.fillStyle = pColor; ctx.shadowBlur = 24; ctx.shadowColor = pColor;
+            if(snapshot.activeShape === 'circle') { ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); }
+            else if(snapshot.activeShape === 'square') { ctx.fillRect(-15,-15,30,30); }
+            else if(snapshot.activeShape === 'triangle') { ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(18,12); ctx.lineTo(-18,12); ctx.fill(); }
+            else if(snapshot.activeShape === 'star') { ctx.beginPath(); for(let i=0;i<10;i++){ let r=i%2?18:8; let a=Math.PI*2/10*i; ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r); } ctx.fill(); }
+            else if(snapshot.activeShape === 'diamond') { ctx.rotate(Math.PI/4); ctx.fillRect(-15,-15,30,30); }
+            else if(snapshot.activeShape === 'phoenix') { ctx.beginPath(); ctx.moveTo(0,-25); ctx.quadraticCurveTo(20,0,0,25); ctx.quadraticCurveTo(-20,0,0,-25); ctx.fill(); }
+            ctx.restore();
+
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1;
+            document.getElementById('currentScore').innerText = snapshot.score;
+            const comboHud = document.getElementById('comboHud');
+            if(comboHud) {
+                comboHud.classList.toggle('hidden', snapshot.combo < 2 && !snapshot.surge);
+                comboHud.classList.toggle('surge', snapshot.surge);
+                document.getElementById('comboMult').innerText = snapshot.combo;
+                document.getElementById('comboTime').innerText = snapshot.surge ? "SURGE" : "REPLAY";
+            }
+        }
+
+        function formatReplayTime(frames) {
+            const seconds = Math.max(0, Math.round(frames / 20));
+            return `00:${String(seconds).padStart(2, "0")}`;
+        }
+
+        function updateReplayTimeline(index) {
+            const progress = replayFrames.length <= 1 ? 0 : (index / (replayFrames.length - 1)) * 100;
+            document.getElementById('replayProgress').style.width = `${Math.min(100, progress)}%`;
+            document.getElementById('replayTime').innerText = formatReplayTime(index);
+            document.getElementById('replayTotal').innerText = formatReplayTime(replayFrames.length);
+        }
+
+        function drawCurrentReplayFrame() {
+            if(!replayFrames.length) return;
+            replayIndex = Math.max(0, Math.min(replayFrames.length - 1, replayIndex));
+            drawReplaySnapshot(replayFrames[replayIndex], replayIndex);
+            updateReplayTimeline(replayIndex);
+        }
+
+        function toggleReplayPause() {
+            if(!replayActive) return;
+            replayPaused = !replayPaused;
+            document.getElementById('replayPauseBtn').innerText = replayPaused ? "PLAY" : "PAUSE";
+            if(!replayPaused) replayLoop();
+        }
+
+        function seekReplay(amount) {
+            if(!replayActive) return;
+            replayIndex = Math.max(0, Math.min(replayFrames.length - 1, replayIndex + amount));
+            drawCurrentReplayFrame();
+        }
+
+        function leaveReplay() {
+            replayActive = false;
+            replayPaused = false;
+            document.getElementById('replayPauseBtn').innerText = "PAUSE";
+            document.getElementById('replayBadge').classList.add('hidden');
+            document.getElementById('replayTimeline').classList.add('hidden');
+            document.getElementById('hud').classList.add('hidden');
+            if(document.getElementById('comboHud')) document.getElementById('comboHud').classList.add('hidden');
+            document.getElementById('runResult').classList.remove('hidden');
+        }
+
+        function replayLoop() {
+            if(!replayActive || replayPaused) return;
+            drawCurrentReplayFrame();
+            replayTick++;
+            if(replayTick % 5 === 0 && replayIndex < replayFrames.length - 1) {
+                replayIndex++;
+            }
+            if(replayIndex >= replayFrames.length - 1) {
+                replayIndex = replayFrames.length - 1;
+                drawCurrentReplayFrame();
+                replayPaused = true;
+                document.getElementById('replayPauseBtn').innerText = "PLAY";
+                return;
+            }
+            requestAnimationFrame(replayLoop);
+        }
+
+        function startReplay() {
+            if(!replayFrames.length) return;
+            replayActive = true;
+            replayPaused = false;
+            gameActive = false;
+            document.getElementById('runResult').classList.add('hidden');
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('reverseContainer').classList.add('hidden');
+            document.getElementById('replayBadge').classList.remove('hidden');
+            document.getElementById('replayTimeline').classList.remove('hidden');
+            document.getElementById('replayProgress').style.width = "0%";
+            replayIndex = 0;
+            replayTick = 0;
+            document.getElementById('replayPauseBtn').innerText = "PAUSE";
+
+            replayLoop();
+        }
+
+        function closeRunResult() {
+            replayActive = false;
+            replayPaused = false;
+            document.getElementById('replayBadge').classList.add('hidden');
+            document.getElementById('replayTimeline').classList.add('hidden');
+            document.getElementById('hud').classList.add('hidden');
+            if(document.getElementById('comboHud')) document.getElementById('comboHud').classList.add('hidden');
+            document.getElementById('runResult').classList.add('hidden');
+            document.getElementById('menu').classList.remove('hidden');
+            ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+            ctx.fillRect(0, 0, w, h);
+        }
+
+        document.getElementById('replayTrack').addEventListener('click', (event) => {
+            if(!replayActive || !replayFrames.length) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+            replayIndex = Math.round(ratio * (replayFrames.length - 1));
+            drawCurrentReplayFrame();
+        });
 
         function endGame(m) { 
             gameActive = false;
@@ -545,13 +1063,32 @@
                 window.highscore = score;
             }
             window.saveToDB(); 
-            
-            alert(m + "\nSCORE: " + score + "\nBEST: " + window.highscore); 
+            lastRunStats = {
+                message: m,
+                score,
+                best: window.highscore,
+                combo: comboCount,
+                mode: dailyRiftActive ? "DAILY RIFT" : "NORMAL"
+            };
+            document.getElementById('resultMessage').innerText = m;
+            document.getElementById('resultScore').innerText = score;
+            document.getElementById('resultBest').innerText = window.highscore;
+            document.getElementById('resultCombo').innerText = "x" + Math.max(1, getComboMultiplier());
+            document.getElementById('resultMode').innerText = lastRunStats.mode;
             
             updateUI(); 
             document.getElementById('menu').classList.remove('hidden'); 
+            document.getElementById('runResult').classList.remove('hidden');
             document.getElementById('hud').classList.add('hidden');
             document.getElementById('reverseContainer').classList.add('hidden');
+            dailyRiftActive = false;
+            dailyRiftTimer = 0;
+            comboCount = 0;
+            comboTimer = 0;
+            surgeTimer = 0;
+            popups = [];
+            if(document.getElementById('eventHud')) document.getElementById('eventHud').classList.add('hidden');
+            if(document.getElementById('comboHud')) document.getElementById('comboHud').classList.add('hidden');
         }
 
         const move = e => { let t = e.touches ? e.touches[0] : e; player.x = t.clientX; player.y = t.clientY; };
