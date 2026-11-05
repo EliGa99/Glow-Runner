@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GLOW RUNNER: OVERDRIVE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Orbitron', sans-serif; touch-action: none; color: white; }
+        canvas { display: block; filter: contrast(1.1) brightness(1.1); }
+        
+        /* --- OVERLAYS --- */
+        .overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.9); z-index: 20; backdrop-filter: blur(10px);
+        }
+        .hidden { display: none !important; }
+
+        .title-img { max-width: 80%; max-height: 150px; margin-bottom: 10px; filter: drop-shadow(0 0 10px #0ff); }
+        
+        .footer-logo-container { 
+            position: absolute; 
+            bottom: 10px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 5px; 
+            opacity: 0.6; 
+            pointer-events: none;
+            z-index: 25;
+        }
+        .footer-logo { width: 40px; height: auto; border-radius: 5px; }
+        .made-by { font-size: 0.5rem; letter-spacing: 2px; color: #888; }
+
+        h1 { font-size: 2.2rem; color: #0ff; text-shadow: 0 0 20px #0ff; margin: 5px 0; letter-spacing: 5px; text-align: center; }
+        .btn { 
+            background: rgba(0,255,255,0.1); border: 2px solid #0ff; color: #0ff; 
+            padding: 12px 20px; font-family: 'Orbitron'; font-size: 0.9rem; 
+            cursor: pointer; transition: 0.3s; border-radius: 8px; text-transform: uppercase;
+            width: 280px; margin: 6px 0;
+        }
+        .btn:hover { background: #0ff; color: #000; box-shadow: 0 0 20px #0ff; }
+        .daily-rift-btn {
+            position: relative;
+            overflow: hidden;
+            border-color: #ff0;
+            color: #ff0;
+            background: rgba(255,255,0,0.08);
+            box-shadow: 0 0 14px rgba(255,255,0,0.55), inset 0 0 18px rgba(255,0,255,0.15);
+            animation: dailyRiftPulse 1.4s infinite ease-in-out;
+        }
+        .daily-rift-btn::after {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,0,255,0.8);
+            opacity: 0;
+            animation: dailyRiftRing 1.4s infinite;
+        }
+        .daily-rift-btn:hover {
+            background: #ff0;
+            color: #000;
+            box-shadow: 0 0 28px #ff0, 0 0 45px #f0f;
+        }
+        .ghost-station-btn {
+            position: relative;
+            overflow: hidden;
+            border-color: #f0f;
+            color: #fff;
+            background: linear-gradient(90deg, rgba(255,0,255,0.15), rgba(0,255,255,0.18), rgba(255,255,0,0.12));
+            box-shadow: 0 0 18px rgba(255,0,255,0.6), inset 0 0 18px rgba(0,255,255,0.18);
+            animation: ghostStationPulse 1.2s infinite ease-in-out;
+        }
+        .ghost-station-btn::before {
+            content: "";
+            position: absolute;
+            top: -80%;
+            left: -35%;
+            width: 35%;
+            height: 260%;
+            background: rgba(255,255,255,0.55);
+            transform: rotate(25deg);
+            animation: ghostStationScan 1.7s infinite;
+        }
+        .ghost-station-btn:hover {
+            background: #f0f;
+            color: #000;
+            border-color: #fff;
+            box-shadow: 0 0 35px #f0f, 0 0 55px #0ff;
+        }
+        .new-badge {
+            position: absolute;
+            top: -9px;
+            right: 12px;
+            padding: 3px 7px;
+            border-radius: 999px;
+            background: #ff0;
+            color: #000;
+            font-size: 0.55rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            box-shadow: 0 0 14px #ff0;
+            animation: newBadgePop 0.75s infinite alternate;
+        }
+
+        #hud { position: absolute; top: 10px; width: 100%; text-align: center; pointer-events: none; z-index: 10; }
+        .hud-val { color: #0ff; font-weight: bold; font-size: 1.2rem; text-shadow: 0 0 10px #0ff; }
+        #eventHud { color: #ff0; font-size: 0.78rem; margin-top: 4px; text-shadow: 0 0 10px #ff0; letter-spacing: 1px; }
+        #comboHud {
+            color: #f0f; font-size: 0.82rem; margin-top: 4px; letter-spacing: 2px;
+            text-shadow: 0 0 10px #f0f; transform-origin: center;
+        }
+        #comboHud.surge { color: #ff0; text-shadow: 0 0 12px #ff0, 0 0 22px #f0f; animation: comboPop 0.45s infinite alternate; }
+        
+        #reverseContainer { 
+            position: absolute; bottom: 20px; left: 20px; z-index: 30; 
+            display: flex; flex-direction: column; align-items: center;
+        }
+        #reverseBtn {
+            width: 70px; height: 70px; border-radius: 50%; border: 4px solid #333;
+            background: rgba(0,0,0,0.6); color: #555; font-weight: bold; font-size: 0.7rem;
+            display: flex; align-items: center; justify-content: center; cursor: not-allowed;
+            transition: 0.3s; user-select: none;
+        }
+        #reverseBtn.ready { border-color: #ff0; color: #ff0; cursor: pointer; box-shadow: 0 0 20px #ff0; animation: pulse 1s infinite; }
+        #reverseBtn.active { border-color: #f0f; color: #fff; background: #f0f; animation: shake 0.2s infinite; }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, 1px); } }
+        @keyframes comboPop {
+            from { transform: scale(1); }
+            to { transform: scale(1.08); }
+        }
+        @keyframes dailyRiftPulse {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.035); filter: brightness(1.35); }
+        }
+        @keyframes dailyRiftRing {
+            0% { opacity: 0.8; transform: scale(0.96); }
+            100% { opacity: 0; transform: scale(1.16); }
+        }
+        @keyframes worldCupPulse {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.04); filter: brightness(1.28); }
+        }
+        @keyframes worldCupSweep {
+            0% { left: -70%; opacity: 0; }
+            35% { opacity: 1; }
+            100% { left: 125%; opacity: 0; }
+        }
+        @keyframes ghostStationPulse {
+            0%, 100% { transform: scale(1); filter: hue-rotate(0deg); }
+            50% { transform: scale(1.045); filter: hue-rotate(55deg); }
+        }
+        @keyframes ghostStationScan {
+            0% { left: -45%; opacity: 0; }
+            35% { opacity: 0.9; }
+            100% { left: 120%; opacity: 0; }
+        }
+        @keyframes newBadgePop {
+            from { transform: rotate(-5deg) scale(1); }
+            to { transform: rotate(5deg) scale(1.18); }
+        }
+
+        /* SHOP STYLES */
+        #shop { justify-content: flex-start; padding-top: 10px; overflow-y: auto; display: block; text-align: center; }
+        .shop-container { display: inline-block; width: 100%; max-width: 500px; padding-bottom: 80px; }
+        .points-display { position: sticky; top: 0; background: rgba(0,0,0,0.95); z-index: 30; font-size: 1.1rem; color: #ff0; padding: 12px; border-bottom: 2px solid #0ff; margin-bottom: 10px; }
+        .preview-card { background: #0a0a0a; border: 2px solid #0ff; margin: 0 auto 15px auto; width: 260px; padding: 12px; border-radius: 12px; }
+        #previewRenderBox { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px auto; background: #111; border: 1px solid #333; overflow: hidden; }
+        .category-title { font-size: 0.7rem; color: #f0f; margin: 20px 0 8px 0; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #f0f; display: inline-block; padding: 0 10px; }
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 90%; margin: 0 auto; }
+        .shop-grid.wide { grid-template-columns: 1fr 1fr 1fr; }
+        .item-btn { border: 1px solid #444; padding: 10px 5px; font-size: 0.6rem; color: #888; background: #050505; border-radius: 5px; width: 100%; cursor: pointer; font-family: 'Orbitron'; }
+        .item-btn.owned { border-color: #0f0; color: #0f0; }
+        .item-btn.active { background: #0ff; color: #000; border-color: #fff; font-weight: bold; }
+        .hub-panel {
+            width: min(94vw, 620px);
+            max-height: 92vh;
+            overflow-y: auto;
+            border: 2px solid #0ff;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.96);
+            box-shadow: 0 0 32px rgba(0,255,255,0.55), inset 0 0 24px rgba(255,0,255,0.12);
+            padding: 20px;
+            text-align: center;
+        }
+        .hub-copy {
+            color: #bbb;
+            font-size: 0.68rem;
+            line-height: 1.5;
+            letter-spacing: 1px;
+        }
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 10px;
+            margin: 14px 0;
+        }
+        .hub-card {
+            border: 1px solid rgba(0,255,255,0.35);
+            border-radius: 8px;
+            background: rgba(0,255,255,0.06);
+            padding: 12px;
+            text-align: left;
+            min-height: 120px;
+        }
+        .hub-card b {
+            display: block;
+            color: #fff;
+            font-size: 0.72rem;
+            margin-bottom: 8px;
+        }
+        .hub-card span {
+            display: block;
+            color: #999;
+            font-size: 0.58rem;
+            line-height: 1.45;
+        }
+        .hub-input {
+            width: 100%;
+            margin: 6px 0;
+            padding: 10px;
+            border: 1px solid rgba(0,255,255,0.6);
+            border-radius: 7px;
+            background: #080808;
+            color: #fff;
+            font-family: 'Orbitron';
+            font-size: 0.68rem;
+        }
+        textarea.hub-input { min-height: 84px; resize: vertical; }
+        .mini-action {
+            width: 100%;
+            margin-top: 10px;
+            padding: 9px;
+            border: 1px solid #ff0;
+            border-radius: 7px;
+            background: rgba(255,255,0,0.08);
+            color: #ff0;
+            font-family: 'Orbitron';
+            font-size: 0.58rem;
+            cursor: pointer;
+        }
+        .box-stage {
+            position: relative;
+            height: 220px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: radial-gradient(circle, rgba(255,255,0,0.22), transparent 34%), rgba(0,255,255,0.05);
+            margin: 14px 0;
+        }
+        .loot-box {
+            width: 120px;
+            height: 120px;
+            border: 3px solid #ff0;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(255,255,0,0.9), rgba(255,0,255,0.6), rgba(0,255,255,0.7));
+            box-shadow: 0 0 30px #ff0;
+            transform: rotate(45deg);
+        }
+        .loot-box.opening { animation: lootBoxOpen 1.1s ease-in-out infinite; }
+        .loot-burst {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+            background: repeating-conic-gradient(from 0deg, transparent 0 8deg, rgba(255,255,0,0.75) 8deg 12deg, transparent 12deg 20deg);
+        }
+        .loot-burst.show { animation: lootBurst 0.9s ease-out; }
+        @keyframes lootBoxOpen {
+            0% { transform: rotate(45deg) scale(1); filter: brightness(1); }
+            40% { transform: rotate(62deg) scale(1.12); filter: brightness(1.45); }
+            75% { transform: rotate(25deg) scale(1.28); filter: brightness(2.1); }
+            100% { transform: rotate(45deg) scale(1); filter: brightness(1); }
+        }
+        @keyframes lootBurst {
+            0% { opacity: 0; transform: scale(0.4) rotate(0deg); }
+            35% { opacity: 1; }
+            100% { opacity: 0; transform: scale(1.5) rotate(90deg); }
+        }
+
+        .run-result-card {
+            width: min(92vw, 430px);
+            border: 2px solid #0ff;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(0,20,28,0.96), rgba(0,0,0,0.96));
+            box-shadow: 0 0 35px rgba(0,255,255,0.7), inset 0 0 28px rgba(255,0,255,0.14);
+            padding: 24px;
+            text-align: center;
+        }
+        .result-title {
+            color: #ff0;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-shadow: 0 0 14px #ff0;
+            margin-bottom: 10px;
+        }
+        .result-message {
+            color: #0ff;
+            font-size: 1.55rem;
+            line-height: 1.1;
+            margin: 0 0 18px 0;
+            text-shadow: 0 0 18px #0ff;
+        }
+        .result-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 18px 0;
+        }
+        .result-stats .result-stat {
+            border: 1px solid rgba(0,255,255,0.35);
+            border-radius: 12px;
+            padding: 12px;
+            background: rgba(0,255,255,0.06);
+        }
+        .result-stat span {
+            display: block;
+            color: #888;
+            font-size: 0.58rem;
+            letter-spacing: 2px;
+            margin-bottom: 7px;
+        }
+        .result-stat b {
+            color: #fff;
+            font-size: 1.15rem;
+            text-shadow: 0 0 10px #0ff;
+        }
+        .result-actions {
+            display: grid;
+            gap: 9px;
+        }
+        .replay-badge {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 18;
+            padding: 10px 15px;
+            border: 1px solid #f0f;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.72);
+            color: #fff;
+            text-shadow: 0 0 12px #f0f;
+            letter-spacing: 2px;
+            font-size: 0.7rem;
+            box-shadow: 0 0 22px rgba(255,0,255,0.45);
+        }
+        .replay-timeline {
+            position: absolute;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            z-index: 18;
+            width: min(88vw, 680px);
+            border: 1px solid rgba(0,255,255,0.45);
+            border-radius: 16px;
+            background: rgba(0,0,0,0.72);
+            box-shadow: 0 0 24px rgba(0,255,255,0.28);
+            padding: 12px 14px;
+        }
+        .replay-time-row {
+            display: flex;
+            justify-content: space-between;
+            color: #fff;
+            font-size: 0.62rem;
+            letter-spacing: 2px;
+            margin-bottom: 9px;
+        }
+        .replay-track {
+            height: 9px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.12);
+            cursor: pointer;
+        }
+        #replayProgress {
+            display: block;
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #0ff, #f0f, #ff0);
+            box-shadow: 0 0 14px #0ff;
+        }
+        .replay-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 11px;
+        }
+        .replay-controls button {
+            border: 1px solid rgba(0,255,255,0.45);
+            border-radius: 10px;
+            background: rgba(0,255,255,0.08);
+            color: #0ff;
+            padding: 8px 6px;
+            font-family: 'Orbitron';
+            font-size: 0.62rem;
+            letter-spacing: 1px;
+        }
+        .replay-controls button:last-child {
+            border-color: rgba(255,255,0,0.55);
+            color: #ff0;
+        }
+        #surgeFrame {
+            position: absolute;
+            inset: 0;
+            z-index: 12;
+            pointer-events: none;
+            border: 7px solid transparent;
+            box-shadow:
+                inset 0 0 28px #0ff,
+                inset 0 0 52px #f0f,
+                0 0 28px #ff0;
+            background:
+                linear-gradient(90deg, rgba(0,255,255,0.18), rgba(255,0,255,0.12), rgba(255,255,0,0.16), rgba(0,255,255,0.18));
+            mix-blend-mode: screen;
+            opacity: 0;
+        }
+        #surgeFrame.active {
+            opacity: 1;
+            animation: surgeFrameFlicker 0.18s infinite alternate;
+        }
+        @keyframes surgeFrameFlicker {
+            0% { filter: hue-rotate(0deg) brightness(1.15); clip-path: inset(0 0 0 0); }
+            35% { filter: hue-rotate(95deg) brightness(1.75); clip-path: inset(1% 0 0 0); }
+            70% { filter: hue-rotate(210deg) brightness(1.3); clip-path: inset(0 1% 1% 0); }
+            100% { filter: hue-rotate(330deg) brightness(2); clip-path: inset(0 0 1% 1%); }
+        }
+
+        /* --- NEUE SETTINGS & ALERTS CONFIG --- */
+        @keyframes pulseBorder { 0% { box-shadow: 0 0 15px rgba(255,0,85,0.3); } 50% { box-shadow: 0 0 30px rgba(255,0,85,0.6); } 100% { box-shadow: 0 0 15px rgba(255,0,85,0.3); } }
+        #settingsBtn:hover { transform: rotate(90deg); opacity: 1; }
+        .settings-card-input {
+            background: rgba(0,0,0,0.6) !important;
+            border: 1px solid #ff00ff !important;
+            padding: 12px !important;
+            color: #fff !important;
+            font-family: 'Orbitron', sans-serif !important;
+            border-radius: 6px !important;
+            width: 100% !important;
+            text-align: center !important;
+            box-sizing: border-box !important;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        (function () {
+            const isMaintenancePage = window.location.pathname.endsWith('/wartung.html');
+            const isOfflinePage = window.location.pathname.endsWith('/server-offline.html');
+            if (isMaintenancePage || isOfflinePage) return;
+
+            const getApiBase = () => {
+                const origin = window.location.origin;
+                if (origin && origin !== 'null' && origin !== 'http://localhost:3000') return origin;
+                return 'https://glow-runner-backend.onrender.com';
+            };
+
+            fetch(`${getApiBase()}/api/health`, { cache: 'no-store' })
+                .then(async (response) => {
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        return;
+                    }
+                    if (data.status !== 'online') {
+                        return;
+                    }
+                })
+                .catch(() => {
+                    // server can be restarted without forcing the maintenance screen
+                });
+        })();
+    </script>
+
+    <!-- SERVER OFFLINE MELDUNG -->
+    <div id="offlineMessage" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(90deg, #ff0055, #ff5500); color: white; padding: 15px; text-align: center; z-index: 10000; font-weight: bold; letter-spacing: 2px; animation: offlinePulse 1s infinite; box-shadow: 0 4px 15px rgba(255,0,85,0.5);">
+        ⚠️ LADE PROXY SERVER... Offline Modus aktiv - Server nicht erreichbar! Verbindung wird versucht...
+    </div>
+
+    <style>
+        @keyframes offlinePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    </style>
+
+    <div id="settingsBtn" onclick="openSettings()" style="position: absolute; top: 20px; left: 20px; font-size: 28px; cursor: pointer; z-index: 9999; pointer-events: auto !important; transition: transform 0.3s ease; filter: drop-shadow(0 0 8px #0ff); opacity: 0.8; user-select: none;">⚙️</div>
+
+    <div id="settingsOverlay" class="overlay hidden">
+        <div style="background: rgba(10, 10, 10, 0.95); border: 2px solid #0ff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.2); padding: 30px; border-radius: 15px; width: 90%; max-width: 420px; text-align: center; backdrop-filter: blur(15px); position: relative; box-sizing: border-box;">
+            <div onclick="closeSettings()" style="position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #ff0055; text-shadow: 0 0 10px #ff0055; user-select: none;">&times;</div>
+            <h2 style="text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; margin-bottom: 20px; text-shadow: 0 0 15px #0ff; color: #fff;">Einstellungen</h2>
+            
+            <div style="margin-bottom: 25px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px dashed rgba(0,255,255,0.2);">
+                <span style="font-size: 0.65rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 5px;">Deine Runner ID:</span>
+                <div id="settingsRunnerId" style="font-size: 1.2rem; font-weight: bold; color: #0ff; text-shadow: 0 0 10px #0ff; letter-spacing: 1px;">LADE...</div>
+            </div>
+            
+            <button class="btn" onclick="showTransferInput()" style="border-color: #ff00ff; color: #fff; width: 100%; box-shadow: 0 0 15px rgba(255,0,255,0.2); margin: 0;">ACCOUNT WECHSELN</button>
+            
+            <div id="transferInputArea" class="hidden" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <input type="text" id="targetIdInput" class="settings-card-input" placeholder="RNR-XXXXXXXX" style="margin-bottom: 12px; letter-spacing: 1px; font-size: 1rem;">
+                <button class="btn" onclick="submitTransferRequest()" style="background: #ff00ff; color: #000; border: none; width: 100%; margin: 0;">CODE ANFORDERN</button>
+            </div>
+
+            <div id="transferCodeArea" class="hidden" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <p style="font-size: 0.68rem; color: #ff00ff; margin-bottom: 10px; letter-spacing: 1px;">GIB DEN 6-STELLIGEN LIVE-CODE EIN:</p>
+                <input type="text" id="verificationCodeInput" class="settings-card-input" placeholder="000000" maxlength="6" style="border-color: #0ff !important; margin-bottom: 12px; letter-spacing: 5px; font-size: 1.3rem;">
+                <button class="btn" onclick="submitVerificationCode()" style="background: #0ff; color: #000; border: none; width: 100%; margin: 0;">VERIFIZIEREN & EINLOGGEN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="transferAlert" class="hidden" style="position: absolute; bottom: 20px; right: 20px; background: rgba(15, 5, 5, 0.95); border: 2px solid #ff0055; padding: 20px; border-radius: 12px; z-index: 200; box-shadow: 0 0 25px rgba(255,0,85,0.4); width: 300px; font-family: 'Orbitron', sans-serif; backdrop-filter: blur(10px); animation: pulseBorder 2s infinite; box-sizing: border-box;">
+        <div style="font-weight: bold; color: #ff0055; text-shadow: 0 0 10px #ff0055; letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; font-size: 0.85rem;">⚠️ Sicherheits-Alarm!</div>
+        <div style="font-size: 0.68rem; color: #ccc; line-height: 1.4; margin-bottom: 15px;">Ein anderes Gerät versucht, auf deine ID zuzugreifen!<br>Sicherheits-Code:<br><b id="alertCode" style="color:#fff; font-size:1.5rem; letter-spacing: 2px; display:block; margin: 5px 0; text-shadow: 0 0 10px #fff; text-align: center;">000000</b></div>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="respondTransfer('approve')" style="flex: 1; border: 1px solid #0f0; background: rgba(0,255,0,0.05); color: #0f0; font-family: 'Orbitron', sans-serif; font-size: 0.65rem; padding: 10px; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-weight: bold;">Erlauben</button>
+            <button onclick="respondTransfer('ban')" style="flex: 1; border: 1px solid #ff0055; background: rgba(255,0,85,0.1); color: #ff0055; font-family: 'Orbitron', sans-serif; font-size: 0.65rem; padding: 10px; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-weight: bold;">Blocken</button>
+        </div>
+    </div>
+
+    <div id="hud" class="hidden">
+        SCORE: <span id="currentScore" class="hud-val">0</span> | 
+        💎: <span id="totalPointsHud" class="hud-val">0</span>
+        <div id="eventHud" class="hidden">DAILY RIFT: <span id="riftTimer">60</span>s | 2X FIELDS</div>
+        <div id="comboHud" class="hidden">COMBO x<span id="comboMult">1</span> | <span id="comboTime">0</span>s</div>
+    </div>
+
+    <div id="reverseContainer" class="hidden">
+        <div id="reverseBtn" onclick="activateReverse()">REVERSE</div>
+        <div style="font-size: 0.5rem; margin-top: 5px; color: #ff0; letter-spacing: 1px;">OVERDRIVE</div>
+    </div>
+
+    <div id="menu" class="overlay">
+        <img src="ChatGPT Image 6. Mai 2026, 18_30_59.png" alt="Title Art" class="title-img">
+        <h1 id="welcomeText">GLOW RUNNER</h1>
+        <div style="color:#666; font-size:0.58rem; letter-spacing:2px; margin-bottom:8px;">
+            ID: <span id="runnerIdText">...</span>
+        </div>
+        
+        <div style="color: #0f0; font-size: 0.7rem; margin-bottom: 15px; letter-spacing: 1px;">
+            ● <span id="onlineVal">0</span> RUNNER LIVE
+        </div>
+        
+        <button class="btn" onclick="startGame()" style="border-color: #0f0; color: #0f0;">LAUNCH GAME</button>
+        <button class="btn daily-rift-btn" onclick="startDailyRift()">DAILY RIFT</button>
+        <button class="btn ghost-station-btn" onclick="location.href='ghost-runner-beta.html'">
+            GHOST STATION
+            <span class="new-badge">NEW</span>
+        </button>
+        <button class="btn" onclick="location.href='modes.html'">SELECT MODE</button>
+        <button class="btn" onclick="openShop()">ARMORY & SHOP</button>
+        <button class="btn" onclick="openBoxes()" style="border-color:#ff0; color:#ff0;">OPEN BOXES</button>
+        <button class="btn" onclick="openCreatorHub()" style="border-color:#f0f; color:#f0f;">CREATOR HUB</button>
+        <button class="btn" onclick="location.href='quests.html'">MISSIONS</button>
+        <button class="btn" onclick="location.href='leaderboard.html'">RANKING</button>
+
+        <div style="margin-top: 15px; text-align: center;">
+            <p style="color: #ff0; margin: 2px 0;">RECORD: <span id="menuHighscore" style="color: #0ff;">0</span></p>
+            <p style="color: #ff0; margin: 2px 0;">CRYSTALS: <span id="menuTotal" style="color: #0ff;">0</span></p>
+        </div>
+
+        <div class="footer-logo-container">
+            <span class="made-by">MADE BY</span>
+            <img src="EliX Tag.png" alt="Logo" class="footer-logo">
+        </div>
+    </div>
+
+    <div id="shop" class="overlay hidden">
+        <div class="shop-container">
+            <div class="points-display">💎 <span id="shopPoints">0</span> CRYSTALS</div>
+            
+            <div class="preview-card">
+                <div id="previewRenderBox"><div id="shipPreview"></div></div>
+                <div id="previewMeta" style="font-size: 0.7rem; margin-bottom: 8px;">Select an item</div>
+                <button id="actionBtn" class="btn" style="width: 100%; font-size: 0.7rem;" onclick="handleAction()">ACTION</button>
+            </div>
+
+            <div class="category-title">Vessel Tints</div>
+            <div class="shop-grid wide">
+                <button class="item-btn" id="color-cyan" onclick="setPreview('color', 'cyan', 0)">CYAN (0)</button>
+                <button class="item-btn" id="color-#0f0" onclick="setPreview('color', '#0f0', 100)">LIME (100)</button>
+                <button class="item-btn" id="color-#f0f" onclick="setPreview('color', '#f0f', 250)">GHOST (250)</button>
+                <button class="item-btn" id="color-#ff0" onclick="setPreview('color', '#ff0', 500)">GOLD (500)</button>
+                <button class="item-btn" id="color-#ff4500" onclick="setPreview('color', '#ff4500', 1000)">PULSE RED (1000)</button>
+                <button class="item-btn" id="color-rainbow" onclick="setPreview('color', 'rainbow', 5000)">RAINBOW (5000)</button>
+                <button class="item-btn" id="color-#0077ff" onclick="setPreview('color', '#0077ff', 900)">AZURE (900)</button>
+                <button class="item-btn" id="color-#ffffff" onclick="setPreview('color', '#ffffff', 1300)">WHITE KIT (1300)</button>
+                <button class="item-btn" id="color-#111111" onclick="setPreview('color', '#111111', 1800)">BLACKOUT (1800)</button>
+                <button class="item-btn" id="color-wmgold" onclick="setPreview('color', 'wmgold', 3500)">CUP GOLD (3500)</button>
+                <button class="item-btn" id="color-stadium" onclick="setPreview('color', 'stadium', 4200)">STADIUM (4200)</button>
+                <button class="item-btn" id="color-creator" onclick="setPreview('color', 'creator', 7500)">CREATOR (7500)</button>
+            </div>
+
+            <div class="category-title">Chassis Shapes</div>
+            <div class="shop-grid wide">
+                <button class="item-btn" id="shape-circle" onclick="setPreview('shape', 'circle', 0)">ORB (0)</button>
+                <button class="item-btn" id="shape-square" onclick="setPreview('shape', 'square', 300)">CUBE (300)</button>
+                <button class="item-btn" id="shape-triangle" onclick="setPreview('shape', 'triangle', 750)">DELTA (750)</button>
+                <button class="item-btn" id="shape-star" onclick="setPreview('shape', 'star', 2000)">NOVA (2000)</button>
+                <button class="item-btn" id="shape-diamond" onclick="setPreview('shape', 'diamond', 5000)">DIAMOND (5000)</button>
+                <button class="item-btn" id="shape-phoenix" onclick="setPreview('shape', 'phoenix', 10000)">PHOENIX (10000)</button>
+                <button class="item-btn" id="shape-ball" onclick="setPreview('shape', 'ball', 1600)">MATCH BALL (1600)</button>
+                <button class="item-btn" id="shape-trophy" onclick="setPreview('shape', 'trophy', 3200)">TROPHY (3200)</button>
+                <button class="item-btn" id="shape-boot" onclick="setPreview('shape', 'boot', 4500)">BOOST BOOT (4500)</button>
+                <button class="item-btn" id="shape-crest" onclick="setPreview('shape', 'crest', 6200)">CREST (6200)</button>
+                <button class="item-btn" id="shape-crown" onclick="setPreview('shape', 'crown', 8500)">CHAMP CROWN (8500)</button>
+                <button class="item-btn" id="shape-elix" onclick="setPreview('shape', 'elix', 12000)">ELIX TAG (12000)</button>
+            </div>
+
+            <div class="category-title">Battle Zones</div>
+            <div class="shop-grid wide">
+                <button class="item-btn" id="map-none" onclick="setPreview('map', 'none', 0)">VOID (0)</button>
+                <button class="item-btn" id="map-grid" onclick="setPreview('map', 'grid', 500)">CYBER GRID (500)</button> <button class="item-btn" id="map-stars" onclick="setPreview('map', 'stars', 1200)">GALAXY (1200)</button>
+                <button class="item-btn" id="map-matrix" onclick="setPreview('map', 'matrix', 3000)">MAINFRAME (3000)</button>
+                <button class="item-btn" id="map-pitch" onclick="setPreview('map', 'pitch', 1600)">NEON PITCH (1600)</button>
+                <button class="item-btn" id="map-stadium" onclick="setPreview('map', 'stadium', 3600)">STADIUM (3600)</button>
+                <button class="item-btn" id="map-flags" onclick="setPreview('map', 'flags', 5200)">FLAG PARADE (5200)</button>
+                <button class="item-btn" id="map-confetti" onclick="setPreview('map', 'confetti', 7000)">CONFETTI (7000)</button>
+                <button class="item-btn" id="map-finals" onclick="setPreview('map', 'finals', 9500)">FINAL NIGHT (9500)</button>
+            </div>
+
+            <div class="category-title">Creator Drops</div>
+            <div class="shop-grid">
+                <button class="item-btn" id="color-elixgreen" onclick="setPreview('color', 'elixgreen', 2500)">ELIX GREEN (2500)</button>
+                <button class="item-btn" id="shape-sigil" onclick="setPreview('shape', 'sigil', 5500)">SIGIL (5500)</button>
+                <button class="item-btn" id="map-creatorzone" onclick="setPreview('map', 'creatorzone', 8000)">CREATOR ZONE (8000)</button>
+                <button class="item-btn" id="color-voidpink" onclick="setPreview('color', 'voidpink', 6800)">VOID PINK (6800)</button>
+            </div>
+
+            <button class="btn" onclick="closeShop()" style="margin: 30px; border-color: #f0f; color: #f0f; width: 80%;">BACK TO MENU</button>
+        </div>
+    </div>
+
+    <div id="boxesOverlay" class="overlay hidden">
+        <div class="hub-panel">
+            <h1>GLOW BOXES</h1>
+            <p class="hub-copy">Eine Box kostet 750 Kristalle. Du kannst Kristalle, Limited Items oder Creator-Drops ziehen.</p>
+            <div class="box-stage">
+                <div id="lootBurst" class="loot-burst"></div>
+                <div id="lootBox" class="loot-box"></div>
+            </div>
+            <div id="boxRewardText" style="color:#ff0; min-height:34px; letter-spacing:2px;">READY</div>
+            <button class="btn" onclick="openGlowBox()" style="border-color:#ff0; color:#ff0;">OPEN BOX - 750</button>
+            <button class="btn" onclick="closeBoxes()" style="border-color:#f0f; color:#f0f;">BACK TO MENU</button>
+        </div>
+    </div>
+
+    <div id="creatorHub" class="overlay hidden">
+        <div class="hub-panel">
+            <h1>CREATOR HUB</h1>
+            <p class="hub-copy">Bewirb dich als Creator, erstelle eigene Items und verdiene Kristalle, wenn andere Runner deine Drops kaufen.</p>
+            <div id="creatorStatusBox" class="hub-copy">Status wird geladen...</div>
+
+            <div id="creatorApplyBox">
+                <input id="creatorDisplayName" class="hub-input" placeholder="Creator Name">
+                <textarea id="creatorReason" class="hub-input" placeholder="Warum willst du Creator werden?"></textarea>
+                <button id="creatorApplyBtn" class="btn" onclick="submitCreatorApplication()" style="border-color:#0f0; color:#0f0;">BEWERBUNG SENDEN</button>
+            </div>
+
+            <div id="creatorStudioBox" class="hidden">
+                <div class="category-title">Creator Studio</div>
+                <input id="creatorItemName" class="hub-input" placeholder="Item Name">
+                <select id="creatorItemType" class="hub-input">
+                    <option value="color">Vessel Tint</option>
+                    <option value="shape">Chassis Shape</option>
+                    <option value="map">Battle Zone</option>
+                </select>
+                <input id="creatorItemColor" class="hub-input" placeholder="Farbe, z.B. #00ff66">
+                <input id="creatorItemPrice" class="hub-input" type="number" min="100" max="50000" placeholder="Preis in Kristallen">
+                <button class="btn" onclick="createCreatorItem()" style="border-color:#ff0; color:#ff0;">ITEM ERSTELLEN</button>
+            </div>
+            <div class="category-title">Creator Profiles</div>
+            <div id="creatorProfilesGrid" class="hub-grid"></div>
+            <button class="btn" onclick="closeCreatorHub()" style="border-color:#f0f; color:#f0f;">BACK TO MENU</button>
+        </div>
+    </div>
+
+    <div id="runResult" class="overlay hidden">
+        <div class="run-result-card">
+            <div class="result-title">RUN COMPLETE</div>
+            <h2 id="resultMessage" class="result-message">DESTRUCTION</h2>
+            <div class="result-stats">
+                <div class="result-stat"><span>SCORE</span><b id="resultScore">0</b></div>
+                <div class="result-stat"><span>BEST</span><b id="resultBest">0</b></div>
+                <div class="result-stat"><span>COMBO</span><b id="resultCombo">0</b></div>
+                <div class="result-stat"><span>MODE</span><b id="resultMode">NORMAL</b></div>
+            </div>
+            <div class="result-actions">
+                <button class="btn" onclick="startReplay()" style="width:100%; border-color:#f0f; color:#f0f;">REPLAY CAMERA</button>
+                <button class="btn" onclick="startGame()" style="width:100%; border-color:#0ff; color:#0ff;">NOCH EIN SPIEL</button>
+                <button class="btn" onclick="closeRunResult()" style="width:100%; border-color:#0f0; color:#0f0;">BACK TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="replayBadge" class="replay-badge hidden">REPLAY CAMERA</div>
+    <div id="replayTimeline" class="replay-timeline hidden">
+        <div class="replay-time-row">
+            <span id="replayTime">00:00</span>
+            <span id="replayTotal">00:00</span>
+        </div>
+        <div id="replayTrack" class="replay-track"><i id="replayProgress"></i></div>
+        <div class="replay-controls">
+            <button onclick="seekReplay(-30)">- SKIP</button>
+            <button onclick="seekReplay(30)">+ SKIP</button>
+            <button id="replayPauseBtn" onclick="toggleReplayPause()">PAUSE</button>
+            <button onclick="leaveReplay()">LEAVE</button>
+        </div>
+    </div>
+
+    <div id="surgeFrame"></div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script type="module">
+        
+
+        // --- Global State ---
+        window.totalPoints = 0;
+        window.highscore = 0;
+        window.questLevel = 1;
+        window.boughtSkins = ['cyan'];
+        window.activeSkin = 'cyan';
+        window.boughtShapes = ['circle'];
+        window.activeShape = 'circle';
+        window.boughtMaps = ['none'];
+        window.activeMap = 'none';
+        window.username = "";
+        window.creatorStatus = null;
+        window.creatorProfiles = {};
+        window.creatorItems = {};
+
+        let runnerID = localStorage.getItem('glow_runner_id');
+        if (!runnerID) {
+            runnerID = 'RNR-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            localStorage.setItem('glow_runner_id', runnerID);
+        }
+
+        // Token aus Speicher laden (wichtig für die 2FA Server Middleware)
+        let authToken = localStorage.getItem('glow_runner_token') || "";
+        window.activeColor = '#0ff';
+        window.serverOnline = false;
+        let updateStarted = false;
+
+        // Backend Server URL für Accountmigration & Live-Syncs
+        const API_URL = "https://glow-runner-backend.onrender.com"; 
+
+        // Service Worker entfernen, wenn noch alte Caches vorhanden sind
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+                regs.forEach(reg => reg.unregister());
+            }).catch(() => {});
+        }
+
+        function ensureUpdateLoop() {
+            if (!updateStarted) {
+                updateStarted = true;
+                requestAnimationFrame(animate);
+            }
+        }
+
+        function openBoxes() {
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('boxesOverlay').classList.remove('hidden');
+        }
+        window.openBoxes = openBoxes;
+
+        function closeBoxes() {
+            document.getElementById('boxesOverlay').classList.add('hidden');
+            document.getElementById('menu').classList.remove('hidden');
+        }
+        window.closeBoxes = closeBoxes;
+
+        function openCreatorHub() {
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('creatorHub').classList.remove('hidden');
+        }
+        window.openCreatorHub = openCreatorHub;
+
+        function closeCreatorHub() {
+            document.getElementById('creatorHub').classList.add('hidden');
+            document.getElementById('menu').classList.remove('hidden');
+        }
+        window.closeCreatorHub = closeCreatorHub;
+
+        // --- SCHNELLE REGISTRIERUNG DER SETTINGS FUNKTIONEN (Verhindert Blockieren) ---
+        function openSettings() {
+            document.getElementById("settingsRunnerId").innerText = runnerID || "Nicht geladen";
+            document.getElementById("settingsOverlay").classList.remove("hidden");
+            document.getElementById("transferInputArea").classList.add("hidden");
+            document.getElementById("transferCodeArea").classList.add("hidden");
+        }
+
+        function closeSettings() {
+            document.getElementById("settingsOverlay").classList.add("hidden");
+        }
+
+        function showTransferInput() {
+            document.getElementById("transferInputArea").classList.remove("hidden");
+        }
+
+        async function submitTransferRequest() {
+            const targetId = document.getElementById("targetIdInput").value.toUpperCase().trim();
+            if (!targetId || !targetId.startsWith("RNR-")) {
+                alert("Bitte eine gültige ID im Format RNR-XXXXXX eingeben!");
+                return;
+            }
+            try {
+                const res = await fetch(`${API_URL}/api/transfer/request`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ targetRunnerId: targetId, currentRunnerId: runnerID })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.error);
+                    return;
+                }
+                document.getElementById("transferInputArea").classList.add("hidden");
+                document.getElementById("transferCodeArea").classList.remove("hidden");
+            } catch (err) {
+                alert("Server-Verbindungsfehler!");
+            }
+        }
+
+        async function submitVerificationCode() {
+            const targetId = document.getElementById("targetIdInput").value.toUpperCase().trim();
+            const code = document.getElementById("verificationCodeInput").value.trim();
+            if (code.length !== 6) {
+                alert("Der Code muss genau 6 Zahlen lang sein!");
+                return;
+            }
+            try {
+                const res = await fetch(`${API_URL}/api/transfer/verify`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ targetRunnerId: targetId, code: code })
+                });
+                const data = await res.json();
+                if (res.status === 402) {
+                    alert("Code korrekt! Bitte klicke jetzt auf deinem alten Gerät auf 'Erlauben', um den Transfer freizugeben.");
+                    return;
+                }
+                if (!res.ok) {
+                    alert(data.error);
+                    return;
+                }
+                localStorage.setItem('glow_runner_id', targetId);
+                if (data.token) localStorage.setItem('glow_runner_token', data.token);
+                alert("Account erfolgreich übertragen! Das Spiel wird neu geladen...");
+                location.reload();
+            } catch (err) {
+                alert("Fehler bei der Verifizierung!");
+            }
+        }
+
+        async function respondTransfer(action) {
+            try {
+                const res = await fetch(`${API_URL}/api/transfer/respond`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ runnerId: runnerID, action: action })
+                });
+                if (res.ok) {
+                    if (action === "ban") {
+                        alert("Angreifer blockiert! Die ID ist für diesen Anforderer temporär gesperrt.");
+                    } else {
+                        alert("Login für das neue Gerät freigegeben.");
+                    }
+                    document.getElementById("transferAlert").classList.add("hidden");
+                }
+            } catch (err) {
+                console.error("Fehler beim Senden der Antwort:", err);
+            }
+        }
+
+        // Automatisierter Live-Pulse Check (Mit funktionierendem JWT Authorization-Header)
+        async function checkLivePulse() {
+            if (!runnerID) return;
+            try {
+                const res = await fetch(`${API_URL}/api/live-pulse`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json", 
+                        "Authorization": `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ runnerId: runnerID })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.pendingRequest) {
+                        document.getElementById("alertCode").innerText = data.pendingRequest.code;
+                        document.getElementById("transferAlert").classList.remove("hidden");
+                    } else {
+                        document.getElementById("transferAlert").classList.add("hidden");
+                    }
+                }
+            } catch {}
+        }
+
+        // JWT Token beim Spielstart vom Backend generieren/validieren lassen
+        async function fetchTokenFromServer() {
+            try {
+                const res = await fetch(`${API_URL}/api/user`, {
+                    method: "GET",
+                    headers: { "x-runner-id": runnerID }
+                });
+                window.serverOnline = res.ok;
+                if (res.status === 403) {
+                    const data = await res.json();
+                    const reason = data.reason || "Gesperrt";
+                    const expires = data.expires ? new Date(data.expires).toISOString() : "Permanent";
+                    window.location.href = `locked.html?id=${encodeURIComponent(runnerID)}&reason=${encodeURIComponent(reason)}&expires=${encodeURIComponent(expires)}&by=Server`;
+                    return;
+                }
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.token) {
+                        authToken = data.token;
+                        localStorage.setItem('glow_runner_token', authToken);
+                    }
+                    if (data.data) {
+                        window.totalPoints = data.data.points || 0;
+                        window.highscore = data.data.highscore || 0;
+                        window.questLevel = data.data.questLevel || 1;
+                        window.boughtSkins = data.data.boughtSkins || ['cyan'];
+                        window.activeSkin = data.data.activeSkin || 'cyan';
+                        window.boughtShapes = data.data.boughtShapes || ['circle'];
+                        window.activeShape = data.data.activeShape || 'circle';
+                        window.boughtMaps = data.data.boughtMaps || ['none'];
+                        window.activeMap = data.data.activeMap || 'none';
+                        if (data.data.username) window.username = data.data.username;
+                        window.creatorStatus = data.creatorStatus || null;
+                        window.creatorProfiles = data.creatorProfiles || {};
+                        updateUI();
+                    }
+                }
+            } catch (e) {
+                console.error("Token Fetch Fehler", e);
+                window.serverOnline = false;
+            }
+        }
+
+        // --- SAVE DATA TO SERVER ---
+        async function saveToDB() {
+            if (!authToken || !runnerID) return;
+            try {
+                const res = await fetch(`${API_URL}/api/user/save`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`,
+                        'x-runner-id': runnerID
+                    },
+                    body: JSON.stringify({
+                        points: window.totalPoints,
+                        highscore: window.highscore,
+                        boughtSkins: window.boughtSkins,
+                        activeSkin: window.activeSkin,
+                        boughtShapes: window.boughtShapes,
+                        activeShape: window.activeShape,
+                        boughtMaps: window.boughtMaps,
+                        activeMap: window.activeMap,
+                        questLevel: window.questLevel || 1
+                    })
+                });
+                if (!res.ok) console.error("Save Error:", res.status);
+            } catch (e) {
+                console.error("Save Fehler", e);
+            }
+        }
+
+        // Sofortige Zuweisung an das window-Objekt, damit onclick="openSettings()" direkt funktioniert!
+        window.openSettings = openSettings;
+        window.closeSettings = closeSettings;
+        window.showTransferInput = showTransferInput;
+        window.submitTransferRequest = submitTransferRequest;
+        window.submitVerificationCode = submitVerificationCode;
+        window.respondTransfer = respondTransfer;
+        window.openShop = openShop;
+        window.closeShop = closeShop;
+        window.openBoxes = openBoxes;
+        window.closeBoxes = closeBoxes;
+        window.openCreatorHub = openCreatorHub;
+        window.closeCreatorHub = closeCreatorHub;
+        window.startGame = startGame;
+        window.startDailyRift = startDailyRift;
+        window.ensureUpdateLoop = ensureUpdateLoop;
+        window.setPreview = setPreview;
+        window.handleAction = handleAction;
+        window.saveToDB = saveToDB;
+
+        // Initialisierungsausführungen
+        checkServerHealth(); // Server-Status prüfen
+        setInterval(checkLivePulse, 5000);
+        setInterval(checkServerHealth, 10000); // Server-Health alle 10s prüfen
+        setInterval(loadCreatorProfiles, 15000); // Creator-Profile regelmäßig laden
+
+
+        // --- SERVER HEALTH CHECK & OFFLINE MELDUNG ---
+        async function checkServerHealth() {
+            try {
+                const res = await fetch(`${API_URL}/api/health`);
+                window.serverOnline = res.ok;
+                const offlineMsg = document.getElementById("offlineMessage");
+                if (!res.ok && offlineMsg) {
+                    offlineMsg.classList.remove("hidden");
+                }
+                if (res.ok && offlineMsg) {
+                    offlineMsg.classList.add("hidden");
+                }
+            } catch {
+                window.serverOnline = false;
+                const offlineMsg = document.getElementById("offlineMessage");
+                if (offlineMsg) {
+                    offlineMsg.classList.remove("hidden");
+                }
+            }
+        }
+
+        // --- CREATOR PROFILES VOM SERVER LADEN ---
+        async function loadCreatorProfiles() {
+            try {
+                const res = await fetch(`${API_URL}/api/user`, {
+                    headers: { 
+                        "x-runner-id": runnerID,
+                        "Authorization": `Bearer ${authToken}`
+                    }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    window.creatorStatus = data.creatorStatus || null;
+                    window.creatorProfiles = data.creatorProfiles || {};
+                    if (typeof renderCreatorHub === "function") renderCreatorHub();
+                }
+            } catch {}
+        }
+
+        // Initialisierung beim Laden der Seite
+        window.addEventListener("DOMContentLoaded", async () => {
+            resize();
+            const runnerIdText = document.getElementById("runnerIdText");
+            if (runnerIdText) runnerIdText.innerText = runnerID;
+            await fetchTokenFromServer();
+            loadCreatorProfiles(); // Creator-Profile beim Start laden
+            ensureUpdateLoop();
+        });
+
+        // --- HIER FOLGT DEIN ORIGINALER GAMEPLAY CODE ---
+        // (Lass deine bestehenden EventListener, Canvas-Zeichnungen und Spieldaten einfach exakt hierunter weiterlaufen!)
+        // =========================================================================
+        // --- HIER FOLGT DEIN ORIGINALER GAMEPLAY CODE (100% UNVERÄNDERT) ---------
+        // =========================================================================
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
+
+        let currentSelection = { type: 'color', id: 'cyan', price: 0 };
+        let player = { x: 0, y: 0, r: 15 };
+        let vortex = { x: 0, y: 0, tx: 0, ty: 0, speed: 1.2 };
+        let target = { x: 0, y: 0 };
+        let enemies = [], obstacles = [], particles = [], score = 0, gameActive = false, frame = 0;
+        let reverseCharge = 0, isReverseActive = false, reverseTimer = 0;
+        let dailyRiftActive = false, dailyRiftTimer = 0;
+        let comboCount = 0, comboTimer = 0, surgeTimer = 0;
+        let popups = [];
+        let replayFrames = [], replayActive = false, replayPaused = false, lastRunStats = null;
+        let replayIndex = 0, replayTick = 0;
+
+        const namedSkins = {
+            rainbow: "#fff",
+            wmgold: "#ffd700",
+            stadium: "#00ff66",
+            creator: "#00ffff",
+            elixgreen: "#00ff88",
+            voidpink: "#ff3bd4"
+        };
+
+        function getSkinColor(id, tick = frame) {
+            if(id && id.startsWith('creator_') && window.creatorItems) {
+                const item = window.creatorItems[id.replace('creator_', '')];
+                return item && item.color ? item.color : "#00ffff";
+            }
+            if(id === 'rainbow') return `hsl(${tick % 360},100%,50%)`;
+            if(id === 'wmgold') return `hsl(${42 + Math.sin(tick * 0.08) * 12},100%,55%)`;
+            if(id === 'stadium') return tick % 40 < 20 ? "#00ff66" : "#ffffff";
+            if(id === 'creator') return `hsl(${185 + Math.sin(tick * 0.06) * 70},100%,58%)`;
+            return namedSkins[id] || id;
+        }
+
+        function updateUI() {
+            if(document.getElementById('totalPointsHud')) document.getElementById('totalPointsHud').innerText = window.totalPoints;
+            if(document.getElementById('menuTotal')) document.getElementById('menuTotal').innerText = window.totalPoints;
+            if(document.getElementById('menuHighscore')) document.getElementById('menuHighscore').innerText = window.highscore;
+            if(document.getElementById('shopPoints')) document.getElementById('shopPoints').innerText = window.totalPoints;
+            
+            document.querySelectorAll('.item-btn').forEach(btn => {
+                const [type, id] = btn.id.split('-');
+                let list = type === 'color' ? window.boughtSkins : (type === 'shape' ? window.boughtShapes : window.boughtMaps);
+                let activeId = type === 'color' ? window.activeSkin : (type === 'shape' ? window.activeShape : window.activeMap);
+                
+                btn.classList.remove('owned', 'active');
+                if(list.includes(id)) btn.classList.add('owned');
+                if(activeId === id) btn.classList.add('active');
+            });
+
+            if(gameActive) {
+                document.getElementById('currentScore').innerText = score;
+                const eventHud = document.getElementById('eventHud');
+                if(eventHud) eventHud.classList.toggle('hidden', !dailyRiftActive);
+                if(dailyRiftActive && document.getElementById('riftTimer')) {
+                    document.getElementById('riftTimer').innerText = Math.max(0, Math.ceil(dailyRiftTimer / 60));
+                }
+                const comboHud = document.getElementById('comboHud');
+                if(comboHud) {
+                    comboHud.classList.toggle('hidden', comboCount < 2 && surgeTimer <= 0);
+                    comboHud.classList.toggle('surge', surgeTimer > 0);
+                    document.getElementById('comboMult').innerText = getComboMultiplier();
+                    document.getElementById('comboTime').innerText = surgeTimer > 0 ? "SURGE" : Math.ceil(comboTimer / 60);
+                }
+                const rBtn = document.getElementById('reverseBtn');
+                if(isReverseActive) {
+                    rBtn.innerText = Math.ceil(reverseTimer/60) + "s";
+                    rBtn.className = "active";
+                } else {
+                    rBtn.innerText = Math.floor(reverseCharge) + "%";
+                    rBtn.className = reverseCharge >= 100 ? "ready" : "";
+                }
+            }
+        }
+
+        function setPreview(type, id, price) {
+            currentSelection = { type, id, price };
+            const ship = document.getElementById('shipPreview');
+            const meta = document.getElementById('previewMeta');
+            const btn = document.getElementById('actionBtn');
+            
+            let color = type === 'color' ? getSkinColor(id) : getSkinColor(window.activeSkin);
+            let shape = type === 'shape' ? id : window.activeShape;
+
+            ship.style = ""; ship.innerHTML = "";
+            ship.style.width = "30px"; ship.style.height = "30px";
+            ship.style.background = color;
+            ship.style.boxShadow = `0 0 15px ${color}`;
+
+            if(id === 'rainbow' || (type !== 'color' && window.activeSkin === 'rainbow')) {
+                ship.style.background = "linear-gradient(45deg, red, yellow, blue, red)";
+                ship.style.backgroundSize = "200%";
+            }
+            if(id === 'wmgold' || id === 'creator' || id === 'stadium' || (type !== 'color' && ['wmgold', 'creator', 'stadium'].includes(window.activeSkin))) {
+                ship.style.background = "linear-gradient(45deg, #0f0, #fff, #ff0, #0ff)";
+                ship.style.backgroundSize = "200%";
+            }
+
+            const creatorShape = shape && shape.startsWith('creator_');
+            if(shape === 'circle') ship.style.borderRadius = "50%";
+            if(shape === 'square') ship.style.borderRadius = "0%";
+            if(shape === 'triangle') {
+                ship.style.background = "none"; ship.style.boxShadow = "none"; ship.style.width = "0"; ship.style.height = "0";
+                ship.style.borderLeft = "15px solid transparent"; ship.style.borderRight = "15px solid transparent";
+                ship.style.borderBottom = `30px solid ${color}`;
+            }
+            if(shape === 'diamond') { ship.style.transform = "rotate(45deg)"; }
+            if(shape === 'star') { ship.style.clipPath = "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"; }
+            if(shape === 'phoenix') { ship.style.clipPath = "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%, 50% 40%)"; }
+            if(shape === 'ball') { ship.style.borderRadius = "50%"; ship.style.background = "radial-gradient(circle at 35% 35%, #fff 0 28%, #111 29% 36%, #fff 37% 55%, #111 56% 62%, #fff 63%)"; }
+            if(shape === 'trophy') { ship.style.clipPath = "polygon(30% 0%, 70% 0%, 78% 42%, 58% 42%, 58% 74%, 78% 74%, 78% 100%, 22% 100%, 22% 74%, 42% 74%, 42% 42%, 22% 42%)"; }
+            if(shape === 'boot') { ship.style.clipPath = "polygon(10% 45%, 54% 45%, 70% 62%, 100% 70%, 92% 88%, 42% 88%, 16% 76%)"; }
+            if(shape === 'crest') { ship.style.clipPath = "polygon(50% 0%, 90% 15%, 82% 68%, 50% 100%, 18% 68%, 10% 15%)"; }
+            if(shape === 'crown') { ship.style.clipPath = "polygon(0% 38%, 22% 55%, 38% 12%, 50% 55%, 72% 12%, 82% 55%, 100% 38%, 88% 100%, 12% 100%)"; }
+            if(shape === 'elix' || shape === 'sigil' || creatorShape) { ship.style.clipPath = "polygon(50% 0%, 62% 32%, 100% 35%, 68% 56%, 82% 100%, 50% 72%, 18% 100%, 32% 56%, 0% 35%, 38% 32%)"; }
+            
+            let list = type === 'color' ? window.boughtSkins : (type === 'shape' ? window.boughtShapes : window.boughtMaps);
+            let isOwned = list.includes(id);
+            let isActive = (type === 'color' && window.activeSkin === id) || (type === 'shape' && window.activeShape === id) || (type === 'map' && window.activeMap === id);
+
+            meta.innerHTML = `<b style="color:#0ff">${id.toUpperCase()}</b><br>Price: ${price} Crystals`;
+            btn.innerText = isActive ? "EQUIPPED" : (isOwned ? "EQUIP" : (window.totalPoints >= price ? "BUY NOW" : "TOO EXPENSIVE"));
+        }
+
+        function handleAction() {
+            const { type, id, price } = currentSelection;
+            let list = type === 'color' ? window.boughtSkins : (type === 'shape' ? window.boughtShapes : window.boughtMaps);
+            if(list.includes(id)) {
+                if(type === 'color') window.activeSkin = id; else if(type === 'shape') window.activeShape = id; else window.activeMap = id;
+            } else if (window.totalPoints >= price) {
+                window.totalPoints -= price; list.push(id);
+                if(type === 'color') window.activeSkin = id; else if(type === 'shape') window.activeShape = id; else window.activeMap = id;
+            }
+            window.saveToDB(); updateUI(); setPreview(type, id, price);
+        }
+
+        function openShop() { document.getElementById('menu').classList.add('hidden'); document.getElementById('shop').classList.remove('hidden'); setPreview('color', window.activeSkin, 0); updateUI(); }
+        window.openShop = openShop;
+        function closeShop() { document.getElementById('shop').classList.add('hidden'); document.getElementById('menu').classList.remove('hidden'); }
+        window.closeShop = closeShop;
+
+        function startDailyRift() {
+            startGame('dailyRift');
+        }
+        window.startDailyRift = startDailyRift;
+
+        function startGame(mode = 'normal') {
+            replayActive = false;
+            gameActive = true;
+            dailyRiftActive = mode === 'dailyRift';
+            dailyRiftTimer = dailyRiftActive ? 3600 : 0;
+            document.getElementById('runResult').classList.add('hidden');
+            document.getElementById('replayBadge').classList.add('hidden');
+            document.getElementById('replayTimeline').classList.add('hidden');
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('reverseContainer').classList.remove('hidden');
+            score = 0; enemies = []; obstacles = []; reverseCharge = 0; isReverseActive = false; frame = 0;
+            comboCount = 0; comboTimer = 0; surgeTimer = 0; popups = [];
+            replayFrames = [];
+            vortex.x = (player.x > w/2) ? 50 : w - 50;
+            vortex.y = (player.y > h/2) ? 50 : h - 50;
+            vortex.tx = Math.random() * w; vortex.ty = Math.random() * h;
+            spawnEnemy(); moveTarget(); animate();
+        }
+        window.startGame = startGame;
+
+        function activateReverse() { if(reverseCharge >= 100 && !isReverseActive) { isReverseActive = true; reverseTimer = 300; reverseCharge = 0; } }
+
+        function spawnEnemy() {
+            if (!gameActive) return;
+            enemies.push({ x: Math.random()*w, y: -50, r: 12, speed: 2 + (score/15) + (dailyRiftActive ? 0.7 : 0) });
+            setTimeout(spawnEnemy, Math.max(dailyRiftActive ? 420 : 600, 2500 - (score*100)));
+        }
+
+        function moveTarget() { target.x = 100 + Math.random()*(w-200); target.y = 100 + Math.random()*(h-200); }
+
+        function getComboMultiplier() {
+            if(surgeTimer > 0) return dailyRiftActive ? 5 : 4;
+            if(comboCount >= 12) return dailyRiftActive ? 4 : 3;
+            if(comboCount >= 7) return dailyRiftActive ? 3 : 2;
+            if(comboCount >= 3) return 2;
+            return dailyRiftActive ? 2 : 1;
+        }
+
+        function addPopup(text, x, y, color = "#ff0") {
+            popups.push({ text, x, y, vy: -1.4, life: 70, maxLife: 70, color });
+        }
+
+        function collectField() {
+            comboCount++;
+            comboTimer = dailyRiftActive ? 240 : 180;
+
+            if(comboCount === 8 || comboCount === 16) {
+                surgeTimer = 360;
+                addPopup("SURGE!", player.x, player.y - 35, "#ff0");
+            }
+
+            const mult = getComboMultiplier();
+            const baseScore = dailyRiftActive ? 2 : 1;
+            const baseCrystals = dailyRiftActive ? 20 : 10;
+            score += baseScore * mult;
+            window.totalPoints += baseCrystals * mult;
+            if(!isReverseActive) reverseCharge = Math.min(100, reverseCharge + (dailyRiftActive ? 12 : 8) + mult);
+            addPopup(`x${mult}`, target.x, target.y - 20, surgeTimer > 0 ? "#ff0" : "#0ff");
+            moveTarget();
+        }
+
+        function animate() {
+            if (!gameActive) return;
+            frame++;
+            ctx.fillStyle = "rgba(0, 0, 0, 0.25)"; 
+            ctx.fillRect(0,0,w,h);
+
+            if(dailyRiftActive) {
+                dailyRiftTimer--;
+                if(dailyRiftTimer <= 0) return endGame("DAILY RIFT COMPLETE");
+            }
+            if(comboTimer > 0) comboTimer--;
+            else comboCount = 0;
+            if(surgeTimer > 0) surgeTimer--;
+
+            if(window.activeMap === 'grid') {
+                ctx.strokeStyle="rgba(0,255,255,0.15)"; ctx.lineWidth=1;
+                for(let i=0; i<w; i+=60) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
+                for(let i=0; i<h; i+=60) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(w,i); ctx.stroke(); }
+            } else if(window.activeMap === 'stars') {
+                ctx.fillStyle="white";
+                for(let i=0; i<50; i++) { ctx.fillRect((Math.sin(i)*10000)%w, (i*frame*0.5)%h, 2, 2); }
+            } else if(window.activeMap === 'matrix') {
+                ctx.fillStyle="#0f0"; ctx.font="10px monospace";
+                for(let i=0; i<w; i+=25) { ctx.fillText(Math.random()>0.8?"1":"0", i, (frame*3 + i*2)%h); }
+            } else if(window.activeMap === 'pitch') {
+                ctx.strokeStyle="rgba(0,255,90,0.22)"; ctx.lineWidth=2;
+                ctx.strokeRect(w*0.08, h*0.12, w*0.84, h*0.76);
+                ctx.beginPath(); ctx.moveTo(w/2, h*0.12); ctx.lineTo(w/2, h*0.88); ctx.stroke();
+                ctx.beginPath(); ctx.arc(w/2, h/2, 70, 0, Math.PI*2); ctx.stroke();
+            } else if(window.activeMap === 'stadium') {
+                for(let i=0; i<10; i++) {
+                    ctx.strokeStyle = `hsla(${(i*38 + frame) % 360},100%,55%,0.18)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(w/2, h/2, 120 + i*55, 0, Math.PI*2); ctx.stroke();
+                }
+            } else if(window.activeMap === 'flags') {
+                const colors = ["#0f0", "#fff", "#ff0", "#0ff", "#f00", "#07f"];
+                for(let i=0; i<w; i+=70) {
+                    ctx.fillStyle = colors[(i/70 + Math.floor(frame/20)) % colors.length];
+                    ctx.fillRect(i, 24 + Math.sin((frame+i)*0.04)*8, 38, 20);
+                }
+            } else if(window.activeMap === 'confetti') {
+                const colors = ["#0ff", "#f0f", "#ff0", "#0f0", "#fff"];
+                for(let i=0; i<80; i++) {
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.fillRect((i*73 + frame*2) % w, (i*41 + frame*(1+i%4)) % h, 5, 9);
+                }
+            } else if(window.activeMap === 'finals') {
+                ctx.fillStyle = "rgba(255,215,0,0.08)";
+                ctx.fillRect(0,0,w,h);
+                ctx.strokeStyle = "rgba(255,215,0,0.24)";
+                ctx.lineWidth = 3;
+                for(let i=0; i<6; i++) {
+                    ctx.beginPath(); ctx.moveTo(w/2, h/2); ctx.lineTo(Math.cos(frame*0.01+i)*w + w/2, Math.sin(frame*0.01+i)*h + h/2); ctx.stroke();
+                }
+            } else if(window.activeMap === 'creatorzone' || (window.activeMap && window.activeMap.startsWith('creator_'))) {
+                const creatorMap = window.activeMap.startsWith('creator_') && window.creatorItems ? window.creatorItems[window.activeMap.replace('creator_', '')] : null;
+                ctx.strokeStyle = creatorMap && creatorMap.color ? creatorMap.color : `hsla(${frame % 360},100%,60%,0.26)`;
+                ctx.lineWidth = 2;
+                for(let i=0; i<Math.max(w,h); i+=42) {
+                    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(0, i); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(w-i, h); ctx.lineTo(w, h-i); ctx.stroke();
+                }
+            }
+
+            if(dailyRiftActive) {
+                ctx.save();
+                ctx.strokeStyle = `hsla(${frame % 360}, 100%, 60%, ${surgeTimer > 0 ? 0.42 : 0.22})`;
+                ctx.lineWidth = surgeTimer > 0 ? 4 : 2;
+                ctx.translate(w / 2, h / 2);
+                ctx.rotate(frame * 0.015);
+                for(let i = 0; i < 8; i++) {
+                    ctx.rotate(Math.PI / 4);
+                    ctx.beginPath();
+                    ctx.moveTo(80, 0);
+                    ctx.lineTo(Math.max(w, h), 0);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            let dxV = vortex.tx - vortex.x; let dyV = vortex.ty - vortex.y;
+            let distV = Math.hypot(dxV, dyV);
+            if(distV < 20) { vortex.tx = Math.random()*w; vortex.ty = Math.random()*h; }
+            vortex.x += dxV/distV * vortex.speed; vortex.y += dyV/distV * vortex.speed;
+            let pulse = Math.sin(frame*0.1) * 8;
+            let g = ctx.createRadialGradient(vortex.x, vortex.y, 5, vortex.x, vortex.y, 60+pulse);
+            g.addColorStop(0, "#fff"); g.addColorStop(0.2, "#f0f"); g.addColorStop(1, "transparent");
+            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(vortex.x, vortex.y, 90+pulse, 0, Math.PI*2); ctx.fill();
+
+            if(Math.hypot(vortex.x-player.x, vortex.y-player.y) < 55) return endGame("VORTEX CONSUMED YOU");
+
+            enemies.forEach((en, i) => {
+                let d = Math.hypot(player.x-en.x, player.y-en.y);
+                if (isReverseActive) {
+                    en.x -= (player.x-en.x)/d * (en.speed * 1.2); en.y -= (player.y-en.y)/d * (en.speed * 1.2);
+                    ctx.fillStyle = "#0f0";
+                } else {
+                    en.x += (player.x-en.x)/d * en.speed; en.y += (player.y-en.y)/d * en.speed;
+                    ctx.fillStyle = "#f00";
+                }
+                ctx.beginPath(); ctx.arc(en.x, en.y, en.r, 0, Math.PI*2); ctx.fill();
+                if(d < 25 && !isReverseActive) return endGame("DESTRUCTION");
+                if(d < 25 && isReverseActive) { enemies.splice(i, 1); score += 2; window.totalPoints += 5; }
+            });
+
+            if(Math.hypot(player.x-target.x, player.y-target.y) < 30) { 
+                collectField();
+            }
+            ctx.fillStyle = surgeTimer > 0 ? "#ff0" : (dailyRiftActive ? "#0ff" : "#ff0");
+            ctx.shadowBlur = dailyRiftActive || surgeTimer > 0 ? 24 : 0;
+            ctx.shadowColor = surgeTimer > 0 ? "#ff0" : (dailyRiftActive ? "#0ff" : "transparent");
+            ctx.beginPath(); ctx.arc(target.x, target.y, surgeTimer > 0 ? 15 : (dailyRiftActive ? 12 : 10), 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            popups.forEach((p, i) => {
+                p.y += p.vy;
+                p.life--;
+                ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+                ctx.fillStyle = p.color;
+                ctx.font = "bold 18px Orbitron";
+                ctx.textAlign = "center";
+                ctx.fillText(p.text, p.x, p.y);
+                if(p.life <= 0) popups.splice(i, 1);
+            });
+            ctx.globalAlpha = 1;
+
+            ctx.save(); ctx.translate(player.x, player.y);
+            let pColor = getSkinColor(window.activeSkin, frame);
+            ctx.fillStyle = pColor; ctx.shadowBlur = 20; ctx.shadowColor = pColor;
+            
+            if(window.activeShape === 'circle') { ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); }
+            else if(window.activeShape === 'square') { ctx.fillRect(-15,-15,30,30); }
+            else if(window.activeShape === 'triangle') { ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(18,12); ctx.lineTo(-18,12); ctx.fill(); }
+            else if(window.activeShape === 'star') { ctx.beginPath(); for(let i=0;i<10;i++){ let r=i%2?18:8; let a=Math.PI*2/10*i; ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r); } ctx.fill(); }
+            else if(window.activeShape === 'diamond') { ctx.rotate(Math.PI/4); ctx.fillRect(-15,-15,30,30); }
+            else if(window.activeShape === 'phoenix') { ctx.beginPath(); ctx.moveTo(0,-25); ctx.quadraticCurveTo(20,0,0,25); ctx.quadraticCurveTo(-20,0,0,-25); ctx.fill(); }
+            else if(window.activeShape === 'ball') { ctx.beginPath(); ctx.arc(0,0,17,0,Math.PI*2); ctx.fill(); ctx.strokeStyle="#111"; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(0,0,7,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-16,0); ctx.lineTo(16,0); ctx.moveTo(0,-16); ctx.lineTo(0,16); ctx.stroke(); }
+            else if(window.activeShape === 'trophy') { ctx.beginPath(); ctx.moveTo(-12,-18); ctx.lineTo(12,-18); ctx.lineTo(8,4); ctx.lineTo(4,4); ctx.lineTo(4,15); ctx.lineTo(14,15); ctx.lineTo(14,21); ctx.lineTo(-14,21); ctx.lineTo(-14,15); ctx.lineTo(-4,15); ctx.lineTo(-4,4); ctx.lineTo(-8,4); ctx.closePath(); ctx.fill(); }
+            else if(window.activeShape === 'boot') { ctx.beginPath(); ctx.moveTo(-20,-2); ctx.lineTo(2,-2); ctx.quadraticCurveTo(13,0,18,8); ctx.lineTo(24,13); ctx.lineTo(17,20); ctx.lineTo(-8,18); ctx.lineTo(-22,8); ctx.closePath(); ctx.fill(); }
+            else if(window.activeShape === 'crest') { ctx.beginPath(); ctx.moveTo(0,-23); ctx.lineTo(20,-12); ctx.lineTo(14,12); ctx.lineTo(0,24); ctx.lineTo(-14,12); ctx.lineTo(-20,-12); ctx.closePath(); ctx.fill(); }
+            else if(window.activeShape === 'crown') { ctx.beginPath(); ctx.moveTo(-22,10); ctx.lineTo(-18,-10); ctx.lineTo(-7,4); ctx.lineTo(0,-18); ctx.lineTo(8,4); ctx.lineTo(19,-10); ctx.lineTo(22,10); ctx.closePath(); ctx.fill(); }
+            else if(window.activeShape === 'elix' || window.activeShape === 'sigil' || (window.activeShape && window.activeShape.startsWith('creator_'))) { ctx.rotate(frame*0.025); ctx.beginPath(); for(let i=0;i<12;i++){ let r=i%2?21:8; let a=Math.PI*2/12*i; ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r); } ctx.fill(); }
+            ctx.restore();
+
+            if(frame % 3 === 0) captureReplayFrame();
+
+            if(isReverseActive) { reverseTimer--; if(reverseTimer <= 0) isReverseActive = false; }
+            updateUI();
+            requestAnimationFrame(animate);
+        }
+
+        function captureReplayFrame() {
+            replayFrames.push({
+                player: { x: player.x, y: player.y },
+                vortex: { x: vortex.x, y: vortex.y },
+                target: { x: target.x, y: target.y },
+                enemies: enemies.slice(0, 14).map(en => ({ x: en.x, y: en.y, r: en.r })),
+                score,
+                combo: comboCount,
+                activeSkin: window.activeSkin,
+                activeShape: window.activeShape,
+                activeMap: window.activeMap,
+                frame,
+                surge: surgeTimer > 0,
+                daily: dailyRiftActive
+            });
+            if(replayFrames.length > 520) replayFrames.shift();
+        }
+
+        function drawReplaySnapshot(snapshot, index) {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+            ctx.fillRect(0, 0, w, h);
+
+            if(snapshot.activeMap === 'grid') {
+                ctx.strokeStyle="rgba(0,255,255,0.15)"; ctx.lineWidth=1;
+                for(let i=0; i<w; i+=60) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
+                for(let i=0; i<h; i+=60) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(w,i); ctx.stroke(); }
+            } else if(snapshot.activeMap === 'stars') {
+                ctx.fillStyle="white";
+                for(let i=0; i<50; i++) { ctx.fillRect((Math.sin(i)*10000)%w, (i*snapshot.frame*0.5)%h, 2, 2); }
+            } else if(snapshot.activeMap === 'matrix') {
+                ctx.fillStyle="#0f0"; ctx.font="10px monospace";
+                for(let i=0; i<w; i+=25) { ctx.fillText(Math.random()>0.8?"1":"0", i, (snapshot.frame*3 + i*2)%h); }
+            } else if(snapshot.activeMap === 'pitch') {
+                ctx.strokeStyle="rgba(0,255,90,0.22)"; ctx.lineWidth=2;
+                ctx.strokeRect(w*0.08, h*0.12, w*0.84, h*0.76);
+                ctx.beginPath(); ctx.moveTo(w/2, h*0.12); ctx.lineTo(w/2, h*0.88); ctx.stroke();
+                ctx.beginPath(); ctx.arc(w/2, h/2, 70, 0, Math.PI*2); ctx.stroke();
+            } else if(snapshot.activeMap === 'stadium') {
+                for(let i=0; i<10; i++) {
+                    ctx.strokeStyle = `hsla(${(i*38 + snapshot.frame) % 360},100%,55%,0.18)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(w/2, h/2, 120 + i*55, 0, Math.PI*2); ctx.stroke();
+                }
+            } else if(snapshot.activeMap === 'flags') {
+                const colors = ["#0f0", "#fff", "#ff0", "#0ff", "#f00", "#07f"];
+                for(let i=0; i<w; i+=70) {
+                    ctx.fillStyle = colors[(i/70 + Math.floor(snapshot.frame/20)) % colors.length];
+                    ctx.fillRect(i, 24 + Math.sin((snapshot.frame+i)*0.04)*8, 38, 20);
+                }
+            } else if(snapshot.activeMap === 'confetti') {
+                const colors = ["#0ff", "#f0f", "#ff0", "#0f0", "#fff"];
+                for(let i=0; i<80; i++) {
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.fillRect((i*73 + snapshot.frame*2) % w, (i*41 + snapshot.frame*(1+i%4)) % h, 5, 9);
+                }
+            } else if(snapshot.activeMap === 'finals') {
+                ctx.fillStyle = "rgba(255,215,0,0.08)";
+                ctx.fillRect(0,0,w,h);
+                ctx.strokeStyle = "rgba(255,215,0,0.24)";
+                ctx.lineWidth = 3;
+                for(let i=0; i<6; i++) {
+                    ctx.beginPath(); ctx.moveTo(w/2, h/2); ctx.lineTo(Math.cos(snapshot.frame*0.01+i)*w + w/2, Math.sin(snapshot.frame*0.01+i)*h + h/2); ctx.stroke();
+                }
+            } else if(snapshot.activeMap === 'creatorzone') {
+                ctx.strokeStyle = `hsla(${snapshot.frame % 360},100%,60%,0.26)`;
+                ctx.lineWidth = 2;
+                for(let i=0; i<Math.max(w,h); i+=42) {
+                    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(0, i); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(w-i, h); ctx.lineTo(w, h-i); ctx.stroke();
+                }
+            } else if(snapshot.activeMap && snapshot.activeMap.startsWith('creator_')) {
+                const creatorMap = window.creatorItems ? window.creatorItems[snapshot.activeMap.replace('creator_', '')] : null;
+                ctx.strokeStyle = creatorMap && creatorMap.color ? creatorMap.color : `hsla(${snapshot.frame % 360},100%,60%,0.26)`;
+                ctx.lineWidth = 2;
+                for(let i=0; i<Math.max(w,h); i+=42) {
+                    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(0, i); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(w-i, h); ctx.lineTo(w, h-i); ctx.stroke();
+                }
+            }
+
+            if(snapshot.daily) {
+                ctx.save();
+                ctx.strokeStyle = `hsla(${snapshot.frame % 360}, 100%, 60%, ${snapshot.surge ? 0.42 : 0.22})`;
+                ctx.lineWidth = snapshot.surge ? 4 : 2;
+                ctx.translate(w / 2, h / 2);
+                ctx.rotate(snapshot.frame * 0.015);
+                for(let i = 0; i < 8; i++) {
+                    ctx.rotate(Math.PI / 4);
+                    ctx.beginPath();
+                    ctx.moveTo(80, 0);
+                    ctx.lineTo(Math.max(w, h), 0);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            let pulse = Math.sin(snapshot.frame * 0.1) * 8;
+            let g = ctx.createRadialGradient(snapshot.vortex.x, snapshot.vortex.y, 5, snapshot.vortex.x, snapshot.vortex.y, 70 + pulse);
+            g.addColorStop(0, "#fff"); g.addColorStop(0.2, "#f0f"); g.addColorStop(1, "transparent");
+            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(snapshot.vortex.x, snapshot.vortex.y, 90 + pulse, 0, Math.PI * 2); ctx.fill();
+
+            ctx.fillStyle = snapshot.surge ? "#ff0" : (snapshot.daily ? "#0ff" : "#ff0");
+            ctx.shadowBlur = 24;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.beginPath(); ctx.arc(snapshot.target.x, snapshot.target.y, snapshot.surge ? 15 : 10, 0, Math.PI * 2); ctx.fill();
+
+            ctx.shadowBlur = 16;
+            ctx.shadowColor = "#f00";
+            ctx.fillStyle = "#f00";
+            snapshot.enemies.forEach(en => {
+                ctx.beginPath(); ctx.arc(en.x, en.y, en.r, 0, Math.PI * 2); ctx.fill();
+            });
+
+            ctx.save(); ctx.translate(snapshot.player.x, snapshot.player.y);
+            let pColor = getSkinColor(snapshot.activeSkin, snapshot.frame);
+            ctx.fillStyle = pColor; ctx.shadowBlur = 24; ctx.shadowColor = pColor;
+            if(snapshot.activeShape === 'circle') { ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); }
+            else if(snapshot.activeShape === 'square') { ctx.fillRect(-15,-15,30,30); }
+            else if(snapshot.activeShape === 'triangle') { ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(18,12); ctx.lineTo(-18,12); ctx.fill(); }
+            else if(snapshot.activeShape === 'star') { ctx.beginPath(); for(let i=0;i<10;i++){ let r=i%2?18:8; let a=Math.PI*2/10*i; ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r); } ctx.fill(); }
+            else if(snapshot.activeShape === 'diamond') { ctx.rotate(Math.PI/4); ctx.fillRect(-15,-15,30,30); }
+            else if(snapshot.activeShape === 'phoenix') { ctx.beginPath(); ctx.moveTo(0,-25); ctx.quadraticCurveTo(20,0,0,25); ctx.quadraticCurveTo(-20,0,0,-25); ctx.fill(); }
+            else if(snapshot.activeShape === 'ball') { ctx.beginPath(); ctx.arc(0,0,17,0,Math.PI*2); ctx.fill(); ctx.strokeStyle="#111"; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(0,0,7,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-16,0); ctx.lineTo(16,0); ctx.moveTo(0,-16); ctx.lineTo(0,16); ctx.stroke(); }
+            else if(snapshot.activeShape === 'trophy') { ctx.beginPath(); ctx.moveTo(-12,-18); ctx.lineTo(12,-18); ctx.lineTo(8,4); ctx.lineTo(4,4); ctx.lineTo(4,15); ctx.lineTo(14,15); ctx.lineTo(14,21); ctx.lineTo(-14,21); ctx.lineTo(-14,15); ctx.lineTo(-4,15); ctx.lineTo(-4,4); ctx.lineTo(-8,4); ctx.closePath(); ctx.fill(); }
+            else if(snapshot.activeShape === 'boot') { ctx.beginPath(); ctx.moveTo(-20,-2); ctx.lineTo(2,-2); ctx.quadraticCurveTo(13,0,18,8); ctx.lineTo(24,13); ctx.lineTo(17,20); ctx.lineTo(-8,18); ctx.lineTo(-22,8); ctx.closePath(); ctx.fill(); }
+            else if(snapshot.activeShape === 'crest') { ctx.beginPath(); ctx.moveTo(0,-23); ctx.lineTo(20,-12); ctx.lineTo(14,12); ctx.lineTo(0,24); ctx.lineTo(-14,12); ctx.lineTo(-20,-12); ctx.closePath(); ctx.fill(); }
+            else if(snapshot.activeShape === 'crown') { ctx.beginPath(); ctx.moveTo(-22,10); ctx.lineTo(-18,-10); ctx.lineTo(-7,4); ctx.lineTo(0,-18); ctx.lineTo(8,4); ctx.lineTo(19,-10); ctx.lineTo(22,10); ctx.closePath(); ctx.fill(); }
+            else if(snapshot.activeShape === 'elix' || snapshot.activeShape === 'sigil' || (snapshot.activeShape && snapshot.activeShape.startsWith('creator_'))) { ctx.rotate(snapshot.frame*0.025); ctx.beginPath(); for(let i=0;i<12;i++){ let r=i%2?21:8; let a=Math.PI*2/12*i; ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r); } ctx.fill(); }
+            ctx.restore();
+
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1;
+            document.getElementById('currentScore').innerText = snapshot.score;
+            const comboHud = document.getElementById('comboHud');
+            if(comboHud) {
+                comboHud.classList.toggle('hidden', snapshot.combo < 2 && !snapshot.surge);
+                comboHud.classList.toggle('surge', snapshot.surge);
+                document.getElementById('comboMult').innerText = snapshot.combo;
+                document.getElementById('comboTime').innerText = snapshot.surge ? "SURGE" : "REPLAY";
+            }
+        }
+
+        function formatReplayTime(frames) {
+            const seconds = Math.max(0, Math.round(frames / 20));
+            return `00:${String(seconds).padStart(2, "0")}`;
+        }
+
+        function updateReplayTimeline(index) {
+            const progress = replayFrames.length <= 1 ? 0 : (index / (replayFrames.length - 1)) * 100;
+            document.getElementById('replayProgress').style.width = `${Math.min(100, progress)}%`;
+            document.getElementById('replayTime').innerText = formatReplayTime(index);
+            document.getElementById('replayTotal').innerText = formatReplayTime(replayFrames.length);
+        }
+
+        function drawCurrentReplayFrame() {
+            if(!replayFrames.length) return;
+            replayIndex = Math.max(0, Math.min(replayFrames.length - 1, replayIndex));
+            drawReplaySnapshot(replayFrames[replayIndex], replayIndex);
+            updateReplayTimeline(replayIndex);
+        }
+
+        function toggleReplayPause() {
+            if(!replayActive) return;
+            replayPaused = !replayPaused;
+            document.getElementById('replayPauseBtn').innerText = replayPaused ? "PLAY" : "PAUSE";
+            if(!replayPaused) replayLoop();
+        }
+        window.toggleReplayPause = toggleReplayPause;
+
+        function seekReplay(amount) {
+            if(!replayActive) return;
+            replayIndex = Math.max(0, Math.min(replayFrames.length - 1, replayIndex + amount));
+            drawCurrentReplayFrame();
+        }
+
+        function leaveReplay() {
+            replayActive = false;
+            replayPaused = false;
+            document.getElementById('replayPauseBtn').innerText = "PAUSE";
+            document.getElementById('replayBadge').classList.add('hidden');
+            document.getElementById('replayTimeline').classList.add('hidden');
+            document.getElementById('hud').classList.add('hidden');
+            if(document.getElementById('comboHud')) document.getElementById('comboHud').classList.add('hidden');
+            document.getElementById('runResult').classList.remove('hidden');
+        }
+        window.leaveReplay = leaveReplay;
+
+        function replayLoop() {
+            if(!replayActive || replayPaused) return;
+            drawCurrentReplayFrame();
+            replayTick++;
+            if(replayTick % 5 === 0 && replayIndex < replayFrames.length - 1) {
+                replayIndex++;
+            }
+            if(replayIndex >= replayFrames.length - 1) {
+                replayIndex = replayFrames.length - 1;
+                drawCurrentReplayFrame();
+                replayPaused = true;
+                document.getElementById('replayPauseBtn').innerText = "PLAY";
+                return;
+            }
+            requestAnimationFrame(replayLoop);
+        }
+
+        function startReplay() {
+            if(!replayFrames.length) return;
+            replayActive = true;
+            replayPaused = false;
+            gameActive = false;
+            document.getElementById('runResult').classList.add('hidden');
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('reverseContainer').classList.add('hidden');
+            document.getElementById('replayBadge').classList.remove('hidden');
+            document.getElementById('replayTimeline').classList.remove('hidden');
+            document.getElementById('replayProgress').style.width = "0%";
+            replayIndex = 0;
+            replayTick = 0;
+            document.getElementById('replayPauseBtn').innerText = "PAUSE";
+
+            replayLoop();
+        }
+        window.startReplay = startReplay;
+
+        function closeRunResult() {
+            replayActive = false;
+            replayPaused = false;
+            document.getElementById('replayBadge').classList.add('hidden');
+            document.getElementById('replayTimeline').classList.add('hidden');
+            document.getElementById('hud').classList.add('hidden');
+            if(document.getElementById('comboHud')) document.getElementById('comboHud').classList.add('hidden');
+            document.getElementById('runResult').classList.add('hidden');
+            document.getElementById('menu').classList.remove('hidden');
+            ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+            ctx.fillRect(0, 0, w, h);
+        }
+        window.closeRunResult = closeRunResult;
+
+        document.getElementById('replayTrack').addEventListener('click', (event) => {
+            if(!replayActive || !replayFrames.length) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+            replayIndex = Math.round(ratio * (replayFrames.length - 1));
+            drawCurrentReplayFrame();
+        });
+
+        function endGame(m) { 
+            gameActive = false;
+            if (score > window.highscore) {
+                window.highscore = score;
+            }
+            window.saveToDB(); 
+            lastRunStats = {
+                message: m,
+                score,
+                best: window.highscore,
+                combo: comboCount,
+                mode: dailyRiftActive ? "DAILY RIFT" : "NORMAL"
+            };
+            document.getElementById('resultMessage').innerText = m;
+            document.getElementById('resultScore').innerText = score;
+            document.getElementById('resultBest').innerText = window.highscore;
+            document.getElementById('resultCombo').innerText = "x" + Math.max(1, getComboMultiplier());
+            document.getElementById('resultMode').innerText = lastRunStats.mode;
+            
+            updateUI(); 
+            document.getElementById('menu').classList.remove('hidden'); 
+            document.getElementById('runResult').classList.remove('hidden');
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('reverseContainer').classList.add('hidden');
+            dailyRiftActive = false;
+            dailyRiftTimer = 0;
+            comboCount = 0;
+            comboTimer = 0;
+            surgeTimer = 0;
+            popups = [];
+            if(document.getElementById('eventHud')) document.getElementById('eventHud').classList.add('hidden');
+            if(document.getElementById('comboHud')) document.getElementById('comboHud').classList.add('hidden');
+        }
+
+        const move = e => { let t = e.touches ? e.touches[0] : e; player.x = t.clientX; player.y = t.clientY; };
+        window.addEventListener('mousemove', move); window.addEventListener('touchmove', move);
+    // Diese Initialisierung wurde bereits weiter oben erledigt.
+        // Kein zusätzlicher DOMContentLoaded-Listener erforderlich.
+    </script>
+</body>
+</html>

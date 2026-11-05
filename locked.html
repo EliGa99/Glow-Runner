@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ACCESS DENIED - GLOW RUNNER</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght=400;700;900&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: #050000;
+            color: #ff3333;
+            font-family: 'Orbitron', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Scanline-Effekt für Retro-Terminal-Feeling */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 10;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        .terminal-container {
+            width: min(90vw, 550px);
+            padding: 30px;
+            background: rgba(15, 0, 0, 0.95);
+            border: 2px solid #ff1111;
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(255, 17, 17, 0.45), inset 0 0 25px rgba(255, 0, 0, 0.15);
+            text-align: center;
+            position: relative;
+            z-index: 5;
+            backdrop-filter: blur(8px);
+            animation: glitchOpen 0.4s ease-out;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin: 0 0 10px 0;
+            letter-spacing: 2px;
+            color: #ff1111;
+            text-shadow: 0 0 15px #ff1111;
+            animation: pulseGlow 1.5s infinite alternate;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: #888;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        .warning-box {
+            background: rgba(42, 8, 8, 0.75);
+            border: 1px solid rgba(255, 17, 17, 0.5);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: left;
+            margin-bottom: 30px;
+        }
+
+        .info-row {
+            margin-bottom: 12px;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            line-height: 1.5;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-row strong {
+            color: #ff5555;
+            display: inline-block;
+            width: 130px;
+            text-transform: uppercase;
+        }
+
+        .info-row span {
+            color: #ffffff;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .highlight-text {
+            color: #ffff00 !important;
+            text-shadow: 0 0 8px rgba(255, 255, 0, 0.6) !important;
+        }
+
+        .footer-logo {
+            font-size: 0.55rem;
+            letter-spacing: 3px;
+            color: #444;
+            margin-top: 15px;
+            text-transform: uppercase;
+        }
+
+        /* Rote Pulsierende Umrandung des gesamten Bildschirms bei Aktivität */
+        .danger-frame {
+            position: absolute;
+            inset: 0;
+            border: 4px solid #ff1111;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0.15;
+            animation: borderPulse 2s infinite alternate;
+        }
+
+        /* --- Animationen --- */
+        @keyframes glitchOpen {
+            0% { transform: scale(0.8) rotate(-2deg); opacity: 0; filter: hue-rotate(90deg); }
+            50% { transform: scale(1.05) rotate(1deg); opacity: 0.8; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; filter: hue-rotate(0deg); }
+        }
+
+        @keyframes pulseGlow {
+            from { text-shadow: 0 0 10px #ff1111, 0 0 2px #ff1111; }
+            to { text-shadow: 0 0 25px #ff1111, 0 0 10px #ff3333, 0 0 30px #ff0000; }
+        }
+
+        @keyframes borderPulse {
+            from { opacity: 0.05; }
+            to { opacity: 0.25; }
+        }
+    </style>
+</head>
+<body>
+    <script>
+        (function () {
+            const isMaintenancePage = window.location.pathname.endsWith('/wartung.html');
+            const isOfflinePage = window.location.pathname.endsWith('/server-offline.html');
+            if (isMaintenancePage || isOfflinePage) return;
+
+            fetch('/api/health', { cache: 'no-store' })
+                .then(async (response) => {
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        return;
+                    }
+                    if (data.status !== 'online') {
+                        return;
+                    }
+                })
+                .catch(() => {
+                    window.location.href = 'server-offline.html';
+                });
+        })();
+    </script>
+
+    <div class="danger-frame"></div>
+
+    <div class="terminal-container">
+        <h1>YOU ARE BANNED FROM THIS SERVER</h1>
+        <div class="subtitle">Verbindung blockiert • Firewall Aktiv</div>
+        
+        <div class="warning-box">
+            <div class="info-row">
+                <strong>Verbindungs-ID:</strong> 
+                <span id="banRunnerId">Lade ID...</span>
+            </div>
+            <div class="info-row">
+                <strong>System-Status:</strong> 
+                <span style="color: #ff3333; font-weight: bold;">GESPERRT / BANNED</span>
+            </div>
+            <div class="info-row">
+                <strong>Ausgestellt von:</strong> 
+                <span id="banIssuer" class="highlight-text">Lade Instanz...</span>
+            </div>
+            <div class="info-row">
+                <strong>Sperrgrund:</strong> 
+                <span id="banReason" class="highlight-text">Lade Grund...</span>
+            </div>
+            <div class="info-row">
+                <strong>Gültig bis:</strong> 
+                <span id="banExpiry">Lade Dauer...</span>
+            </div>
+            <div class="info-row">
+                <strong>Restzeit:</strong>
+                <span id="banRemaining" class="highlight-text">Lade Restzeit...</span>
+            </div>
+        </div>
+
+        <div style="font-size: 0.72rem; color: #888; line-height: 1.6; margin-bottom: 10px; padding: 0 10px;">
+            Dein Client hat die Sicherheitsüberprüfung unseres Hauptservers nicht bestanden. Ein Manipulationsversuch des Benutzerprofils oder der Spieldaten wurde aufgezeichnet.
+        </div>
+
+        <div class="footer-logo">GLOW RUNNER SECURITY PROTOCOL v4.9.1</div>
+    </div>
+
+        <script>
+        const API_URL = "https://glow-runner-backend.onrender.com";
+        let runnerId = null;
+        let expiryDate = null;
+        let countdownInterval = null;
+        let serverCheckInterval = null;
+
+        function parseDateValue(value) {
+            if (!value) return null;
+            if (!isNaN(value) && value.trim() !== "") {
+                return new Date(parseInt(value, 10));
+            }
+            return new Date(value);
+        }
+
+        function formatRemaining(ms) {
+            if (ms <= 0) return "0s";
+            const totalSeconds = Math.floor(ms / 1000);
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            const parts = [];
+            if (days) parts.push(days + "d");
+            parts.push(hours.toString().padStart(2, '0') + "h");
+            parts.push(minutes.toString().padStart(2, '0') + "m");
+            parts.push(seconds.toString().padStart(2, '0') + "s");
+            return parts.join(' ');
+        }
+
+        function setText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.innerText = text;
+        }
+
+        function setBanDetails(reason, issuer, expires) {
+            setText('banReason', reason);
+            setText('banIssuer', issuer);
+            if (expires && expires !== "Permanent" && expires !== "undefined" && expires !== "null") {
+                expiryDate = parseDateValue(expires);
+                if (expiryDate && !isNaN(expiryDate.getTime())) {
+                    setText('banExpiry', expiryDate.toLocaleString('de-DE', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                    }) + " Uhr");
+                    startCountdown();
+                    return;
+                }
+            }
+            expiryDate = null;
+            setText('banExpiry', "PERMANENT (Kein Ablauf)");
+            setText('banRemaining', "Unbegrenzt");
+        }
+
+        function startCountdown() {
+            if (countdownInterval) clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                if (!expiryDate) return;
+                const remaining = expiryDate.getTime() - Date.now();
+                if (remaining <= 0) {
+                    setText('banRemaining', 'Prüfe Status...');
+                    checkServerBanState();
+                    return;
+                }
+                setText('banRemaining', formatRemaining(remaining));
+            }, 1000);
+            const remaining = expiryDate ? expiryDate.getTime() - Date.now() : 0;
+            setText('banRemaining', remaining > 0 ? formatRemaining(remaining) : 'Prüfe Status...');
+        }
+
+        async function checkServerBanState() {
+            if (!runnerId) return;
+            try {
+                const res = await fetch(`${API_URL}/api/user`, {
+                    headers: { 'x-runner-id': runnerId }
+                });
+                if (res.ok) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                if (res.status === 403) {
+                    const data = await res.json();
+                    const reason = data.reason || 'Verstoß gegen die Nutzungsbedingungen';
+                    const issuer = 'Automatisches Server-Sicherheitssystem';
+                    setBanDetails(reason, issuer, data.expires);
+                    return;
+                }
+                setText('banRemaining', 'Serverfehler. Bitte erneut laden.');
+            } catch (err) {
+                setText('banRemaining', 'Server nicht erreichbar. Verbindung prüfen.');
+                console.warn('Locked page status check failed', err);
+            }
+        }
+
+        function parseQueryParameters() {
+            const params = new URLSearchParams(window.location.search);
+            runnerId = params.get('id') || localStorage.getItem('glow_runner_id') || 'UNBEKANNT';
+            const reason = params.get('reason') || 'Verstoß gegen die Nutzungsbedingungen / Cheat-Detection';
+            let issuer = params.get('by');
+            if (!issuer) {
+                issuer = 'Administrator (Manueller Bann)';
+            } else if (issuer.toLowerCase() === 'system' || issuer.toLowerCase() === 'server') {
+                issuer = 'Automatisches Server-Sicherheitssystem';
+            } else if (issuer.toLowerCase() === 'admin' || issuer.toLowerCase() === 'administrator') {
+                issuer = 'Projekt-Administrator (Manueller Bann)';
+            }
+            setText('banRunnerId', runnerId);
+            setBanDetails(reason, issuer, params.get('expires'));
+            checkServerBanState();
+            if (serverCheckInterval) clearInterval(serverCheckInterval);
+            serverCheckInterval = setInterval(checkServerBanState, 15000);
+        }
+
+        window.addEventListener('DOMContentLoaded', parseQueryParameters);
+    </script>
+</body>
+</html>

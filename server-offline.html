@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Glow Runner - Server Offline</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;800;900&display=swap');
+
+        :root {
+            --bg: #040912;
+            --bg-2: #0b1320;
+            --panel: rgba(10, 18, 28, 0.88);
+            --line: rgba(107, 255, 255, 0.45);
+            --cyan: #6bffff;
+            --cyan-soft: rgba(107, 255, 255, 0.15);
+            --white: #edf9ff;
+            --muted: #8ea8bb;
+            --red: #ff4d6d;
+            --red-soft: rgba(255, 77, 109, 0.12);
+            --yellow: #ffe66d;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            display: grid;
+            place-items: center;
+            background:
+                radial-gradient(circle at 50% 15%, rgba(107,255,255,0.22), transparent 25%),
+                radial-gradient(circle at 50% 100%, rgba(255,77,109,0.18), transparent 30%),
+                linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 100%);
+            color: var(--white);
+            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(255,255,255,0.03),
+                rgba(255,255,255,0.03) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            inset: -30%;
+            background: radial-gradient(circle, rgba(107,255,255,0.12), transparent 30%);
+            animation: drift 12s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes drift {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.15) translate(2%, -2%); }
+        }
+
+        .panel {
+            width: min(88vw, 760px);
+            position: relative;
+            z-index: 1;
+            background: rgba(7, 15, 24, 0.85);
+            border: 1px solid rgba(107,255,255,0.35);
+            border-radius: 26px;
+            padding: 36px 30px 28px;
+            text-align: center;
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.02),
+                0 0 40px rgba(107,255,255,0.18),
+                0 0 80px rgba(255,77,109,0.12),
+                inset 0 0 30px rgba(107,255,255,0.04);
+            backdrop-filter: blur(10px);
+            animation: floatPanel 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatPanel {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-6px); }
+        }
+
+        .panel::before,
+        .panel::after {
+            content: "";
+            position: absolute;
+            inset: 12px;
+            border: 1px solid rgba(107,255,255,0.15);
+            border-radius: 18px;
+            pointer-events: none;
+        }
+
+        .panel::after {
+            inset: auto 26px 12px 26px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(107,255,255,0.8), transparent);
+            box-shadow: 0 0 18px rgba(107,255,255,0.6);
+        }
+
+        .server-icon {
+            position: relative;
+            width: 210px;
+            height: 210px;
+            margin: 8px auto 14px;
+            display: grid;
+            place-items: center;
+            color: var(--cyan);
+            font-size: 110px;
+            filter: drop-shadow(0 0 18px rgba(107,255,255,0.8));
+            animation: serverPulse 2.4s ease-in-out infinite;
+        }
+
+        @keyframes serverPulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.06); opacity: 1; }
+        }
+
+        .server-icon::before {
+            content: "🖥";
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 0 30px rgba(107,255,255,0.8));
+        }
+
+        .server-icon::after {
+            content: "";
+            position: absolute;
+            width: 152%;
+            height: 8px;
+            background: linear-gradient(90deg, transparent, var(--red), transparent);
+            border-radius: 999px;
+            transform: rotate(-30deg) scaleX(1.15);
+            box-shadow: 0 0 24px rgba(255, 77, 109, 0.85);
+            animation: slash 1.8s ease-in-out infinite;
+        }
+
+        @keyframes slash {
+            0% { opacity: 0.7; transform: rotate(-30deg) scaleX(0.8); }
+            50% { opacity: 1; transform: rotate(-30deg) scaleX(1.18); }
+            100% { opacity: 0.7; transform: rotate(-30deg) scaleX(0.8); }
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 11px 18px;
+            border: 1px solid rgba(107,255,255,0.45);
+            border-radius: 999px;
+            background: rgba(107,255,255,0.08);
+            color: var(--cyan);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            box-shadow: inset 0 0 16px rgba(107,255,255,0.06), 0 0 18px rgba(107,255,255,0.12);
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--white);
+            font-size: clamp(2.4rem, 4vw, 4.1rem);
+            letter-spacing: 0.13em;
+            line-height: 1.08;
+            text-transform: uppercase;
+            text-shadow: 0 0 16px rgba(255,255,255,0.12), 0 0 26px rgba(107,255,255,0.18);
+        }
+
+        .subtitle {
+            margin: 14px auto 0;
+            color: var(--yellow);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 0.76rem;
+            opacity: 0.9;
+        }
+
+        p {
+            max-width: 640px;
+            margin: 18px auto 22px;
+            color: var(--muted);
+            font-size: 0.98rem;
+            line-height: 1.7;
+            letter-spacing: 0.08em;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .retry {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 28px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--white);
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, rgba(255,77,109,0.18), rgba(255,77,109,0.05));
+            border: 1px solid rgba(255, 77, 109, 0.5);
+            box-shadow: 0 0 20px rgba(255, 77, 109, 0.14);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            animation: retryGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes retryGlow {
+            0%, 100% { box-shadow: 0 0 12px rgba(255,77,109,0.18); }
+            50% { box-shadow: 0 0 22px rgba(255,77,109,0.42); }
+        }
+
+        .retry:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 77, 109, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <div class="server-icon" aria-label="Server offline"></div>
+        <div class="tag">Status</div>
+        <h1>Game Server Offline</h1>
+        <div class="subtitle">System Warning</div>
+        <p>Die Glow Runner Game-Server sind derzeit offline. Bitte versuche es später erneut oder prüfe kurz den Server-Status.</p>
+        <div class="actions">
+            <a class="retry" href="index_beta.html">Neu laden</a>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            if (window.location.pathname.endsWith('/server-offline.html')) {
+                const getApiBase = () => {
+                    const origin = window.location.origin;
+                    if (origin && origin !== 'null' && origin !== 'http://localhost:3000') return origin;
+                    return 'https://glow-runner-backend.onrender.com';
+                };
+
+                fetch(`${getApiBase()}/api/health`, { cache: 'no-store' })
+                    .then(async (response) => {
+                        const data = await response.json().catch(() => ({}));
+                        if (response.ok && !data.maintenance && data.status === 'online') {
+                            window.location.href = 'index_beta.html';
+                            return;
+                        }
+                        // maintenance mode disabled: do not redirect to wartung.html from frontend pages
+                    })
+                    .catch(() => {
+                        // intentionally stays on the offline screen
+                    });
+            }
+        })();
+    </script>
+</body>
+</html>
