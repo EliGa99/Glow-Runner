@@ -6,8 +6,6 @@ const DEFAULT_API_BASE_RESOLVED = (() => {
     if (savedBase && savedBase.trim()) return savedBase.replace(/\/$/, '');
     const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
     if (devMode) return 'http://localhost:3000';
-    const origin = window.location.origin;
-    if (origin && origin !== 'null' && origin !== 'http://localhost:3000') return origin.replace(/\/$/, '');
     return DEFAULT_API_BASE;
 })();
 
