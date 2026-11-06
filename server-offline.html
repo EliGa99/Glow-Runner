@@ -249,35 +249,7 @@
 
     <script>
         (function () {
-            if (window.location.pathname.endsWith('/server-offline.html')) {
-                const redirectKey = 'glowrunner_redirect_lock';
-                const lockValue = sessionStorage.getItem(redirectKey);
-                if (lockValue === 'index') {
-                    return;
-                }
-
-                const getApiBase = () => {
-                    const savedBase = localStorage.getItem('glowrunner_api_base');
-                    if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
-                    const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
-                    if (devMode) return 'http://localhost:3000';
-                    return 'https://glow-runner-backend.onrender.com';
-                };
-
-                fetch(`${getApiBase()}/api/health`, { cache: 'no-store' })
-                    .then(async (response) => {
-                        const data = await response.json().catch(() => ({}));
-                        if (response.ok && !data.maintenance && data.status === 'online') {
-                            sessionStorage.setItem(redirectKey, 'index');
-                            window.location.href = 'index_beta.html';
-                            return;
-                        }
-                        sessionStorage.removeItem(redirectKey);
-                    })
-                    .catch(() => {
-                        sessionStorage.removeItem(redirectKey);
-                    });
-            }
+            sessionStorage.removeItem('glowrunner_redirect_lock');
         })();
     </script>
 </body>
