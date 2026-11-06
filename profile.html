@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Glow Runner | Profile</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, rgba(0,255,255,0.14), transparent 30%), #04070b;
+            color: #eafaff;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .card {
+            width: min(90vw, 540px);
+            background: rgba(8, 15, 20, 0.96);
+            border: 2px solid rgba(0,255,255,0.7);
+            border-radius: 18px;
+            box-shadow: 0 0 35px rgba(0,255,255,0.2);
+            padding: 26px 22px;
+        }
+        h1 {
+            margin: 0 0 18px 0;
+            text-align: center;
+            color: #0ff;
+            text-shadow: 0 0 18px #0ff;
+            letter-spacing: 3px;
+            font-size: clamp(1.5rem, 2vw, 2.2rem);
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-size: 0.76rem;
+            letter-spacing: 1px;
+        }
+        .row .label { color: #b3c0cf; }
+        .row .value { color: #ff0; }
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            flex: 1 1 150px;
+            text-align: center;
+            padding: 12px 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border: 1px solid rgba(0,255,255,0.7);
+            background: rgba(0,255,255,0.08);
+            color: #0ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>PROFILE</h1>
+
+        <div class="row"><span class="label">Runner ID</span><span class="value" id="runnerId">-</span></div>
+        <div class="row"><span class="label">Quest Level</span><span class="value" id="questLevel">1</span></div>
+        <div class="row"><span class="label">Crystals</span><span class="value" id="points">0</span></div>
+        <div class="row"><span class="label">Highscore</span><span class="value" id="highscore">0</span></div>
+        <div class="row"><span class="label">Active Skin</span><span class="value" id="skin">cyan</span></div>
+        <div class="row"><span class="label">Active Shape</span><span class="value" id="shape">circle</span></div>
+
+        <div class="actions">
+            <a class="btn" href="index_beta.html">Back</a>
+            <a class="btn" href="quests.html">Quests</a>
+        </div>
+    </div>
+
+    <script>
+        const getApiBase = () => {
+            const savedBase = localStorage.getItem('glowrunner_api_base');
+            if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
+            const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
+            if (devMode) return 'http://localhost:3000';
+            return 'https://glow-runner-backend.onrender.com';
+        };
+
+        const runnerId = localStorage.getItem('glow_runner_id') || 'RNR-000000';
+        const setText = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
+
+        async function loadProfile() {
+            setText('runnerId', runnerId);
+            setText('questLevel', '1');
+            setText('points', '0');
+            setText('highscore', '0');
+            setText('skin', 'cyan');
+            setText('shape', 'circle');
+
+            try {
+                const response = await fetch(`${getApiBase()}/api/user`, {
+                    headers: {
+                        'x-runner-id': runnerId,
+                        'Authorization': `Bearer ${localStorage.getItem('glow_runner_token') || ''}`
+                    },
+                    cache: 'no-store'
+                });
+
+                if (!response.ok) return;
+                const data = await response.json();
+                const user = data.data || data;
+                if (!user) return;
+
+                setText('questLevel', user.questLevel || 1);
+                setText('points', user.points || 0);
+                setText('highscore', user.highscore || 0);
+                setText('skin', user.activeSkin || user.skin || 'cyan');
+                setText('shape', user.activeShape || user.shape || 'circle');
+            } catch (error) {
+                console.warn('Profile load failed:', error);
+            }
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>

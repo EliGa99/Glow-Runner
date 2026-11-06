@@ -15,6 +15,9 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: rgba(0,0,0,0.9); z-index: 20; backdrop-filter: blur(10px);
         }
+        #menu { z-index: 10; }
+        #settingsOverlay { z-index: 120; }
+        #settingsBtn { z-index: 130; }
         .hidden { display: none !important; }
 
         .title-img { max-width: 80%; max-height: 150px; margin-bottom: 10px; filter: drop-shadow(0 0 10px #0ff); }
@@ -126,6 +129,14 @@
             display: flex; align-items: center; justify-content: center; cursor: not-allowed;
             transition: 0.3s; user-select: none;
         }
+        .keybind-hint {
+            font-size: 0.52rem;
+            letter-spacing: 1.5px;
+            color: #9ad8ff;
+            opacity: 0.85;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
         #reverseBtn.ready { border-color: #ff0; color: #ff0; cursor: pointer; box-shadow: 0 0 20px #ff0; animation: pulse 1s infinite; }
         #reverseBtn.active { border-color: #f0f; color: #fff; background: #f0f; animation: shake 0.2s infinite; }
 
@@ -164,6 +175,70 @@
         @keyframes newBadgePop {
             from { transform: rotate(-5deg) scale(1); }
             to { transform: rotate(5deg) scale(1.18); }
+        }
+
+        #menu {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 28px 18px 90px;
+            overflow-y: auto;
+            text-align: center;
+            background: radial-gradient(circle at top, rgba(0,255,255,0.14), transparent 30%), rgba(0,0,0,0.9);
+        }
+        #menu-inner {
+            width: min(92vw, 430px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .menu-top-bar {
+            width: min(90vw, 420px);
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        .menu-mini-btn {
+            flex: 1;
+            background: rgba(10,10,10,0.9);
+            border: 1px solid rgba(0,255,255,0.45);
+            color: #0ff;
+            border-radius: 10px;
+            padding: 10px 8px;
+            font-family: 'Orbitron';
+            font-size: 0.64rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 0 14px rgba(0,255,255,0.14);
+        }
+        .menu-mini-btn:hover {
+            background: rgba(0,255,255,0.12);
+            transform: translateY(-1px);
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(140px, 1fr));
+            gap: 10px;
+            width: min(90vw, 420px);
+        }
+        #menu .btn {
+            width: 100%;
+            min-height: 54px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 18px rgba(0,255,255,0.12);
+            font-size: 0.74rem;
+            letter-spacing: 1px;
+            margin: 0;
+            position: relative;
+        }
+        #menu .btn.full-width {
+            width: min(90vw, 420px);
         }
 
         /* SHOP STYLES */
@@ -459,8 +534,12 @@
             if (isMaintenancePage || isOfflinePage) return;
 
             const getApiBase = () => {
+                const savedBase = localStorage.getItem('glowrunner_api_base');
+                if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
+                const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
+                if (devMode) return 'http://localhost:3000';
                 const origin = window.location.origin;
-                if (origin && origin !== 'null' && origin !== 'http://localhost:3000') return origin;
+                if (origin && origin !== 'null') return origin.replace(/\/+$/, '');
                 return 'https://glow-runner-backend.onrender.com';
             };
 
@@ -536,41 +615,57 @@ function redirectToOfflinePage() {
 
     <div id="reverseContainer" class="hidden">
         <div id="reverseBtn" onclick="activateReverse()">REVERSE</div>
-        <div style="font-size: 0.5rem; margin-top: 5px; color: #ff0; letter-spacing: 1px;">OVERDRIVE</div>
+        <div class="keybind-hint">OVERDRIVE / KEY: <b>SHIFT</b></div>
     </div>
 
     <div id="menu" class="overlay">
-        <img src="ChatGPT Image 6. Mai 2026, 18_30_59.png" alt="Title Art" class="title-img">
-        <h1 id="welcomeText">GLOW RUNNER</h1>
-        <div style="color:#666; font-size:0.58rem; letter-spacing:2px; margin-bottom:8px;">
-            ID: <span id="runnerIdText">...</span>
-        </div>
-        
-        <div style="color: #0f0; font-size: 0.7rem; margin-bottom: 15px; letter-spacing: 1px;">
-            ● <span id="onlineVal">0</span> RUNNER LIVE
-        </div>
-        
-        <button class="btn" onclick="startGame()" style="border-color: #0f0; color: #0f0;">LAUNCH GAME</button>
-        <button class="btn daily-rift-btn" onclick="startDailyRift()">DAILY RIFT</button>
-        <button class="btn ghost-station-btn" onclick="location.href='ghost-runner-beta.html'">
-            GHOST STATION
-            <span class="new-badge">NEW</span>
-        </button>
-        <button class="btn" onclick="location.href='modes.html'">SELECT MODE</button>
-        <button class="btn" onclick="openShop()">ARMORY & SHOP</button>
-        <button class="btn" onclick="openBoxes()" style="border-color:#ff0; color:#ff0;">OPEN BOXES</button>
-        <button class="btn" onclick="openCreatorHub()" style="border-color:#f0f; color:#f0f;">CREATOR HUB</button>
-        <button class="btn" onclick="location.href='quests.html'">MISSIONS</button>
-        <button class="btn" onclick="location.href='leaderboard.html'">RANKING</button>
+        <div id="menu-inner">
+            <img src="ChatGPT Image 6. Mai 2026, 18_30_59.png" alt="Title Art" class="title-img">
+            <h1 id="welcomeText">GLOW RUNNER</h1>
+            <div style="color:#666; font-size:0.58rem; letter-spacing:2px; margin-bottom:8px;">
+                ID: <span id="runnerIdText">...</span>
+            </div>
 
-        <div style="margin-top: 15px; text-align: center;">
-            <p style="color: #ff0; margin: 2px 0;">RECORD: <span id="menuHighscore" style="color: #0ff;">0</span></p>
-            <p style="color: #ff0; margin: 2px 0;">CRYSTALS: <span id="menuTotal" style="color: #0ff;">0</span></p>
-        </div>
+            <div style="color: #0f0; font-size: 0.7rem; margin-bottom: 12px; letter-spacing: 1px;">
+                ● <span id="onlineVal">0</span> RUNNER LIVE
+            </div>
 
-        <div class="footer-logo-container">
-            <span class="made-by">MADE BY</span>
-            <img src="EliX Tag.png" alt="Logo" class="footer-logo">
+            <div class="menu-top-bar">
+                <button class="menu-mini-btn" onclick="openSettings()">⚙ SETTINGS</button>
+                <button class="menu-mini-btn" data-quest-menu-button data-quest-label="✦ QUESTS" onclick="location.href='quests.html'">✦ QUESTS</button>
+            </div>
+            <div style="font-size: 0.52rem; letter-spacing: 1.5px; color: #9ad8ff; margin-top: -4px; opacity: 0.8; text-transform: uppercase;">OVERDRIVE KEY: SHIFT</div>
+
+            <div style="margin: 10px 0 12px;">
+                <button class="btn" onclick="location.href='glow-runner-review.html'" style="width: 100%; border-color:#ff0; color:#ff0; font-size: 0.72rem; padding: 12px 16px;">⭐ REVIEW GLOW RUNNER</button>
+                <div id="reviewStatus" style="margin-top: 8px; color:#9ad8ff; font-size:0.58rem; letter-spacing:2px; text-transform:uppercase; text-align:center;">RATING: –</div>
+            </div>
+
+            <div class="menu-grid">
+                <button class="btn" onclick="startGame()" style="border-color: #0f0; color: #0f0;">LAUNCH</button>
+                <button class="btn daily-rift-btn" onclick="startDailyRift()">DAILY RIFT</button>
+                <button class="btn ghost-station-btn" onclick="location.href='ghost-runner-beta.html'">
+                    GHOST
+                    <span class="new-badge">NEW</span>
+                </button>
+                <button class="btn" onclick="location.href='modes.html'">MODES</button>
+                <button class="btn" onclick="openShop()">ARMORY</button>
+                <button class="btn" onclick="openBoxes()" style="border-color:#ff0; color:#ff0;">BOXES</button>
+                <button class="btn" onclick="openCreatorHub()" style="border-color:#f0f; color:#f0f;">CREATOR</button>
+                <button class="btn" onclick="location.href='leaderboard.html'">RANKING</button>
+                <button class="btn" onclick="location.href='quests.html'" data-quest-menu-button data-quest-label="MISSIONS" style="border-color:#ff0; color:#ff0;">MISSIONS</button>
+                <button class="btn" onclick="location.href='profile.html'" style="border-color:#0ff; color:#0ff;">PROFILE</button>
+            </div>
+
+            <div style="margin-top: 8px; text-align: center;">
+                <p style="color: #ff0; margin: 2px 0;">RECORD: <span id="menuHighscore" style="color: #0ff;">0</span></p>
+                <p style="color: #ff0; margin: 2px 0;">CRYSTALS: <span id="menuTotal" style="color: #0ff;">0</span></p>
+            </div>
+
+            <div class="footer-logo-container">
+                <span class="made-by">MADE BY</span>
+                <img src="EliX Tag.png" alt="Logo" class="footer-logo">
+            </div>
         </div>
     </div>
 
@@ -738,9 +833,18 @@ function redirectToOfflinePage() {
         window.creatorProfiles = {};
         window.creatorItems = {};
 
-        let runnerID = localStorage.getItem('glow_runner_id');
+        let runnerID = localStorage.getItem('glow_runner_id') || '';
+        const savedToken = localStorage.getItem('glow_runner_token');
+        if (!runnerID && savedToken) {
+            const tokenParts = savedToken.split('.');
+            if (tokenParts.length >= 3 && tokenParts[0]) {
+                runnerID = tokenParts[0];
+            }
+        }
         if (!runnerID) {
             runnerID = 'RNR-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            localStorage.setItem('glow_runner_id', runnerID);
+        } else {
             localStorage.setItem('glow_runner_id', runnerID);
         }
 
@@ -750,8 +854,18 @@ function redirectToOfflinePage() {
         window.serverOnline = false;
         let updateStarted = false;
 
+        const getApiBase = () => {
+            const savedBase = localStorage.getItem('glowrunner_api_base');
+            if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
+            const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
+            if (devMode) return 'http://localhost:3000';
+            const origin = window.location.origin;
+            if (origin && origin !== 'null') return origin.replace(/\/+$/, '');
+            return 'https://glow-runner-backend.onrender.com';
+        };
+
         // Backend Server URL für Accountmigration & Live-Syncs
-        const API_URL = "https://glow-runner-backend.onrender.com"; 
+        const API_URL = getApiBase();
 
         // Service Worker entfernen, wenn noch alte Caches vorhanden sind
         if ('serviceWorker' in navigator) {
@@ -770,8 +884,83 @@ function redirectToOfflinePage() {
         function openBoxes() {
             document.getElementById('menu').classList.add('hidden');
             document.getElementById('boxesOverlay').classList.remove('hidden');
+            const reward = document.getElementById('boxRewardText');
+            if (reward) reward.innerText = 'READY';
         }
         window.openBoxes = openBoxes;
+
+        function getOwnedList(type) {
+            if (type === 'color') return window.boughtSkins;
+            if (type === 'shape') return window.boughtShapes;
+            return window.boughtMaps;
+        }
+
+        function openGlowBox() {
+            if (window.totalPoints < 750) {
+                alert('Nicht genug Kristalle für eine Box.');
+                return;
+            }
+            const box = document.getElementById('lootBox');
+            const burst = document.getElementById('lootBurst');
+            const result = document.getElementById('boxRewardText');
+            if (!box || !burst || !result) return;
+
+            window.totalPoints -= 750;
+            box.classList.add('opening');
+            result.innerText = 'OPENING...';
+            updateUI();
+
+            window.setTimeout(() => {
+                box.classList.remove('opening');
+                burst.classList.remove('show');
+                void burst.offsetWidth;
+                burst.classList.add('show');
+
+                const staticRewards = [
+                    { type: 'color', id: 'wmgold', name: 'CUP GOLD', price: 3500 },
+                    { type: 'color', id: 'voidpink', name: 'VOID PINK', price: 6800 },
+                    { type: 'shape', id: 'ball', name: 'MATCH BALL', price: 1600 },
+                    { type: 'shape', id: 'trophy', name: 'TROPHY', price: 3200 },
+                    { type: 'map', id: 'pitch', name: 'NEON PITCH', price: 1600 },
+                    { type: 'map', id: 'confetti', name: 'CONFETTI', price: 7000 }
+                ];
+
+                const approvedCreatorRewards = Object.values(window.creatorItems || {}).filter(item => {
+                    const creator = window.creatorProfiles[item.creatorID];
+                    return creator && creator.status === 'approved';
+                });
+
+                const roll = Math.random();
+                let rewardText = '';
+                if (roll < 0.42) {
+                    const amount = 300 + Math.floor(Math.random() * 1200);
+                    window.totalPoints += amount;
+                    rewardText = `+${amount} KRISTALLE`;
+                } else if (roll < 0.82 || !approvedCreatorRewards.length) {
+                    const reward = staticRewards[Math.floor(Math.random() * staticRewards.length)];
+                    const list = getOwnedList(reward.type);
+                    if (!list.includes(reward.id)) list.push(reward.id);
+                    if (reward.type === 'color') window.activeSkin = reward.id;
+                    else if (reward.type === 'shape') window.activeShape = reward.id;
+                    else window.activeMap = reward.id;
+                    rewardText = reward.name;
+                } else {
+                    const reward = approvedCreatorRewards[Math.floor(Math.random() * approvedCreatorRewards.length)];
+                    const id = 'creator_' + reward.id;
+                    const list = getOwnedList(reward.type);
+                    if (!list.includes(id)) list.push(id);
+                    if (reward.type === 'color') window.activeSkin = id;
+                    else if (reward.type === 'shape') window.activeShape = id;
+                    else window.activeMap = id;
+                    rewardText = `${reward.name} BY ${(reward.creatorName || 'CREATOR')}`;
+                }
+
+                result.innerText = rewardText;
+                window.saveToDB();
+                updateUI();
+            }, 1400);
+        }
+        window.openGlowBox = openGlowBox;
 
         function closeBoxes() {
             document.getElementById('boxesOverlay').classList.add('hidden');
@@ -996,6 +1185,7 @@ function redirectToOfflinePage() {
         window.closeCreatorHub = closeCreatorHub;
         window.startGame = startGame;
         window.startDailyRift = startDailyRift;
+        window.activateReverse = activateReverse;
         window.ensureUpdateLoop = ensureUpdateLoop;
         window.setPreview = setPreview;
         window.handleAction = handleAction;
@@ -1033,10 +1223,21 @@ async function checkServerHealth() {
         }
 
         window.serverOnline = true;
+        sessionStorage.removeItem('glowrunner_redirect_lock');
 
     } catch (error) {
         window.serverOnline = false;
 
+        const currentPath = window.location.pathname.toLowerCase();
+        const redirectLock = sessionStorage.getItem('glowrunner_redirect_lock');
+        if (currentPath.endsWith('/server-offline.html')) {
+            return;
+        }
+        if (redirectLock === 'offline') {
+            return;
+        }
+
+        sessionStorage.setItem('glowrunner_redirect_lock', 'offline');
         window.location.replace("server-offline.html");
     }
 }
@@ -1115,11 +1316,62 @@ async function checkServerHealth() {
             return namedSkins[id] || id;
         }
 
+        function getQuestDefinitions() {
+            const level = Number(localStorage.getItem('glow_runner_quest_level') || window.questLevel || 1);
+            const highscore = Number(localStorage.getItem('glow_runner_highscore') || window.highscore || 0);
+            const state = JSON.parse(localStorage.getItem('glow_runner_quests') || '{}');
+            const active = JSON.parse(localStorage.getItem('glow_runner_active_quests') || '[]');
+            const questPool = active.length ? active : [
+                { id: 'survive-01', target: Math.max(20, level * 30), progress: Math.min(highscore, Math.max(20, level * 30)) },
+                { id: 'combo-01', target: Math.max(10, level * 8), progress: Math.min(highscore, Math.max(10, level * 8)) },
+            ];
+
+            return questPool.map((quest) => ({
+                ...quest,
+                progress: quest.progress ?? Math.min(highscore, quest.target || highscore),
+                target: quest.target ?? Math.max(20, level * 30),
+                claimable: !state[quest.id] && (quest.progress ?? 0) >= (quest.target ?? 0)
+            }));
+        }
+
+        function updateQuestMenuCount() {
+            const count = getQuestDefinitions().filter((quest) => quest.claimable).length;
+            const buttons = document.querySelectorAll('[data-quest-menu-button]');
+            buttons.forEach((button) => {
+                const baseLabel = button.dataset.questLabel || 'QUESTS';
+                button.textContent = `${baseLabel}${count > 0 ? ` (${count})` : ''}`;
+            });
+        }
+
+        function renderReviewStatus() {
+            const reviewEl = document.getElementById('reviewStatus');
+            if (!reviewEl) return;
+
+            try {
+                const review = JSON.parse(localStorage.getItem('glow_runner_review') || 'null');
+                if (!review || !review.rating) {
+                    reviewEl.textContent = 'RATING: NO REVIEW YET';
+                    reviewEl.style.color = '#f7b267';
+                    return;
+                }
+
+                const filled = '★'.repeat(review.rating);
+                const empty = '☆'.repeat(5 - review.rating);
+                reviewEl.textContent = `RATING: ${filled}${empty} (${review.rating}/5)`;
+                reviewEl.style.color = '#ff0';
+            } catch (error) {
+                reviewEl.textContent = 'RATING: NO REVIEW YET';
+                reviewEl.style.color = '#f7b267';
+            }
+        }
+
         function updateUI() {
             if(document.getElementById('totalPointsHud')) document.getElementById('totalPointsHud').innerText = window.totalPoints;
             if(document.getElementById('menuTotal')) document.getElementById('menuTotal').innerText = window.totalPoints;
             if(document.getElementById('menuHighscore')) document.getElementById('menuHighscore').innerText = window.highscore;
             if(document.getElementById('shopPoints')) document.getElementById('shopPoints').innerText = window.totalPoints;
+            updateQuestMenuCount();
+            renderReviewStatus();
             
             document.querySelectorAll('.item-btn').forEach(btn => {
                 const [type, id] = btn.id.split('-');
@@ -1146,12 +1398,13 @@ async function checkServerHealth() {
                     document.getElementById('comboTime').innerText = surgeTimer > 0 ? "SURGE" : Math.ceil(comboTimer / 60);
                 }
                 const rBtn = document.getElementById('reverseBtn');
-                if(isReverseActive) {
-                    rBtn.innerText = Math.ceil(reverseTimer/60) + "s";
-                    rBtn.className = "active";
-                } else {
-                    rBtn.innerText = Math.floor(reverseCharge) + "%";
-                    rBtn.className = reverseCharge >= 100 ? "ready" : "";
+                if (rBtn) {
+                    const ready = reverseCharge >= 100 && !isReverseActive;
+                    rBtn.classList.toggle('active', isReverseActive);
+                    rBtn.classList.toggle('ready', ready);
+                    rBtn.innerText = isReverseActive ? `${Math.ceil(reverseTimer/60)}s` : `${Math.floor(reverseCharge)}%`;
+                    rBtn.style.opacity = ready || isReverseActive ? '1' : '0.72';
+                    rBtn.style.pointerEvents = ready || isReverseActive ? 'auto' : 'none';
                 }
             }
         }
@@ -1249,6 +1502,15 @@ async function checkServerHealth() {
         window.startGame = startGame;
 
         function activateReverse() { if(reverseCharge >= 100 && !isReverseActive) { isReverseActive = true; reverseTimer = 300; reverseCharge = 0; } }
+
+        window.addEventListener('keydown', (event) => {
+            if (!gameActive) return;
+            const key = event.key || event.code;
+            if ((key === 'Shift' || key === 'ShiftLeft' || key === 'ShiftRight' || key === 'CapsLock') && reverseCharge >= 100 && !isReverseActive) {
+                event.preventDefault();
+                activateReverse();
+            }
+        });
 
         function spawnEnemy() {
             if (!gameActive) return;

@@ -71,7 +71,17 @@
             const isOfflinePage = window.location.pathname.endsWith('/server-offline.html');
             if (isMaintenancePage || isOfflinePage) return;
 
-            fetch('/api/health', { cache: 'no-store' })
+            const getApiBase = () => {
+                const savedBase = localStorage.getItem('glowrunner_api_base');
+                if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
+                const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
+                if (devMode) return 'http://localhost:3000';
+                const origin = window.location.origin;
+                if (origin && origin !== 'null') return origin.replace(/\/+$/, '');
+                return 'https://glow-runner-backend.onrender.com';
+            };
+
+            fetch(`${getApiBase()}/api/health`, { cache: 'no-store' })
                 .then(async (response) => {
                     const data = await response.json().catch(() => ({}));
                     if (!response.ok) {
@@ -108,7 +118,17 @@
     </div>
 
     <script>
-        const API_URL = "https://glow-runner-backend.onrender.com";
+        const getApiBase = () => {
+            const savedBase = localStorage.getItem('glowrunner_api_base');
+            if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
+            const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
+            if (devMode) return 'http://localhost:3000';
+            const origin = window.location.origin;
+            if (origin && origin !== 'null') return origin.replace(/\/+$/, '');
+            return 'https://glow-runner-backend.onrender.com';
+        };
+
+        const API_URL = getApiBase();
         const runnerID = localStorage.getItem('glow_runner_id');
         const authToken = localStorage.getItem('glow_runner_token');
         let lastScores = {};
@@ -206,12 +226,14 @@
                 }
 
                 if(myData) {
+                    window.currentLeaderboardUser = myData;
                     const isBanned = myData.banned === true;
                     if (isBanned) {
                         document.getElementById('togglePrivacyBtn').innerText = "GEBANNT - DATENSCHUTZ N/A";
                         document.getElementById('togglePrivacyBtn').disabled = true;
                     } else {
                         document.getElementById('togglePrivacyBtn').innerText = myData.hidden ? "NAME VERSTECKEN: AN" : "NAME VERSTECKEN: AUS";
+                        document.getElementById('togglePrivacyBtn').disabled = false;
                     }
                 }
             } catch (err) {
@@ -272,6 +294,8 @@
                 return;
             }
             try {
+                const currentState = !!(runnerID && window.currentLeaderboardUser && window.currentLeaderboardUser.hidden);
+                const nextValue = !currentState;
                 const res = await fetch(`${API_URL}/api/user/save`, {
                     method: 'POST',
                     headers: {
@@ -279,9 +303,10 @@
                         'Authorization': `Bearer ${authToken}`,
                         'x-runner-id': runnerID
                     },
-                    body: JSON.stringify({ hidden: true })
+                    body: JSON.stringify({ hidden: nextValue })
                 });
                 if (res.ok) {
+                    window.currentLeaderboardUser = { ...(window.currentLeaderboardUser || {}), hidden: nextValue };
                     loadLeaderboard();
                 }
             } catch (err) {

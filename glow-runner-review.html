@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Glow Runner | Bewertung</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, rgba(0,255,255,0.14), transparent 32%), #030a0d;
+            color: #eafaff;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .panel {
+            width: min(90vw, 620px);
+            background: rgba(8, 16, 20, 0.96);
+            border: 2px solid rgba(0,255,255,0.7);
+            border-radius: 18px;
+            box-shadow: 0 0 34px rgba(0,255,255,0.25);
+            padding: 26px 24px;
+        }
+        h1 {
+            margin: 0 0 16px 0;
+            text-align: center;
+            font-size: clamp(1.8rem, 3vw, 3rem);
+            letter-spacing: 2px;
+            color: #0ff;
+            text-shadow: 0 0 18px #0ff;
+        }
+        .stars {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 18px 0 22px;
+            font-size: 2rem;
+        }
+        .star {
+            cursor: pointer;
+            color: #535d66;
+            transition: transform 0.15s ease, color 0.15s ease;
+            user-select: none;
+        }
+        .star.active {
+            color: #ff0;
+            text-shadow: 0 0 14px rgba(255,255,0,0.9);
+            transform: scale(1.08);
+        }
+        textarea {
+            width: 100%;
+            min-height: 130px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,255,255,0.35);
+            background: rgba(255,255,255,0.03);
+            color: #fff;
+            padding: 14px;
+            font-family: 'Orbitron', sans-serif;
+            resize: vertical;
+            font-size: 0.72rem;
+        }
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(0,255,255,0.7);
+            background: rgba(0,255,255,0.08);
+            color: #0ff;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .btn.primary {
+            background: linear-gradient(90deg, rgba(0,255,255,0.22), rgba(255,255,0,0.2));
+            color: #fff;
+        }
+        .thanks {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #8fe4b3;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h1>Glow Runner</h1>
+        <div class="stars" aria-label="Bewertung">
+            <span class="star" data-value="1">★</span>
+            <span class="star" data-value="2">★</span>
+            <span class="star" data-value="3">★</span>
+            <span class="star" data-value="4">★</span>
+            <span class="star" data-value="5">★</span>
+        </div>
+
+        <textarea id="reviewText" placeholder="Schreib ein paar Worte zu Glow Runner..."></textarea>
+
+        <div class="actions">
+            <a class="btn" href="quests.html">Zurück</a>
+            <button class="btn primary" id="submitReview">Bewerten</button>
+        </div>
+
+        <div class="thanks" id="thanks"> </div>
+    </div>
+
+    <script>
+        let rating = 5;
+        const stars = [...document.querySelectorAll('.star')];
+        const reviewText = document.getElementById('reviewText');
+
+        function renderStars(selected) {
+            stars.forEach((star) => {
+                star.classList.toggle('active', Number(star.dataset.value) <= selected);
+            });
+        }
+
+        stars.forEach((star) => {
+            star.addEventListener('click', () => {
+                rating = Number(star.dataset.value);
+                renderStars(rating);
+            });
+        });
+
+        document.getElementById('submitReview').addEventListener('click', () => {
+            const value = reviewText.value.trim() || 'Sehr cooles Spiel!';
+            localStorage.setItem('glow_runner_review', JSON.stringify({ rating, message: value, createdAt: Date.now() }));
+            document.getElementById('thanks').textContent = 'Danke für deine Bewertung!';
+        });
+
+        renderStars(rating);
+    </script>
+</body>
+</html>

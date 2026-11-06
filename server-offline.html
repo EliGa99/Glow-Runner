@@ -250,9 +250,19 @@
     <script>
         (function () {
             if (window.location.pathname.endsWith('/server-offline.html')) {
+                const redirectKey = 'glowrunner_redirect_lock';
+                const lockValue = sessionStorage.getItem(redirectKey);
+                if (lockValue === 'index') {
+                    return;
+                }
+
                 const getApiBase = () => {
+                    const savedBase = localStorage.getItem('glowrunner_api_base');
+                    if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
+                    const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
+                    if (devMode) return 'http://localhost:3000';
                     const origin = window.location.origin;
-                    if (origin && origin !== 'null' && origin !== 'http://localhost:3000') return origin;
+                    if (origin && origin !== 'null') return origin.replace(/\/+$/, '');
                     return 'https://glow-runner-backend.onrender.com';
                 };
 
@@ -260,13 +270,14 @@
                     .then(async (response) => {
                         const data = await response.json().catch(() => ({}));
                         if (response.ok && !data.maintenance && data.status === 'online') {
+                            sessionStorage.setItem(redirectKey, 'index');
                             window.location.href = 'index_beta.html';
                             return;
                         }
-                        // maintenance mode disabled: do not redirect to wartung.html from frontend pages
+                        sessionStorage.removeItem(redirectKey);
                     })
                     .catch(() => {
-                        // intentionally stays on the offline screen
+                        sessionStorage.removeItem(redirectKey);
                     });
             }
         })();

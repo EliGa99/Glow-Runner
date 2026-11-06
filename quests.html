@@ -1,145 +1,368 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glow Runner - Missions (Server)</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Glow Runner | Quests</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-        body { background: #000; color: #0ff; font-family: 'Orbitron'; text-align: center; padding: 50px; }
-        h1 { font-size: 2rem; text-shadow: 0 0 20px #0ff; }
-        .btn { background: #0ff; color: #000; padding: 15px 30px; font-family: 'Orbitron'; border: none; border-radius: 5px; cursor: pointer; margin: 20px; font-weight: bold; }
-        .btn:hover { background: #0f0; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, rgba(0,255,255,0.14), transparent 30%), #04070b;
+            color: #eafaff;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .panel {
+            width: min(92vw, 760px);
+            background: rgba(8, 15, 20, 0.95);
+            border: 2px solid rgba(0,255,255,0.7);
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(0,255,255,0.2);
+            padding: 24px 20px 28px;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+        h1 {
+            margin: 0;
+            font-size: clamp(1.5rem, 2vw, 2.2rem);
+            color: #0ff;
+            text-shadow: 0 0 16px #0ff;
+            letter-spacing: 2px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 16px;
+            border: 1px solid rgba(0,255,255,0.7);
+            border-radius: 10px;
+            background: rgba(0,255,255,0.08);
+            color: #0ff;
+            text-decoration: none;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+        .meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .chip {
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.03);
+            color: #dfefff;
+        }
+        .chip strong { color: #ff0; }
+        .list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+        }
+        .quest-card {
+            position: relative;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 180px;
+        }
+        .quest-card.complete {
+            border-color: rgba(0,255,0,0.8);
+            background: rgba(0,255,0,0.04);
+        }
+        .quest-card .title {
+            display: block;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            color: #fff;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .quest-card .desc {
+            color: #b3c0cf;
+            font-size: 0.68rem;
+            line-height: 1.5;
+            min-height: 52px;
+        }
+        .reward {
+            display: inline-block;
+            color: #ff0;
+            margin-top: 8px;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+        }
+        .progress {
+            margin-top: 12px;
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #0ff, #7cf7ff);
+            box-shadow: 0 0 14px rgba(0,255,255,0.7);
+        }
+        .claim-btn {
+            margin-top: 12px;
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            background: #0ff;
+            color: #021012;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .claim-btn[disabled] {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            color: #a6b8c8;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
-    <h1>QUESTS VIA SERVER</h1>
-    <p>Weiterleitung zum Hauptspiel...</p>
-    <a href="index_beta.html" class="btn">ZUM SPIEL</a>
+    <div class="panel">
+        <div class="topbar">
+            <h1>QUESTS</h1>
+            <a class="btn" href="index_beta.html">ZURÜCK</a>
+        </div>
 
-    <script type="module">
-        import { initializeApp, getDatabase, ref, onValue, set, onDisconnect, update } from './server-db.js';
+        <div class="meta">
+            <div class="chip">Runner: <strong id="runnerId">-</strong></div>
+            <div class="chip">Level: <strong id="playerLevel">1</strong></div>
+            <div class="chip">Crystals: <strong id="playerCrystals">0</strong></div>
+        </div>
 
-        const app = initializeApp();
-        const db = getDatabase(app);
-        
-        // WICHTIG: Nutze die runnerID wie in der index.html
-        const runnerID = localStorage.getItem('glow_runner_id');
+        <div style="margin: 0 0 16px; text-align: right;">
+            <a class="btn" href="glow-runner-review.html">Glow Runner bewerten</a>
+        </div>
 
-        // --- ONLINE PRÄSENZ LOGIK ---
-        if (runnerID) {
-            const connectedRef = ref(db, '.info/connected');
-            const myOnlineRef = ref(db, 'online_users/' + runnerID);
+        <div id="questList" class="list"></div>
+        <div id="status" class="status">Quests werden geladen...</div>
+    </div>
 
-            onValue(connectedRef, (snap) => {
-                if (snap.val() === true) {
-                    onDisconnect(myOnlineRef).remove();
-                    set(myOnlineRef, true);
-                }
-            });
+    <script>
+        const runnerId = localStorage.getItem('glow_runner_id') || 'RNR-000000';
+        const getApiBase = () => {
+            const savedBase = localStorage.getItem('glowrunner_api_base');
+            if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
+            const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
+            if (devMode) return 'http://localhost:3000';
+            return 'https://glow-runner-backend.onrender.com';
+        };
 
-            // Online-Zähler Anzeige aktualisieren
-            const onlineValElem = document.getElementById('onlineVal');
-            onValue(ref(db, 'online_users'), (snapshot) => {
-                const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
-                if(onlineValElem) onlineValElem.innerText = count;
-            });
-        }
+        const questStateKey = 'glow_runner_quests';
+        const statusEl = document.getElementById('status');
+        const questListEl = document.getElementById('questList');
+        const runnerEl = document.getElementById('runnerId');
+        const levelEl = document.getElementById('playerLevel');
+        const crystalsEl = document.getElementById('playerCrystals');
 
-        async function checkServerHealth() {
-            const isMaintenancePage = window.location.pathname.endsWith('/wartung.html');
-            const isOfflinePage = window.location.pathname.endsWith('/server-offline.html');
-            if (isMaintenancePage || isOfflinePage) return;
-
+        function loadQuestState() {
             try {
-                const response = await fetch('/api/health', { cache: 'no-store' });
-                const data = await response.json().catch(() => ({}));
-                if (!response.ok) {
-                    return;
-                }
-                if (data.status !== 'online') {
-                    return;
-                }
-            } catch (error) {
-                window.location.href = 'server-offline.html';
+                return JSON.parse(localStorage.getItem(questStateKey) || '{}');
+            } catch {
+                return {};
             }
         }
 
-        checkServerHealth();
+        function saveQuestState(state) {
+            localStorage.setItem(questStateKey, JSON.stringify(state));
+        }
 
-        if (!runnerID) {
-            document.getElementById('questList').innerText = "Fehler: Keine Runner-ID gefunden. Bitte starte das Spiel neu.";
-        } else {
-            onValue(ref(db, 'users/' + runnerID), (snap) => {
-                const data = snap.val();
-                if(!data) {
-                    document.getElementById('questList').innerText = "Keine Daten gefunden. Spiele erst eine Runde!";
-                    return;
+        function readActiveQuests() {
+            try {
+                const value = JSON.parse(localStorage.getItem('glow_runner_active_quests') || '[]');
+                return Array.isArray(value) ? value : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function saveActiveQuests(quests) {
+            localStorage.setItem('glow_runner_active_quests', JSON.stringify(quests));
+        }
+
+        function generateQuestTemplate(level, index) {
+            const templates = [
+                {
+                    id: `survive-${level}-${index}`,
+                    title: 'Starter Sprint',
+                    desc: `Erreiche ${Math.max(25, level * 35)} Punkte in einer Runde.`,
+                    target: Math.max(25, level * 35),
+                    reward: 60 + level * 12
+                },
+                {
+                    id: `combo-${level}-${index}`,
+                    title: 'Combo Flow',
+                    desc: `Erreiche einen Combo-Score von ${Math.max(12, level * 9)}.`,
+                    target: Math.max(12, level * 9),
+                    reward: 90 + level * 18
+                },
+                {
+                    id: `surge-${level}-${index}`,
+                    title: 'Surge Breaker',
+                    desc: `Schalte Overdrive ${Math.max(2, level)} Mal frei.`,
+                    target: Math.max(2, level),
+                    reward: 110 + level * 24
                 }
+            ];
+            return templates[index % templates.length];
+        }
 
-                if(!data.questLevel) data.questLevel = 1;
-                document.getElementById('levelDisplay').innerText = `Pilot Level: ${data.questLevel}`;
+        function ensureActiveQuests() {
+            const active = readActiveQuests();
+            const completed = loadQuestState();
+            if (active.length >= 2) {
+                return active.filter((quest) => !completed[quest.id]);
+            }
 
-                const questList = document.getElementById('questList');
-                questList.innerHTML = "";
+            const level = Number(localStorage.getItem('glow_runner_quest_level') || 1);
+            const generated = [0, 1, 2].map((index) => {
+                const template = generateQuestTemplate(level, index);
+                return {
+                    ...template,
+                    progress: 0,
+                    reward: template.reward
+                };
+            });
 
-                // Quests generieren
-                const generatedQuests = [
-                    {
-                        id: 'score_easy_' + data.questLevel,
-                        title: "Score Jäger",
-                        desc: `Erreiche einen Score von ${data.questLevel * 50}`,
-                        target: data.questLevel * 50,
-                        current: data.highscore || 0,
-                        reward: data.questLevel * 100
+            saveActiveQuests(generated);
+            return generated;
+        }
+
+        function generateQuests() {
+            const level = Number(localStorage.getItem('glow_runner_quest_level') || 1);
+            const highscore = Number(localStorage.getItem('glow_runner_highscore') || 0);
+            const state = loadQuestState();
+            const active = ensureActiveQuests().map((quest) => {
+                const baseProgress = quest.title === 'Surge Breaker' ? Math.min(Number(localStorage.getItem('glow_runner_overdrive_uses') || 0), quest.target) : Math.min(highscore, quest.target);
+                return {
+                    ...quest,
+                    progress: baseProgress,
+                    completed: Boolean(state[quest.id])
+                };
+            }).filter((quest) => !state[quest.id]);
+
+            if (!active.length) {
+                const nextLevel = level + 1;
+                const newQuest = generateQuestTemplate(nextLevel, 0);
+                const replacement = [{ ...newQuest, progress: 0, reward: newQuest.reward }];
+                saveActiveQuests(replacement);
+                return replacement;
+            }
+
+            saveActiveQuests(active);
+            return active;
+        }
+
+        async function syncRunnerProfile() {
+            try {
+                const response = await fetch(`${getApiBase()}/api/user`, {
+                    headers: {
+                        'x-runner-id': runnerId,
+                        'Authorization': `Bearer ${localStorage.getItem('glow_runner_token') || ''}`
                     },
-                    {
-                        id: 'score_hard_' + data.questLevel,
-                        title: "Highscore Master",
-                        desc: `Erreiche einen Highscore von ${data.questLevel * 120}`,
-                        target: data.questLevel * 120,
-                        current: data.highscore || 0,
-                        reward: data.questLevel * 250
-                    }
-                ];
-
-                generatedQuests.forEach(q => {
-                    const isCompleted = data.completedQuests && data.completedQuests[q.id];
-                    const progress = Math.min(100, (q.current / q.target) * 100);
-                    const canClaim = !isCompleted && q.current >= q.target;
-
-                    const card = document.createElement('div');
-                    card.className = `quest-item ${canClaim ? 'can-claim' : ''}`;
-                    card.innerHTML = `
-                        <span class="quest-title">${q.title}</span>
-                        <p style="font-size:0.8rem; margin:5px 0;">${q.desc}</p>
-                        <span class="reward">+${q.reward} 💎</span>
-                        <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
-                        <button class="btn-claim" id="btn-${q.id}" style="display: ${canClaim ? 'block' : 'none'}">BELOHNUNG</button>
-                        ${isCompleted ? '<span style="color:#0f0; position:absolute; right:20px; top:30px;">✓ FERTIG</span>' : ''}
-                    `;
-                    
-                    questList.appendChild(card);
-
-                    if(canClaim) {
-                        document.getElementById(`btn-${q.id}`).onclick = () => claimReward(q, data);
-                    }
+                    cache: 'no-store'
                 });
-            });
+                if (!response.ok) return;
+                const payload = await response.json();
+                const user = payload.data || payload;
+                if (!user) return;
+
+                localStorage.setItem('glow_runner_points', String(user.points || 0));
+                localStorage.setItem('glow_runner_highscore', String(user.highscore || 0));
+                localStorage.setItem('glow_runner_quest_level', String(user.questLevel || 1));
+                localStorage.setItem('glow_runner_skin', String(user.activeSkin || 'cyan'));
+                localStorage.setItem('glow_runner_shape', String(user.activeShape || 'circle'));
+            } catch (error) {
+                console.warn('Quest sync failed:', error);
+            }
         }
 
-        function claimReward(quest, data) {
-            if(!data.completedQuests) data.completedQuests = {};
-            
-            data.completedQuests[quest.id] = true;
-            data.points = (Number(data.points) || 0) + quest.reward;
-            data.questLevel = (Number(data.questLevel) || 1) + 1;
+        function renderQuests() {
+            const quests = generateQuests();
+            const state = loadQuestState();
+            questListEl.innerHTML = '';
 
-            // Update statt Set nutzen, um sicherzugehen, dass andere Daten erhalten bleiben
-            update(ref(db, 'users/' + runnerID), data).then(() => {
-                alert(`Mission erfüllt! +${quest.reward} Kristalle erhalten.`);
+            quests.forEach((quest) => {
+                const completed = Boolean(state[quest.id]);
+                const ratio = Math.min(100, (quest.progress / quest.target) * 100);
+                const card = document.createElement('div');
+                card.className = 'quest-card' + (completed ? ' complete' : '');
+
+                card.innerHTML = `
+                    <span class="title">${quest.title}</span>
+                    <div class="desc">${quest.desc}</div>
+                    <div class="reward">+ ${quest.reward} CRYSTALS</div>
+                    <div class="progress"><div class="progress-bar" style="width:${ratio}%"></div></div>
+                    <button class="claim-btn" ${completed || quest.progress < quest.target ? 'disabled' : ''}>${completed ? 'ERFÜLLT' : 'CLAIM'}</button>
+                `;
+
+                const btn = card.querySelector('.claim-btn');
+                btn.addEventListener('click', () => {
+                    if (quest.progress < quest.target) return;
+                    state[quest.id] = true;
+                    saveQuestState(state);
+
+                    const currentCrystals = Number(localStorage.getItem('glow_runner_points') || 0) + quest.reward;
+                    localStorage.setItem('glow_runner_points', String(currentCrystals));
+                    localStorage.setItem('glow_runner_quest_level', String(Number(localStorage.getItem('glow_runner_quest_level') || 1) + 1));
+
+                    const currentActive = readActiveQuests().filter((item) => item.id !== quest.id);
+                    const nextLevel = Number(localStorage.getItem('glow_runner_quest_level') || 1);
+                    const replacement = [0, 1].map((index) => ({
+                        ...generateQuestTemplate(nextLevel + index, index),
+                        progress: 0,
+                        reward: generateQuestTemplate(nextLevel + index, index).reward
+                    }));
+                    saveActiveQuests(currentActive.length ? [...currentActive, ...replacement].slice(-3) : replacement);
+
+                    renderQuests();
+                    statusEl.textContent = `${quest.title} abgeschlossen! +${quest.reward} Kristalle. Neue Quest generiert.`;
+                });
+
+                questListEl.appendChild(card);
             });
+
+            statusEl.textContent = 'Quests aktiv und automatisch generiert.';
         }
+
+        runnerEl.textContent = runnerId;
+        levelEl.textContent = Number(localStorage.getItem('glow_runner_quest_level') || 1);
+        crystalsEl.textContent = Number(localStorage.getItem('glow_runner_points') || 0);
+
+        syncRunnerProfile().finally(() => {
+            runnerEl.textContent = runnerId;
+            levelEl.textContent = Number(localStorage.getItem('glow_runner_quest_level') || 1);
+            crystalsEl.textContent = Number(localStorage.getItem('glow_runner_points') || 0);
+            renderQuests();
+        });
     </script>
 </body>
 </html>

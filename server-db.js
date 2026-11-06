@@ -1,15 +1,25 @@
-const DEFAULT_API_BASE = (() => {
-    if (typeof window === 'undefined') return 'https://glow-runner-backend.onrender.com';
+const DEFAULT_API_BASE = 'https://glow-runner-backend.onrender.com';
+
+const DEFAULT_API_BASE_RESOLVED = (() => {
+    if (typeof window === 'undefined') return DEFAULT_API_BASE;
+    const savedBase = localStorage.getItem('glowrunner_api_base');
+    if (savedBase && savedBase.trim()) return savedBase.replace(/\/$/, '');
+    const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
+    if (devMode) return 'http://localhost:3000';
     const origin = window.location.origin;
     if (origin && origin !== 'null' && origin !== 'http://localhost:3000') return origin.replace(/\/$/, '');
-    return 'https://glow-runner-backend.onrender.com';
+    return DEFAULT_API_BASE;
 })();
 
 function resolveApiBase() {
     if (typeof window !== 'undefined' && window.__API_URL__) {
         return String(window.__API_URL__).replace(/\/$/, '');
     }
-    return DEFAULT_API_BASE;
+    const savedBase = localStorage.getItem('glowrunner_api_base');
+    if (savedBase && savedBase.trim()) return savedBase.replace(/\/$/, '');
+    const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
+    if (devMode) return 'http://localhost:3000';
+    return DEFAULT_API_BASE_RESOLVED;
 }
 
 function normalizePath(path) {
