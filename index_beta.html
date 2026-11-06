@@ -1009,25 +1009,38 @@ function redirectToOfflinePage() {
 
 
         // --- SERVER HEALTH CHECK & OFFLINE MELDUNG ---
-        async function checkServerHealth() {
-            try {
-                const res = await fetch(`${API_URL}/api/health`);
-                window.serverOnline = res.ok;
-                const offlineMsg = document.getElementById("offlineMessage");
-                if (!res.ok && offlineMsg) {
-                    offlineMsg.classList.remove("hidden");
-                }
-                if (res.ok && offlineMsg) {
-                    offlineMsg.classList.add("hidden");
-                }
-            } catch {
-                window.serverOnline = false;
-                const offlineMsg = document.getElementById("offlineMessage");
-                if (offlineMsg) {
-                    offlineMsg.classList.remove("hidden");
-                }
-            }
+        
+async function checkServerHealth() {
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+
+        const res = await fetch(`${API_URL}/api/health`, {
+            cache: "no-store",
+            signal: controller.signal
+        });
+
+        clearTimeout(timeout);
+
+        if (!res.ok) {
+            throw new Error("Server nicht erreichbar");
         }
+
+        const data = await res.json();
+
+        if (data.status !== "online") {
+            throw new Error("Server offline");
+        }
+
+        window.serverOnline = true;
+
+    } catch (error) {
+        window.serverOnline = false;
+
+        window.location.replace("server-offline.html");
+    }
+}
+
 
         // --- CREATOR PROFILES VOM SERVER LADEN ---
         async function loadCreatorProfiles() {
