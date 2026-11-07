@@ -241,6 +241,182 @@
             width: min(90vw, 420px);
         }
 
+        .menu-showcase {
+            width: min(90vw, 420px);
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 12px;
+            align-items: center;
+            margin: 10px 0 2px;
+        }
+        .map-preview-card {
+            position: relative;
+            height: 170px;
+            border: 1px solid rgba(0,255,255,0.5);
+            border-radius: 16px;
+            background: radial-gradient(circle at 50% 30%, rgba(0,255,255,0.18), rgba(0,0,0,0.8)), rgba(5,8,18,0.9);
+            overflow: hidden;
+            box-shadow: inset 0 0 18px rgba(0,255,255,0.12), 0 0 22px rgba(0,255,255,0.14);
+        }
+        .map-preview-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent 30%, rgba(255,255,255,0.03));
+        }
+        .map-preview-surface {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(5,9,15,0.2), rgba(0,0,0,0.8));
+        }
+        .map-preview-surface::before,
+        .map-preview-surface::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-size: 18px 18px;
+            opacity: 0.45;
+        }
+        .map-preview-surface.grid::before {
+            background-image: linear-gradient(rgba(255,255,255,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.18) 1px, transparent 1px);
+        }
+        .map-preview-surface.stars::before {
+            background-image: radial-gradient(circle, rgba(255,255,255,0.8) 1.1px, transparent 1.5px);
+            background-position: center;
+        }
+        .map-preview-surface.matrix::before {
+            background: repeating-linear-gradient(180deg, rgba(0,255,0,0.18), rgba(0,255,0,0.18) 2px, transparent 2px, transparent 6px);
+        }
+        .map-preview-surface.pitch::before {
+            background: linear-gradient(180deg, transparent 0 30%, rgba(0,255,255,0.10) 30% 32%, transparent 32% 68%, rgba(0,255,255,0.10) 68% 70%, transparent 70%), linear-gradient(90deg, transparent 0 48%, rgba(0,255,255,0.12) 48% 52%, transparent 52%);
+        }
+        .map-preview-surface.stadium::before {
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,0,0.14), transparent 50%);
+        }
+        .map-preview-surface.flags::before {
+            background: linear-gradient(90deg, rgba(255,0,255,0.18), rgba(0,255,255,0.14));
+        }
+        .map-preview-surface.confetti::before {
+            background-image: radial-gradient(circle, rgba(255,255,255,0.7) 1px, transparent 2px);
+        }
+        .map-preview-surface.finals::before {
+            background: linear-gradient(90deg, rgba(255,0,255,0.12), rgba(255,255,0,0.12), rgba(0,255,255,0.12));
+        }
+        .map-preview-surface.creatorzone::before {
+            background: linear-gradient(135deg, rgba(255,0,255,0.18), rgba(0,255,255,0.18));
+        }
+        .map-preview-label {
+            position: absolute;
+            left: 12px;
+            bottom: 10px;
+            padding: 5px 8px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.55);
+            border: 1px solid rgba(0,255,255,0.42);
+            color: #0ff;
+            font-size: 0.52rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+        .skin-preview-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 170px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(10,10,20,0.9), rgba(0,0,0,0.84));
+            box-shadow: inset 0 0 30px rgba(255,0,255,0.08), 0 0 18px rgba(0,255,255,0.18);
+        }
+        .skin-orbit {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 0 25px rgba(0,255,255,0.2);
+        }
+        .menu-skin-preview {
+            position: relative;
+            width: 82px;
+            height: 82px;
+            z-index: 2;
+            display: block;
+            box-shadow: 0 0 20px rgba(0,255,255,0.9);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .menu-skin-name {
+            margin-top: 10px;
+            color: #fff;
+            font-size: 0.62rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            z-index: 2;
+            text-shadow: 0 0 14px rgba(0,255,255,0.8);
+        }
+        .menu-map-strip {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 8px;
+            width: min(90vw, 420px);
+            margin-top: 8px;
+        }
+        .map-choice {
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(10,10,10,0.82);
+            border-radius: 10px;
+            color: #dfefff;
+            padding: 9px 6px 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.48rem;
+            cursor: pointer;
+            transition: 0.2s ease;
+            min-height: 68px;
+            overflow: hidden;
+        }
+        .map-choice::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,255,255,0.1), transparent 50%, rgba(255,0,255,0.06));
+            opacity: 0.8;
+        }
+        .map-choice span {
+            position: relative;
+            z-index: 2;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .map-choice .mini-badge {
+            display: inline-block;
+            margin-top: 4px;
+            font-size: 0.42rem;
+            opacity: 0.8;
+            letter-spacing: 1.2px;
+            position: relative;
+            z-index: 2;
+        }
+        .map-choice.selected {
+            border-color: #0ff;
+            box-shadow: 0 0 16px rgba(0,255,255,0.28), inset 0 0 18px rgba(0,255,255,0.12);
+            transform: translateY(-1px);
+            color: #fff;
+        }
+        .map-choice.locked {
+            opacity: 0.7;
+        }
+        .map-choice:hover {
+            border-color: rgba(255,255,255,0.4);
+            transform: translateY(-1px);
+        }
+
         /* SHOP STYLES */
         #shop { justify-content: flex-start; padding-top: 10px; overflow-y: auto; display: block; text-align: center; }
         .shop-container { display: inline-block; width: 100%; max-width: 500px; padding-bottom: 80px; }
@@ -634,6 +810,18 @@ function redirectToOfflinePage() {
             </div>
             <div style="font-size: 0.52rem; letter-spacing: 1.5px; color: #9ad8ff; margin-top: -4px; opacity: 0.8; text-transform: uppercase;">OVERDRIVE KEY: SHIFT</div>
 
+            <div class="menu-showcase">
+                <div class="map-preview-card">
+                    <div id="menuMapPreview" class="map-preview-surface"></div>
+                    <div class="map-preview-label" id="menuMapLabel">VOID</div>
+                </div>
+                <div class="skin-preview-card">
+                    <div class="skin-orbit"></div>
+                    <div id="menuSkinPreview" class="menu-skin-preview"></div>
+                    <div id="menuSkinName" class="menu-skin-name">CYAN</div>
+                </div>
+            </div>
+
             <div style="margin: 10px 0 12px;">
                 <button class="btn" onclick="location.href='glow-runner-review.html'" style="width: 100%; border-color:#ff0; color:#ff0; font-size: 0.72rem; padding: 12px 16px;">⭐ REVIEW GLOW RUNNER</button>
                 <div id="reviewStatus" style="margin-top: 8px; color:#9ad8ff; font-size:0.58rem; letter-spacing:2px; text-transform:uppercase; text-align:center;">RATING: –</div>
@@ -654,6 +842,8 @@ function redirectToOfflinePage() {
                 <button class="btn" onclick="location.href='quests.html'" data-quest-menu-button data-quest-label="MISSIONS" style="border-color:#ff0; color:#ff0;">MISSIONS</button>
                 <button class="btn" onclick="location.href='profile.html'" style="border-color:#0ff; color:#0ff;">PROFILE</button>
             </div>
+
+            <div id="menuMapStrip" class="menu-map-strip"></div>
 
             <div style="margin-top: 8px; text-align: center;">
                 <p style="color: #ff0; margin: 2px 0;">RECORD: <span id="menuHighscore" style="color: #0ff;">0</span></p>
@@ -1197,9 +1387,14 @@ function redirectToOfflinePage() {
         // --- SERVER HEALTH CHECK & OFFLINE MELDUNG ---
         
 async function checkServerHealth() {
+    const currentPath = window.location.pathname.toLowerCase();
+    if (currentPath.endsWith('/server-offline.html') || currentPath.endsWith('/server-starting.html')) {
+        return;
+    }
+
     try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
+        const timeout = setTimeout(() => controller.abort(), 15000);
 
         const res = await fetch(`${API_URL}/api/health`, {
             cache: "no-store",
@@ -1212,7 +1407,7 @@ async function checkServerHealth() {
             throw new Error("Server nicht erreichbar");
         }
 
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
 
         if (data.status !== "online") {
             throw new Error("Server offline");
@@ -1220,21 +1415,34 @@ async function checkServerHealth() {
 
         window.serverOnline = true;
         sessionStorage.removeItem('glowrunner_redirect_lock');
+        sessionStorage.removeItem('glowrunner_starting_started');
+        return true;
 
     } catch (error) {
         window.serverOnline = false;
 
-        const currentPath = window.location.pathname.toLowerCase();
         const redirectLock = sessionStorage.getItem('glowrunner_redirect_lock');
-        if (currentPath.endsWith('/server-offline.html')) {
-            return;
-        }
-        if (redirectLock === 'offline') {
-            return;
+        if (redirectLock === 'booting') {
+            return false;
         }
 
-        sessionStorage.setItem('glowrunner_redirect_lock', 'offline');
-        window.location.replace("server-offline.html");
+        const now = Date.now();
+        const startedAt = Number(sessionStorage.getItem('glowrunner_starting_started') || now);
+        if (!sessionStorage.getItem('glowrunner_starting_started')) {
+            sessionStorage.setItem('glowrunner_starting_started', String(now));
+        }
+
+        const elapsed = Date.now() - startedAt;
+        if (elapsed < 60000) {
+            sessionStorage.setItem('glowrunner_redirect_lock', 'booting');
+            window.location.replace('server-starting.html');
+            return false;
+        }
+
+        sessionStorage.removeItem('glowrunner_redirect_lock');
+        sessionStorage.removeItem('glowrunner_starting_started');
+        window.location.replace('server-offline.html');
+        return false;
     }
 }
 
@@ -1361,6 +1569,142 @@ async function checkServerHealth() {
             }
         }
 
+        const menuMapCatalog = [
+            { id: 'none', label: 'VOID', price: 0 },
+            { id: 'grid', label: 'GRID', price: 500 },
+            { id: 'stars', label: 'STARS', price: 1200 },
+            { id: 'matrix', label: 'MAIN', price: 3000 },
+            { id: 'pitch', label: 'PITCH', price: 1600 },
+            { id: 'stadium', label: 'STADIUM', price: 3600 },
+            { id: 'flags', label: 'FLAGS', price: 5200 },
+            { id: 'confetti', label: 'CONFETTI', price: 7000 },
+            { id: 'finals', label: 'FINALS', price: 9500 },
+            { id: 'creatorzone', label: 'CREATOR', price: 8000 }
+        ];
+
+        function getMapLabel(id) {
+            const entry = menuMapCatalog.find((map) => map.id === id);
+            return (entry && entry.label) || 'VOID';
+        }
+
+        function getMapPrice(id) {
+            const entry = menuMapCatalog.find((map) => map.id === id);
+            return entry ? entry.price : 0;
+        }
+
+        function renderMenuSkinPreview() {
+            const preview = document.getElementById('menuSkinPreview');
+            const nameEl = document.getElementById('menuSkinName');
+            if (!preview || !nameEl) return;
+
+            const activeSkin = window.activeSkin || 'cyan';
+            const activeShape = window.activeShape || 'circle';
+            const color = getSkinColor(activeSkin, frame || 0);
+
+            preview.style = '';
+            preview.style.width = '84px';
+            preview.style.height = '84px';
+            preview.style.display = 'block';
+            preview.style.position = 'relative';
+            preview.style.background = activeSkin === 'rainbow' ? 'linear-gradient(45deg, red, yellow, blue, red)' : color;
+            preview.style.boxShadow = `0 0 18px ${color}`;
+            preview.style.transform = 'none';
+            preview.style.clipPath = 'none';
+            preview.style.border = 'none';
+            preview.style.borderRadius = '50%';
+            preview.style.backgroundSize = '200%';
+            preview.style.filter = 'drop-shadow(0 0 14px rgba(0,255,255,0.8))';
+
+            if (activeSkin === 'rainbow' || activeSkin === 'wmgold' || activeSkin === 'creator' || activeSkin === 'stadium') {
+                preview.style.background = 'linear-gradient(45deg, #0f0, #fff, #ff0, #0ff)';
+            }
+
+            if (activeShape === 'square') preview.style.borderRadius = '0%';
+            if (activeShape === 'triangle') {
+                preview.style.background = 'transparent';
+                preview.style.boxShadow = 'none';
+                preview.style.width = '0';
+                preview.style.height = '0';
+                preview.style.borderLeft = '32px solid transparent';
+                preview.style.borderRight = '32px solid transparent';
+                preview.style.borderBottom = `52px solid ${color}`;
+            }
+            if (activeShape === 'diamond') {
+                preview.style.transform = 'rotate(45deg)';
+            }
+            if (activeShape === 'star') {
+                preview.style.clipPath = 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
+                preview.style.background = color;
+                preview.style.boxShadow = `0 0 22px ${color}`;
+            }
+            if (activeShape === 'phoenix') {
+                preview.style.clipPath = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%, 50% 40%)';
+                preview.style.background = color;
+            }
+            if (activeShape === 'ball') {
+                preview.style.borderRadius = '50%';
+                preview.style.background = 'radial-gradient(circle at 35% 35%, #fff 0 28%, #111 29% 36%, #fff 37% 55%, #111 56% 62%, #fff 63%)';
+            }
+            if (activeShape === 'trophy') {
+                preview.style.clipPath = 'polygon(30% 0%, 70% 0%, 78% 42%, 58% 42%, 58% 74%, 78% 74%, 78% 100%, 22% 100%, 22% 74%, 42% 74%, 42% 42%, 22% 42%)';
+            }
+            if (activeShape === 'boot') {
+                preview.style.clipPath = 'polygon(10% 45%, 54% 45%, 70% 62%, 100% 70%, 92% 88%, 42% 88%, 16% 76%)';
+            }
+            if (activeShape === 'crest') {
+                preview.style.clipPath = 'polygon(50% 0%, 90% 15%, 82% 68%, 50% 100%, 18% 68%, 10% 15%)';
+            }
+            if (activeShape === 'crown') {
+                preview.style.clipPath = 'polygon(0% 38%, 22% 55%, 38% 12%, 50% 55%, 72% 12%, 82% 55%, 100% 38%, 88% 100%, 12% 100%)';
+            }
+            if (activeShape === 'elix' || activeShape === 'sigil') {
+                preview.style.clipPath = 'polygon(50% 0%, 62% 32%, 100% 35%, 68% 56%, 82% 100%, 50% 72%, 18% 100%, 32% 56%, 0% 35%, 38% 32%)';
+            }
+
+            nameEl.textContent = activeSkin.toUpperCase();
+        }
+
+        function renderMenuMapSelection() {
+            const strip = document.getElementById('menuMapStrip');
+            const mapPreview = document.getElementById('menuMapPreview');
+            const mapLabel = document.getElementById('menuMapLabel');
+            if (!strip || !mapPreview || !mapLabel) return;
+
+            const activeMap = window.activeMap || 'none';
+            const ownedMaps = window.boughtMaps || ['none'];
+            const mapNames = menuMapCatalog.map((map) => map.id);
+
+            mapPreview.className = `map-preview-surface ${activeMap}`;
+            mapLabel.textContent = getMapLabel(activeMap);
+
+            strip.innerHTML = mapNames.map((mapId) => {
+                const isActive = activeMap === mapId;
+                const isOwned = ownedMaps.includes(mapId) || mapId === 'none';
+                const mapData = menuMapCatalog.find((map) => map.id === mapId) || { label: mapId.toUpperCase(), price: 0 };
+                return `
+                    <button class="map-choice ${isActive ? 'selected' : ''} ${isOwned ? '' : 'locked'}" data-map="${mapId}" type="button">
+                        <span>${mapData.label}</span>
+                        <span class="mini-badge">${isOwned ? 'READY' : `${mapData.price}C`}</span>
+                    </button>
+                `;
+            }).join('');
+
+            strip.querySelectorAll('.map-choice').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const mapId = button.dataset.map;
+                    if (!window.boughtMaps.includes(mapId) && mapId !== 'none') {
+                        openShop();
+                        setPreview('map', mapId, getMapPrice(mapId));
+                        return;
+                    }
+                    window.activeMap = mapId;
+                    if (window.saveToDB) window.saveToDB();
+                    renderMenuMapSelection();
+                    renderMenuSkinPreview();
+                });
+            });
+        }
+
         function updateUI() {
             if(document.getElementById('totalPointsHud')) document.getElementById('totalPointsHud').innerText = window.totalPoints;
             if(document.getElementById('menuTotal')) document.getElementById('menuTotal').innerText = window.totalPoints;
@@ -1368,6 +1712,8 @@ async function checkServerHealth() {
             if(document.getElementById('shopPoints')) document.getElementById('shopPoints').innerText = window.totalPoints;
             updateQuestMenuCount();
             renderReviewStatus();
+            renderMenuSkinPreview();
+            renderMenuMapSelection();
             
             document.querySelectorAll('.item-btn').forEach(btn => {
                 const [type, id] = btn.id.split('-');
