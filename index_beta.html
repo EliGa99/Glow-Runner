@@ -745,6 +745,35 @@ function redirectToOfflinePage() {
     </style>
 
     <div id="settingsBtn" onclick="openSettings()" style="position: absolute; top: 20px; left: 20px; font-size: 28px; cursor: pointer; z-index: 9999; pointer-events: auto !important; transition: transform 0.3s ease; filter: drop-shadow(0 0 8px #0ff); opacity: 0.8; user-select: none;">⚙️</div>
+    <div id="accountQuickBtn" onclick="openAccountSetup('switch')" style="position: absolute; top: 18px; left: 78px; z-index: 9999; padding: 10px 14px; border: 2px solid #0ff; border-radius: 12px; background: rgba(5, 18, 22, 0.9); color: #0ff; font-size: 0.7rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; box-shadow: 0 0 18px rgba(0,255,255,0.2); user-select: none;">👤 ACCOUNT</div>
+
+    <div id="accountSetupOverlay" class="overlay hidden">
+        <div style="background: rgba(10, 10, 10, 0.96); border: 2px solid #0ff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.25); padding: 30px; border-radius: 15px; width: 90%; max-width: 420px; text-align: center; backdrop-filter: blur(15px); position: relative; box-sizing: border-box;">
+            <div onclick="closeAccountSetup()" style="position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #ff0055; text-shadow: 0 0 10px #ff0055; user-select: none;">&times;</div>
+            <h2 style="text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; margin-bottom: 14px; text-shadow: 0 0 15px #0ff; color: #fff;">RUNNER ACCOUNT</h2>
+
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <button id="accountModeCurrentBtn" type="button" onclick="setAccountSetupMode('current')" style="flex: 1; border: 1px solid #0ff; background: rgba(0,255,255,0.18); color: #0ff; font-family: 'Orbitron', sans-serif; font-size: 0.62rem; letter-spacing: 1px; padding: 10px 8px; border-radius: 8px; cursor: pointer; text-transform: uppercase; line-height: 1.5;">
+                    Mein Account<br>
+                    <span style="display:block; font-size:0.52rem; opacity:0.9; letter-spacing:0.8px; margin-top:2px;">aktuelle Runner-ID</span>
+                </button>
+                <button id="accountModeSwitchBtn" type="button" onclick="setAccountSetupMode('switch')" style="flex: 1; border: 1px solid #ff00ff; background: rgba(255,0,255,0.05); color: #ff00ff; font-family: 'Orbitron', sans-serif; font-size: 0.62rem; letter-spacing: 1px; padding: 10px 8px; border-radius: 8px; cursor: pointer; text-transform: uppercase; line-height: 1.5;">
+                    Anderer Account<br>
+                    <span style="display:block; font-size:0.52rem; opacity:0.9; letter-spacing:0.8px; margin-top:2px;">anderer Login</span>
+                </button>
+            </div>
+
+            <div id="accountModeStatus" style="margin: 0 0 10px 0; padding: 8px 10px; border-radius: 999px; border: 1px solid rgba(0,255,255,0.4); background: rgba(0,255,255,0.05); color: #0ff; font-size: 0.56rem; letter-spacing: 1px; text-transform: uppercase;">Aktiv: Mein Account</div>
+
+            <p id="accountModeInfo" style="margin: 0 0 18px 0; color: #d9e8ff; line-height: 1.5; font-size: 0.72rem; letter-spacing: 0.08rem; text-transform: uppercase;">
+                Dein aktueller Account wird mit deiner Runner ID gespeichert. Für einen anderen Account gibst du nur Benutzername und Passwort ein.
+            </p>
+
+            <input id="accountUsernameInput" type="text" class="settings-card-input" placeholder="Benutzername" maxlength="24" style="margin-bottom: 12px; text-transform: none;">
+            <input id="accountPasswordInput" type="password" class="settings-card-input" placeholder="Passwort" maxlength="32" style="margin-bottom: 18px; text-transform: none;">
+            <button id="accountSubmitBtn" class="btn" onclick="submitAccountSetup()" style="width: 100%; margin: 0; background: #0ff; color: #000; border: none; box-shadow: 0 0 15px rgba(0,255,255,0.3);">MEINEN ACCOUNT SPEICHERN</button>
+        </div>
+    </div>
 
     <div id="settingsOverlay" class="overlay hidden">
         <div style="background: rgba(10, 10, 10, 0.95); border: 2px solid #0ff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.2); padding: 30px; border-radius: 15px; width: 90%; max-width: 420px; text-align: center; backdrop-filter: blur(15px); position: relative; box-sizing: border-box;">
@@ -756,7 +785,8 @@ function redirectToOfflinePage() {
                 <div id="settingsRunnerId" style="font-size: 1.2rem; font-weight: bold; color: #0ff; text-shadow: 0 0 10px #0ff; letter-spacing: 1px;">LADE...</div>
             </div>
             
-            <button class="btn" onclick="showTransferInput()" style="border-color: #ff00ff; color: #fff; width: 100%; box-shadow: 0 0 15px rgba(255,0,255,0.2); margin: 0;">ACCOUNT WECHSELN</button>
+            <button class="btn" onclick="openAccountSetup('current')" style="border-color: #0ff; color: #fff; width: 100%; box-shadow: 0 0 15px rgba(0,255,255,0.2); margin: 0 0 12px 0;">MEIN ACCOUNT ÄNDERN</button>
+            <button class="btn" onclick="openAccountSetup('switch')" style="border-color: #ff00ff; color: #fff; width: 100%; box-shadow: 0 0 15px rgba(255,0,255,0.2); margin: 0;">ANDEREN ACCOUNT ANMELDEN</button>
             
             <div id="transferInputArea" class="hidden" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
                 <input type="text" id="targetIdInput" class="settings-card-input" placeholder="RNR-XXXXXXXX" style="margin-bottom: 12px; letter-spacing: 1px; font-size: 1rem;">
@@ -1017,6 +1047,7 @@ function redirectToOfflinePage() {
         window.boughtMaps = ['none'];
         window.activeMap = 'none';
         window.username = "";
+        window.accountSetupReady = false;
         window.creatorStatus = null;
         window.creatorProfiles = {};
         window.creatorItems = {};
@@ -1044,10 +1075,17 @@ function redirectToOfflinePage() {
 
         const getApiBase = () => {
             const savedBase = localStorage.getItem('glowrunner_api_base');
-            if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
-            const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
-            if (devMode) return 'http://localhost:3000';
-            return 'https://glow-runner-backend.onrender.com';
+            const localBase = 'http://localhost:3000';
+
+            if (savedBase && savedBase.trim()) {
+                const normalized = savedBase.replace(/\/+$/, '');
+                if (normalized.includes('localhost') || normalized.includes('127.0.0.1')) {
+                    return normalized;
+                }
+            }
+
+            localStorage.setItem('glowrunner_api_base', localBase);
+            return localBase;
         };
 
         // Backend Server URL für Accountmigration & Live-Syncs
@@ -1178,6 +1216,137 @@ function redirectToOfflinePage() {
             document.getElementById("settingsOverlay").classList.add("hidden");
         }
 
+        function setAccountSetupMode(mode) {
+            const activeMode = mode === 'switch' ? 'switch' : 'current';
+            window.accountSetupMode = activeMode;
+
+            const currentBtn = document.getElementById('accountModeCurrentBtn');
+            const switchBtn = document.getElementById('accountModeSwitchBtn');
+            const infoEl = document.getElementById('accountModeInfo');
+            const statusEl = document.getElementById('accountModeStatus');
+            const submitBtn = document.getElementById('accountSubmitBtn');
+
+            if (currentBtn) {
+                currentBtn.style.background = activeMode === 'current' ? 'rgba(0,255,255,0.18)' : 'rgba(0,255,255,0.04)';
+                currentBtn.style.borderColor = '#0ff';
+                currentBtn.style.color = '#0ff';
+            }
+            if (switchBtn) {
+                switchBtn.style.background = activeMode === 'switch' ? 'rgba(255,0,255,0.18)' : 'rgba(255,0,255,0.04)';
+                switchBtn.style.borderColor = '#ff00ff';
+                switchBtn.style.color = '#ff00ff';
+            }
+            if (infoEl) {
+                infoEl.textContent = activeMode === 'switch'
+                    ? 'Für einen anderen Account gibst du nur Benutzername und Passwort ein. Die Runner-ID wird automatisch aus dem Login gefunden.'
+                    : 'Dein aktueller Account wird mit deiner Runner ID gespeichert und dein Benutzername/Passwort wird hier aktualisiert.';
+            }
+            if (statusEl) {
+                statusEl.textContent = activeMode === 'switch' ? 'Aktiv: Anderer Account' : 'Aktiv: Mein Account';
+                statusEl.style.borderColor = activeMode === 'switch' ? 'rgba(255,0,255,0.4)' : 'rgba(0,255,255,0.4)';
+                statusEl.style.color = activeMode === 'switch' ? '#ff00ff' : '#0ff';
+                statusEl.style.background = activeMode === 'switch' ? 'rgba(255,0,255,0.05)' : 'rgba(0,255,255,0.05)';
+            }
+            if (submitBtn) {
+                submitBtn.textContent = activeMode === 'switch' ? 'MIT ANDEREM ACCOUNT ANMELDEN' : 'MEINEN ACCOUNT SPEICHERN';
+                submitBtn.style.background = activeMode === 'switch' ? '#ff00ff' : '#0ff';
+                submitBtn.style.color = activeMode === 'switch' ? '#000' : '#000';
+            }
+        }
+
+        function openAccountSetup(mode = 'current') {
+            const overlay = document.getElementById("accountSetupOverlay");
+            if (!overlay) return;
+            overlay.classList.remove("hidden");
+            setAccountSetupMode(mode);
+
+            const usernameInput = document.getElementById("accountUsernameInput");
+            if (usernameInput) {
+                usernameInput.value = mode === 'switch' ? '' : (window.username || localStorage.getItem('glow_username') || '');
+            }
+            const passwordInput = document.getElementById("accountPasswordInput");
+            if (passwordInput) passwordInput.value = '';
+        }
+
+        function closeAccountSetup() {
+            const overlay = document.getElementById("accountSetupOverlay");
+            if (overlay) overlay.classList.add("hidden");
+        }
+
+        async function submitAccountSetup() {
+            const mode = window.accountSetupMode || 'current';
+            const username = (document.getElementById("accountUsernameInput")?.value || '').trim();
+            const password = (document.getElementById("accountPasswordInput")?.value || '').trim();
+
+            if (!username || !password) {
+                alert('Bitte Benutzername und Passwort eingeben.');
+                return;
+            }
+
+            if (mode === 'switch') {
+                try {
+                    const response = await fetch(`${API_URL}/api/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        alert(data.error || 'Dieser andere Account wurde nicht gefunden oder das Passwort ist falsch.');
+                        return;
+                    }
+                    runnerID = data.runnerId || runnerID;
+                    localStorage.setItem('glow_runner_id', runnerID);
+                    if (data.token) {
+                        authToken = data.token;
+                        localStorage.setItem('glow_runner_token', authToken);
+                    }
+                    window.username = data.data?.username || username;
+                    localStorage.setItem('glow_username', window.username);
+                    window.accountSetupReady = true;
+                    closeAccountSetup();
+                    await fetchTokenFromServer();
+                    alert('Mit anderem Account angemeldet!');
+                    return;
+                } catch (err) {
+                    console.error('Account Wechsel Fehler', err);
+                    alert('Fehler beim Anmelden mit anderem Account.');
+                }
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ runnerId: runnerID, username, password })
+                });
+
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    alert(data.error || 'Account konnte nicht gespeichert werden.');
+                    return;
+                }
+
+                runnerID = data.runnerId || runnerID;
+                localStorage.setItem('glow_runner_id', runnerID);
+                if (data.token) {
+                    authToken = data.token;
+                    localStorage.setItem('glow_runner_token', authToken);
+                }
+                window.username = username;
+                localStorage.setItem('glow_username', username);
+                window.accountSetupReady = true;
+                closeAccountSetup();
+                await fetchTokenFromServer();
+                alert('Dein Account wurde aktualisiert!');
+            } catch (err) {
+                console.error('Account Setup Fehler', err);
+                alert('Fehler beim Aktualisieren des Accounts.');
+            }
+        }
+
         function showTransferInput() {
             document.getElementById("transferInputArea").classList.remove("hidden");
         }
@@ -1306,16 +1475,25 @@ function redirectToOfflinePage() {
                         localStorage.setItem('glow_runner_token', authToken);
                     }
                     if (data.data) {
-                        window.totalPoints = data.data.points || 0;
-                        window.highscore = data.data.highscore || 0;
-                        window.questLevel = data.data.questLevel || 1;
-                        window.boughtSkins = data.data.boughtSkins || ['cyan'];
-                        window.activeSkin = data.data.activeSkin || 'cyan';
-                        window.boughtShapes = data.data.boughtShapes || ['circle'];
-                        window.activeShape = data.data.activeShape || 'circle';
-                        window.boughtMaps = data.data.boughtMaps || ['none'];
-                        window.activeMap = data.data.activeMap || 'none';
-                        if (data.data.username) window.username = data.data.username;
+                        const userData = data.data || {};
+                        window.totalPoints = userData.points || 0;
+                        window.highscore = userData.highscore || 0;
+                        window.questLevel = userData.questLevel || 1;
+                        window.boughtSkins = userData.boughtSkins || ['cyan'];
+                        window.activeSkin = userData.activeSkin || 'cyan';
+                        window.boughtShapes = userData.boughtShapes || ['circle'];
+                        window.activeShape = userData.activeShape || 'circle';
+                        window.boughtMaps = userData.boughtMaps || ['none'];
+                        window.activeMap = userData.activeMap || 'none';
+                        if (userData.username) {
+                            window.username = userData.username;
+                            localStorage.setItem('glow_username', userData.username);
+                        }
+                        window.accountSetupReady = Boolean(userData.username && userData.passwordHash && userData.passwordSalt);
+                        if (!window.accountSetupReady) {
+                            openAccountSetup();
+                            return;
+                        }
                         window.creatorStatus = data.creatorStatus || null;
                         window.creatorProfiles = data.creatorProfiles || {};
                         updateUI();
@@ -1329,7 +1507,7 @@ function redirectToOfflinePage() {
 
         // --- SAVE DATA TO SERVER ---
         async function saveToDB() {
-            if (!authToken || !runnerID) return;
+            if (!authToken || !runnerID || !window.accountSetupReady) return;
             try {
                 const res = await fetch(`${API_URL}/api/user/save`, {
                     method: 'POST',
@@ -1359,6 +1537,9 @@ function redirectToOfflinePage() {
         // Sofortige Zuweisung an das window-Objekt, damit onclick="openSettings()" direkt funktioniert!
         window.openSettings = openSettings;
         window.closeSettings = closeSettings;
+        window.openAccountSetup = openAccountSetup;
+        window.closeAccountSetup = closeAccountSetup;
+        window.submitAccountSetup = submitAccountSetup;
         window.showTransferInput = showTransferInput;
         window.submitTransferRequest = submitTransferRequest;
         window.submitVerificationCode = submitVerificationCode;
@@ -1470,6 +1651,11 @@ async function checkServerHealth() {
             resize();
             const runnerIdText = document.getElementById("runnerIdText");
             if (runnerIdText) runnerIdText.innerText = runnerID;
+            const hashMode = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+            const requestedMode = hashMode.get('account') === 'switch' ? 'switch' : 'current';
+            if (window.location.hash.includes('account=')) {
+                openAccountSetup(requestedMode);
+            }
             await fetchTokenFromServer();
             loadCreatorProfiles(); // Creator-Profile beim Start laden
             ensureUpdateLoop();
@@ -1823,6 +2009,10 @@ async function checkServerHealth() {
         window.startDailyRift = startDailyRift;
 
         function startGame(mode = 'normal') {
+            if (!window.accountSetupReady) {
+                openAccountSetup();
+                return;
+            }
             replayActive = false;
             gameActive = true;
             dailyRiftActive = mode === 'dailyRift';
