@@ -46,6 +46,54 @@
             width: 280px; margin: 6px 0;
         }
         .btn:hover { background: #0ff; color: #000; box-shadow: 0 0 20px #0ff; }
+        .discord-community-btn {
+            width: min(92vw, 360px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(88,101,242,0.26), rgba(153,102,255,0.22), rgba(0,255,255,0.18));
+            border: 2px solid rgba(114, 137, 218, 0.9);
+            color: #fff;
+            text-decoration: none;
+            box-shadow: 0 0 22px rgba(88,101,242,0.45), inset 0 0 18px rgba(255,255,255,0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            margin: 8px auto 14px;
+        }
+        .discord-community-btn:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 0 30px rgba(88,101,242,0.7), inset 0 0 20px rgba(255,255,255,0.09);
+            border-color: #8fa0ff;
+        }
+        .discord-logo {
+            display: inline-flex;
+            width: 32px;
+            height: 32px;
+            flex: 0 0 auto;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.35));
+        }
+        .discord-copy {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 1.1;
+        }
+        .discord-copy strong {
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #dfe3ff;
+        }
+        .discord-copy span {
+            font-size: 1.05rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 12px rgba(255,255,255,0.25);
+        }
         .daily-rift-btn {
             position: relative;
             overflow: hidden;
@@ -850,6 +898,14 @@ function redirectToOfflinePage() {
                 <button class="btn" onclick="location.href='glow-runner-review.html'" style="width: 100%; border-color:#ff0; color:#ff0; font-size: 0.72rem; padding: 12px 16px;">⭐ REVIEW GLOW RUNNER</button>
                 <div id="reviewStatus" style="margin-top: 8px; color:#9ad8ff; font-size:0.58rem; letter-spacing:2px; text-transform:uppercase; text-align:center;">RATING: –</div>
             </div>
+
+            <a class="discord-community-btn" href="https://discord.gg/rh8TEvnGx" target="_blank" rel="noopener noreferrer" aria-label="Join our Discord community">
+                <img class="discord-logo" src="https://cdn.simpleicons.org/discord/ffffff" alt="Discord" />
+                <span class="discord-copy">
+                    <strong>Folge unserer</strong>
+                    <span>Community</span>
+                </span>
+            </a>
 
             <div class="menu-grid">
                 <button class="btn" onclick="startGame()" style="border-color: #0f0; color: #0f0;">LAUNCH</button>
