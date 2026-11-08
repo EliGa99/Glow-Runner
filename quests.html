@@ -168,13 +168,7 @@
 
     <script>
         const runnerId = localStorage.getItem('glow_runner_id') || 'RNR-000000';
-        const getApiBase = () => {
-            const savedBase = localStorage.getItem('glowrunner_api_base');
-            if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
-            const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
-            if (devMode) return 'http://localhost:3000';
-            return 'https://glow-runner-backend.onrender.com';
-        };
+        const getApiBase = () => 'https://glow-runner-backend.onrender.com';
 
         const questStateKey = 'glow_runner_quests';
         const statusEl = document.getElementById('status');

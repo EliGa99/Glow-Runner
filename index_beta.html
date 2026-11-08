@@ -709,13 +709,7 @@
             const isOfflinePage = window.location.pathname.endsWith('/server-offline.html');
             if (isMaintenancePage || isOfflinePage) return;
 
-            const getApiBase = () => {
-                const savedBase = localStorage.getItem('glowrunner_api_base');
-                if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
-                const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
-                if (devMode) return 'http://localhost:3000';
-                return 'https://glow-runner-backend.onrender.com';
-            };
+            const getApiBase = () => 'https://glow-runner-backend.onrender.com';
 
             fetch(`${getApiBase()}/api/health`, { cache: 'no-store' })
                 .then(async (response) => {
@@ -1073,16 +1067,7 @@ function redirectToOfflinePage() {
         window.serverOnline = false;
         let updateStarted = false;
 
-        const getApiBase = () => {
-            const savedBase = localStorage.getItem('glowrunner_api_base');
-            if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
-
-            const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
-            const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
-            const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
-            if (devMode || isLocalHost) return 'http://localhost:3000';
-            return 'https://glow-runner-backend.onrender.com';
-        };
+        const getApiBase = () => 'https://glow-runner-backend.onrender.com';
 
         // Backend Server URL für Accountmigration & Live-Syncs
         const API_URL = getApiBase();

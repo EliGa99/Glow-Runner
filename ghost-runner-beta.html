@@ -176,13 +176,7 @@
             if (isMaintenancePage || isOfflinePage) return;
 
             try {
-                const getApiBase = () => {
-                    const savedBase = localStorage.getItem('glowrunner_api_base');
-                    if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
-                    const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
-                    if (devMode) return 'http://localhost:3000';
-                    return 'https://glow-runner-backend.onrender.com';
-                };
+                const getApiBase = () => 'https://glow-runner-backend.onrender.com';
 
                 const response = await fetch(`${getApiBase()}/api/health`, { cache: 'no-store' });
                 const data = await response.json().catch(() => ({}));

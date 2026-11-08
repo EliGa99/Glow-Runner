@@ -276,10 +276,6 @@
             const checkBtn = document.getElementById('checkBtn');
 
             function getApiBase() {
-                const savedBase = localStorage.getItem('glowrunner_api_base');
-                if (savedBase && savedBase.trim()) return savedBase.replace(/\/+$/, '');
-                const devMode = localStorage.getItem('glowrunner_dev_mode') === 'true';
-                if (devMode) return 'http://localhost:3000';
                 return 'https://glow-runner-backend.onrender.com';
             }
 
