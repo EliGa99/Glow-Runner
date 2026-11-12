@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GLOW RUNNER: OVERDRIVE</title>
+    <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Orbitron', sans-serif; touch-action: none; color: white; }
@@ -19,6 +20,9 @@
         #settingsOverlay { z-index: 120; }
         #settingsBtn { z-index: 130; }
         .hidden { display: none !important; }
+        @keyframes registerPulse { 0%,100% { box-shadow: 0 0 12px rgba(0,255,255,.28); opacity: 1; } 50% { box-shadow: 0 0 25px rgba(0,255,255,.75); opacity: .78; } }
+        #accountQuickBtn.local-mode { border-color: #ff0 !important; color: #ff0 !important; animation: registerPulse 1.5s infinite; }
+        #localSaveNotice { max-width: 390px; margin: 0 auto 10px; padding: 8px 12px; border: 1px solid rgba(255,220,0,.45); border-radius: 9px; background: rgba(255,220,0,.07); color: #ffe978; font-size: .55rem; line-height: 1.5; letter-spacing: .6px; text-align: center; }
 
         .title-img { max-width: 80%; max-height: 150px; margin-bottom: 10px; filter: drop-shadow(0 0 10px #0ff); }
         
@@ -787,7 +791,7 @@ function redirectToOfflinePage() {
     </style>
 
     <div id="settingsBtn" onclick="openSettings()" style="position: absolute; top: 20px; left: 20px; font-size: 28px; cursor: pointer; z-index: 9999; pointer-events: auto !important; transition: transform 0.3s ease; filter: drop-shadow(0 0 8px #0ff); opacity: 0.8; user-select: none;">⚙️</div>
-    <div id="accountQuickBtn" onclick="openAccountSetup('switch')" style="position: absolute; top: 18px; left: 78px; z-index: 9999; padding: 10px 14px; border: 2px solid #0ff; border-radius: 12px; background: rgba(5, 18, 22, 0.9); color: #0ff; font-size: 0.7rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; box-shadow: 0 0 18px rgba(0,255,255,0.2); user-select: none;">👤 ACCOUNT</div>
+    <div id="accountQuickBtn" onclick="openAccountSetup('current')" style="position: absolute; top: 18px; left: 78px; z-index: 9999; padding: 10px 14px; border: 2px solid #0ff; border-radius: 12px; background: rgba(5, 18, 22, 0.9); color: #0ff; font-size: 0.7rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; box-shadow: 0 0 18px rgba(0,255,255,0.2); user-select: none;">JETZT REGISTRIEREN</div>
 
     <div id="accountSetupOverlay" class="overlay hidden">
         <div style="background: rgba(10, 10, 10, 0.96); border: 2px solid #0ff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.25); padding: 30px; border-radius: 15px; width: 90%; max-width: 420px; text-align: center; backdrop-filter: blur(15px); position: relative; box-sizing: border-box;">
@@ -812,7 +816,7 @@ function redirectToOfflinePage() {
             </p>
 
             <input id="accountUsernameInput" type="text" class="settings-card-input" placeholder="Benutzername" maxlength="24" style="margin-bottom: 12px; text-transform: none;">
-            <input id="accountPasswordInput" type="password" class="settings-card-input" placeholder="Passwort" maxlength="32" style="margin-bottom: 18px; text-transform: none;">
+            <input id="accountPasswordInput" type="password" class="settings-card-input" placeholder="Passwort (mind. 10 Zeichen)" minlength="10" maxlength="32" style="margin-bottom: 18px; text-transform: none;">
             <button id="accountSubmitBtn" class="btn" onclick="submitAccountSetup()" style="width: 100%; margin: 0; background: #0ff; color: #000; border: none; box-shadow: 0 0 15px rgba(0,255,255,0.3);">MEINEN ACCOUNT SPEICHERN</button>
         </div>
     </div>
@@ -869,8 +873,9 @@ function redirectToOfflinePage() {
             <img src="ChatGPT Image 6. Mai 2026, 18_30_59.png" alt="Title Art" class="title-img">
             <h1 id="welcomeText">GLOW RUNNER</h1>
             <div style="color:#666; font-size:0.58rem; letter-spacing:2px; margin-bottom:8px;">
-                ID: <span id="runnerIdText">...</span>
+                ID: <span id="runnerIdText">LOKAL</span>
             </div>
+            <div id="localSaveNotice">OHNE ACCOUNT: Dein Spielstand wird nur auf diesem Gerät gespeichert. Beim Löschen der Browserdaten oder Gerätewechsel kann er verloren gehen.</div>
 
             <div style="color: #0f0; font-size: 0.7rem; margin-bottom: 12px; letter-spacing: 1px;">
                 ● <span id="onlineVal">0</span> RUNNER LIVE
@@ -899,7 +904,7 @@ function redirectToOfflinePage() {
                 <div id="reviewStatus" style="margin-top: 8px; color:#9ad8ff; font-size:0.58rem; letter-spacing:2px; text-transform:uppercase; text-align:center;">RATING: –</div>
             </div>
 
-            <a class="discord-community-btn" href="https://discord.gg/csXzRmWD8" target="_blank" rel="noopener noreferrer" aria-label="Join our Discord community">
+            <a class="discord-community-btn" href="https://discord.gg/rh8TEvnGx" target="_blank" rel="noopener noreferrer" aria-label="Join our Discord community">
                 <img class="discord-logo" src="https://cdn.simpleicons.org/discord/ffffff" alt="Discord" />
                 <span class="discord-copy">
                     <strong>Folge unserer</strong>
@@ -1103,22 +1108,157 @@ function redirectToOfflinePage() {
         window.creatorItems = {};
 
         let runnerID = localStorage.getItem('glow_runner_id') || '';
-        const savedToken = localStorage.getItem('glow_runner_token');
-        if (!runnerID && savedToken) {
-            const tokenParts = savedToken.split('.');
-            if (tokenParts.length >= 3 && tokenParts[0]) {
-                runnerID = tokenParts[0];
-            }
-        }
-        if (!runnerID) {
-            runnerID = 'RNR-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-            localStorage.setItem('glow_runner_id', runnerID);
-        } else {
-            localStorage.setItem('glow_runner_id', runnerID);
+        let authToken = localStorage.getItem('glow_runner_token') || '';
+        const LOCAL_STATE_KEY = 'glow_runner_local_state_v2';
+
+        function getGameSnapshot() {
+            return {
+                points: Math.max(0, Number(window.totalPoints) || 0),
+                highscore: Math.max(0, Number(window.highscore) || 0),
+                questLevel: Math.max(1, Number(window.questLevel) || 1),
+                boughtSkins: Array.isArray(window.boughtSkins) ? window.boughtSkins : ['cyan'],
+                activeSkin: window.activeSkin || 'cyan',
+                boughtShapes: Array.isArray(window.boughtShapes) ? window.boughtShapes : ['circle'],
+                activeShape: window.activeShape || 'circle',
+                boughtMaps: Array.isArray(window.boughtMaps) ? window.boughtMaps : ['none'],
+                activeMap: window.activeMap || 'none',
+                username: window.username || '',
+                questState: localStorage.getItem('glow_runner_quests') || '{}',
+                activeQuests: localStorage.getItem('glow_runner_active_quests') || '[]',
+                hidden: Boolean(window.hidden)
+            };
         }
 
-        // Token aus Speicher laden (wichtig für die 2FA Server Middleware)
-        let authToken = localStorage.getItem('glow_runner_token') || "";
+        function applyGameSnapshot(data = {}) {
+            window.totalPoints = Math.max(0, Number(data.points) || 0);
+            window.highscore = Math.max(0, Number(data.highscore) || 0);
+            window.questLevel = Math.max(1, Number(data.questLevel) || 1);
+            window.boughtSkins = Array.isArray(data.boughtSkins) && data.boughtSkins.length ? data.boughtSkins : ['cyan'];
+            window.activeSkin = data.activeSkin || 'cyan';
+            window.boughtShapes = Array.isArray(data.boughtShapes) && data.boughtShapes.length ? data.boughtShapes : ['circle'];
+            window.activeShape = data.activeShape || 'circle';
+            window.boughtMaps = Array.isArray(data.boughtMaps) && data.boughtMaps.length ? data.boughtMaps : ['none'];
+            window.activeMap = data.activeMap || 'none';
+            window.username = data.username || '';
+            if (typeof data.questState === 'string') localStorage.setItem('glow_runner_quests', data.questState);
+            if (typeof data.activeQuests === 'string') localStorage.setItem('glow_runner_active_quests', data.activeQuests);
+            if (data.hidden !== undefined) window.hidden = Boolean(data.hidden);
+        }
+
+        function persistLocalGameState() {
+            try { localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(getGameSnapshot())); }
+            catch (error) { console.warn('Lokaler Spielstand konnte nicht gespeichert werden:', error); }
+        }
+
+        function loadLocalGameState() {
+            try {
+                const raw = localStorage.getItem(LOCAL_STATE_KEY);
+                if (raw) applyGameSnapshot(JSON.parse(raw));
+            } catch (error) { console.warn('Lokaler Spielstand konnte nicht geladen werden:', error); }
+            updateAccountModeUI();
+            updateUI();
+        }
+
+        function updateAccountModeUI() {
+            const button = document.getElementById('accountQuickBtn');
+            const notice = document.getElementById('localSaveNotice');
+            const idLabel = document.getElementById('runnerIdText');
+            const localMode = !authToken || !runnerID;
+            if (button) {
+                button.textContent = localMode ? 'JETZT REGISTRIEREN' : '👤 ACCOUNT';
+                button.classList.toggle('local-mode', localMode);
+                button.onclick = () => openAccountSetup('current');
+            }
+            if (notice) notice.classList.toggle('hidden', !localMode);
+            if (idLabel) idLabel.textContent = localMode ? 'LOKAL' : runnerID;
+        }
+
+        async function initializeRunner() {
+            const token = localStorage.getItem('glow_runner_token') || '';
+            authToken = token;
+
+            // Runner-ID aus dem lokal gespeicherten Wert oder aus dem signierten Server-Token wiederherstellen.
+            if (token && !runnerID) {
+                const tokenRunnerId = token.split('.')[0] || '';
+                if (/^RNR-[A-Z0-9]{9}$/.test(tokenRunnerId)) {
+                    runnerID = tokenRunnerId;
+                    localStorage.setItem('glow_runner_id', runnerID);
+                }
+            }
+
+            if (token && runnerID) {
+                try {
+                    const response = await fetch(`${API_URL}/api/user`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const user = data.data || {};
+
+                        runnerID = data.runnerId || runnerID;
+                        authToken = data.token || token;
+                        window.accountSetupReady = Boolean(data.accountReady);
+
+                        localStorage.setItem('glow_runner_token', authToken);
+                        localStorage.setItem('glow_runner_id', runnerID);
+
+                        if (user.username) {
+                            window.username = user.username;
+                            localStorage.setItem('glow_username', user.username);
+                        }
+
+                        window.creatorStatus = data.creatorStatus || null;
+                        applyGameSnapshot(user.gameData || user);
+                        updateAccountModeUI();
+                        updateUI();
+                        return data;
+                    }
+
+                    if (response.status === 403) {
+                        const data = await response.json().catch(() => ({}));
+                        if (data.banned) {
+                            const reason = data.reason || 'Account gesperrt';
+                            const expires = data.expires
+                                ? new Date(data.expires).toISOString()
+                                : 'Permanent';
+                            window.location.replace(
+                                `locked.html?id=${encodeURIComponent(runnerID)}&reason=${encodeURIComponent(reason)}&expires=${encodeURIComponent(expires)}&by=Server`
+                            );
+                            return { banned: true };
+                        }
+                    }
+
+                    if (response.status === 401 || response.status === 404) {
+                        // Nur wirklich ungültige oder nicht mehr vorhandene Accounts abmelden.
+                        localStorage.removeItem('glow_runner_token');
+                        localStorage.removeItem('glow_runner_id');
+                        authToken = '';
+                        runnerID = '';
+                        window.accountSetupReady = false;
+                    } else {
+                        // 5xx/temporäre Serverantworten dürfen den Login nicht löschen.
+                        console.warn('Backend vorübergehend nicht verfügbar; lokaler Spielstand bleibt nutzbar.');
+                        loadLocalGameState();
+                        updateAccountModeUI();
+                        return { localMode: true, serverUnavailable: true };
+                    }
+                } catch (error) {
+                    console.warn('Account gerade nicht erreichbar – lokaler Spielstand bleibt verfügbar:', error);
+                    loadLocalGameState();
+                    updateAccountModeUI();
+                    return { localMode: true, serverUnavailable: true };
+                }
+            }
+
+            authToken = '';
+            runnerID = '';
+            window.accountSetupReady = false;
+            localStorage.removeItem('glow_runner_id');
+            localStorage.removeItem('glow_runner_token');
+            loadLocalGameState();
+            return { localMode: true, data: getGameSnapshot() };
+        }
         window.activeColor = '#0ff';
         window.serverOnline = false;
         let updateStarted = false;
@@ -1127,6 +1267,41 @@ function redirectToOfflinePage() {
 
         // Backend Server URL für Accountmigration & Live-Syncs
         const API_URL = getApiBase();
+
+
+        // CrazyGames SDK v3: nur Basis-Integration (Gameplay-Ereignisse).
+        // Außerhalb von CrazyGames kann das SDK deaktiviert sein; das Spiel läuft dann normal weiter.
+        const crazyGamesSdkInit = (async () => {
+            const sdk = window.CrazyGames?.SDK;
+            if (!sdk || typeof sdk.init !== 'function') return false;
+
+            try {
+                await sdk.init();
+                return true;
+            } catch (error) {
+                console.info('CrazyGames SDK ist in dieser Umgebung nicht aktiv.');
+                return false;
+            }
+        })();
+
+        function notifyCrazyGamesGameplay(eventName) {
+            crazyGamesSdkInit.then((ready) => {
+                if (!ready) return;
+
+                const sdk = window.CrazyGames?.SDK;
+                if (!sdk || sdk.environment === 'disabled') return;
+
+                const gameModule = sdk.game;
+                const eventFunction = gameModule?.[eventName];
+                if (typeof eventFunction !== 'function') return;
+
+                try {
+                    gameModule[eventName]();
+                } catch (error) {
+                    console.debug(`CrazyGames ${eventName} konnte nicht gemeldet werden.`, error);
+                }
+            }).catch(() => {});
+        }
 
         // Service Worker entfernen, wenn noch alte Caches vorhanden sind
         if ('serviceWorker' in navigator) {
@@ -1229,9 +1404,225 @@ function redirectToOfflinePage() {
         }
         window.closeBoxes = closeBoxes;
 
+        function renderCreatorHub() {
+            const statusBox = document.getElementById('creatorStatusBox');
+            const applyBox = document.getElementById('creatorApplyBox');
+            const studioBox = document.getElementById('creatorStudioBox');
+            const grid = document.getElementById('creatorProfilesGrid');
+
+            const status = window.creatorStatus;
+            const isLoggedIn = Boolean(authToken && runnerID);
+            const isApproved = Boolean(status && status.status === 'approved');
+
+            if (statusBox) {
+                if (!isLoggedIn) {
+                    statusBox.textContent = 'Melde dich mit einem Glow-Runner-Account an, um dich als Creator zu bewerben.';
+                } else if (isApproved) {
+                    statusBox.textContent = `CREATOR FREIGEGEBEN: ${status.displayName || window.username || 'Creator'}`;
+                } else if (status && status.status === 'pending') {
+                    statusBox.textContent = `BEWERBUNG IN PRÜFUNG: ${status.displayName || 'Creator'}`;
+                } else if (status) {
+                    statusBox.textContent = `CREATOR-STATUS: ${String(status.status || 'unbekannt').toUpperCase()}`;
+                } else {
+                    statusBox.textContent = 'Noch keine Creator-Bewerbung vorhanden.';
+                }
+            }
+
+            if (applyBox) applyBox.classList.toggle('hidden', !isLoggedIn || Boolean(status));
+            if (studioBox) studioBox.classList.toggle('hidden', !isApproved);
+
+            if (!grid) return;
+            grid.replaceChildren();
+
+            const creators = Object.values(window.creatorProfiles || {});
+            const items = Object.values(window.creatorItems || {});
+
+            if (!creators.length && !items.length) {
+                const empty = document.createElement('div');
+                empty.className = 'hub-card';
+                const title = document.createElement('b');
+                title.textContent = 'Noch keine Creator';
+                const description = document.createElement('span');
+                description.textContent = 'Sobald Creator freigegeben wurden und Items veröffentlichen, erscheinen sie hier.';
+                empty.append(title, description);
+                grid.appendChild(empty);
+                return;
+            }
+
+            for (const creator of creators) {
+                const card = document.createElement('div');
+                card.className = 'hub-card';
+
+                const title = document.createElement('b');
+                title.textContent = creator.displayName || 'Creator';
+
+                const description = document.createElement('span');
+                description.textContent = `Verkäufe: ${Number(creator.sales) || 0} · Verdient: ${Number(creator.earned) || 0} Kristalle`;
+
+                card.append(title, description);
+                grid.appendChild(card);
+            }
+
+            for (const item of items) {
+                const card = document.createElement('div');
+                card.className = 'hub-card';
+
+                const title = document.createElement('b');
+                title.textContent = item.name || 'Creator Item';
+
+                const description = document.createElement('span');
+                const typeName = item.type === 'color' ? 'Vessel Tint' : item.type === 'shape' ? 'Chassis Shape' : 'Battle Zone';
+                description.textContent = `${typeName} · von ${item.creatorName || 'Creator'} · ${Number(item.price) || 0} Kristalle · Verkäufe: ${Number(item.sales) || 0}`;
+
+                const buyButton = document.createElement('button');
+                buyButton.type = 'button';
+                buyButton.className = 'mini-action';
+
+                const inventory = item.type === 'color'
+                    ? window.boughtSkins
+                    : item.type === 'shape'
+                        ? window.boughtShapes
+                        : window.boughtMaps;
+                const owned = Array.isArray(inventory) && inventory.includes(`creator_${item.id}`);
+                const ownItem = Boolean(runnerID && item.creatorID === runnerID);
+
+                if (!isLoggedIn) {
+                    buyButton.textContent = 'ACCOUNT ERFORDERLICH';
+                    buyButton.disabled = true;
+                } else if (ownItem) {
+                    buyButton.textContent = 'EIGENES ITEM';
+                    buyButton.disabled = true;
+                } else {
+                    buyButton.textContent = owned ? 'AUSRÜSTEN' : 'KAUFEN';
+                    buyButton.addEventListener('click', () => buyCreatorItem(item.id));
+                }
+
+                card.append(title, description, buyButton);
+                grid.appendChild(card);
+            }
+        }
+
+        async function submitCreatorApplication() {
+            if (!authToken || !runnerID) {
+                alert('Bitte erstelle zuerst freiwillig einen Glow-Runner-Account.');
+                return;
+            }
+
+            const displayName = (document.getElementById('creatorDisplayName')?.value || '').trim();
+            const reason = (document.getElementById('creatorReason')?.value || '').trim();
+
+            if (displayName.length < 2 || displayName.length > 40 || reason.length < 10 || reason.length > 1000) {
+                alert('Bitte gib einen Creator-Namen (2–40 Zeichen) und eine Begründung (10–1000 Zeichen) ein.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/creator/apply`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ displayName, reason })
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    alert(data.error || 'Creator-Bewerbung konnte nicht gesendet werden.');
+                    return;
+                }
+
+                alert('Deine Creator-Bewerbung wurde gesendet.');
+                await fetchTokenFromServer();
+                renderCreatorHub();
+            } catch (error) {
+                console.error('Creator-Bewerbung:', error);
+                alert('Server gerade nicht erreichbar. Deine Bewerbung wurde nicht bestätigt.');
+            }
+        }
+        window.submitCreatorApplication = submitCreatorApplication;
+
+        async function createCreatorItem() {
+            if (!authToken || !runnerID || !window.creatorStatus || window.creatorStatus.status !== 'approved') {
+                alert('Du benötigst einen freigegebenen Creator-Account.');
+                return;
+            }
+
+            const name = (document.getElementById('creatorItemName')?.value || '').trim();
+            const type = document.getElementById('creatorItemType')?.value || '';
+            const color = (document.getElementById('creatorItemColor')?.value || '').trim();
+            const price = Number(document.getElementById('creatorItemPrice')?.value);
+
+            if (name.length < 2 || name.length > 40 || !['color', 'shape', 'map'].includes(type) ||
+                !Number.isSafeInteger(price) || price < 100 || price > 50000 || color.length > 40) {
+                alert('Bitte prüfe Name, Typ, Farbe und Preis (100–50.000 Kristalle).');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/creator/item/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ name, type, color, price })
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    alert(data.error || 'Item konnte nicht erstellt werden.');
+                    return;
+                }
+
+                document.getElementById('creatorItemName').value = '';
+                document.getElementById('creatorItemColor').value = '';
+                document.getElementById('creatorItemPrice').value = '';
+                alert('Dein Creator-Item wurde veröffentlicht.');
+                await loadCreatorProfiles();
+            } catch (error) {
+                console.error('Creator-Item:', error);
+                alert('Server gerade nicht erreichbar. Das Item wurde nicht bestätigt.');
+            }
+        }
+        window.createCreatorItem = createCreatorItem;
+
+        async function buyCreatorItem(itemId) {
+            if (!authToken || !runnerID) {
+                alert('Zum Kaufen von Creator-Items benötigst du einen Account.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/creator/item/buy`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ itemId })
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    alert(data.error || 'Creator-Item konnte nicht gekauft werden.');
+                    return;
+                }
+
+                await fetchTokenFromServer();
+                await loadCreatorProfiles();
+                alert(data.alreadyOwned ? 'Das Item war bereits in deinem Besitz und wurde ausgerüstet.' : (data.message || 'Item gekauft und ausgerüstet.'));
+            } catch (error) {
+                console.error('Creator-Kauf:', error);
+                alert('Server gerade nicht erreichbar. Der Kauf wurde nicht bestätigt.');
+            }
+        }
+
         function openCreatorHub() {
             document.getElementById('menu').classList.add('hidden');
             document.getElementById('creatorHub').classList.remove('hidden');
+            renderCreatorHub();
+            loadCreatorProfiles();
         }
         window.openCreatorHub = openCreatorHub;
 
@@ -1273,10 +1664,17 @@ function redirectToOfflinePage() {
                 switchBtn.style.borderColor = '#ff00ff';
                 switchBtn.style.color = '#ff00ff';
             }
+            const currentAccountAlreadyReady = activeMode === 'current' &&
+                Boolean(authToken && runnerID && window.accountSetupReady);
+
             if (infoEl) {
                 infoEl.textContent = activeMode === 'switch'
-                    ? 'Für einen anderen Account gibst du nur Benutzername und Passwort ein. Die Runner-ID wird automatisch aus dem Login gefunden.'
-                    : 'Dein aktueller Account wird mit deiner Runner ID gespeichert und dein Benutzername/Passwort wird hier aktualisiert.';
+                    ? 'Für einen anderen Account gibst du Benutzername und Passwort ein. Der zugehörige Firebase-Spielstand wird geladen.'
+                    : (currentAccountAlreadyReady
+                        ? 'Dieser Account ist bereits eingerichtet. Zugangsdaten können hier nicht geändert werden. Für einen Accountwechsel wähle „Anderer Account“.'
+                        : ((!authToken || !runnerID)
+                            ? 'Erstelle freiwillig einen Account. Dein lokaler Spielstand wird dabei in Firebase übernommen. Ohne Registrierung bleibt alles auf diesem Gerät.'
+                            : 'Schließe die Einrichtung deines bestehenden Accounts ab. Dein bisheriger Spielstand bleibt erhalten.'));
             }
             if (statusEl) {
                 statusEl.textContent = activeMode === 'switch' ? 'Aktiv: Anderer Account' : 'Aktiv: Mein Account';
@@ -1285,9 +1683,18 @@ function redirectToOfflinePage() {
                 statusEl.style.background = activeMode === 'switch' ? 'rgba(255,0,255,0.05)' : 'rgba(0,255,255,0.05)';
             }
             if (submitBtn) {
-                submitBtn.textContent = activeMode === 'switch' ? 'MIT ANDEREM ACCOUNT ANMELDEN' : 'MEINEN ACCOUNT SPEICHERN';
+                submitBtn.disabled = currentAccountAlreadyReady;
+                submitBtn.textContent = activeMode === 'switch'
+                    ? 'MIT ANDEREM ACCOUNT ANMELDEN'
+                    : (currentAccountAlreadyReady
+                        ? 'ACCOUNT BEREITS EINGERICHTET'
+                        : ((!authToken || !runnerID)
+                            ? 'REGISTRIEREN & SPIELSTAND ÜBERNEHMEN'
+                            : 'ACCOUNT-EINRICHTUNG ABSCHLIESSEN'));
                 submitBtn.style.background = activeMode === 'switch' ? '#ff00ff' : '#0ff';
-                submitBtn.style.color = activeMode === 'switch' ? '#000' : '#000';
+                submitBtn.style.color = '#000';
+                submitBtn.style.opacity = currentAccountAlreadyReady ? '0.55' : '1';
+                submitBtn.style.cursor = currentAccountAlreadyReady ? 'not-allowed' : 'pointer';
             }
         }
 
@@ -1313,10 +1720,15 @@ function redirectToOfflinePage() {
         async function submitAccountSetup() {
             const mode = window.accountSetupMode || 'current';
             const username = (document.getElementById("accountUsernameInput")?.value || '').trim();
-            const password = (document.getElementById("accountPasswordInput")?.value || '').trim();
+            const password = document.getElementById("accountPasswordInput")?.value || '';
 
             if (!username || !password) {
                 alert('Bitte Benutzername und Passwort eingeben.');
+                return;
+            }
+
+            if (mode !== 'switch' && authToken && runnerID && window.accountSetupReady) {
+                alert('Dieser Account ist bereits eingerichtet. Zum Wechseln wähle „Anderer Account“.');
                 return;
             }
 
@@ -1353,34 +1765,53 @@ function redirectToOfflinePage() {
                 return;
             }
 
+            if (password.length < 10 || password.length > 128) {
+                alert('Dein neues Passwort muss mindestens 10 Zeichen lang sein.');
+                return;
+            }
+
             try {
+                const isNewAccount = !authToken || !runnerID;
+                const localSnapshot = getGameSnapshot();
+                localSnapshot.username = username;
                 const response = await fetch(`${API_URL}/api/auth/register`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ runnerId: runnerID, username, password })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(isNewAccount ? {} : { 'Authorization': `Bearer ${authToken}` })
+                    },
+                    body: JSON.stringify({
+                        runnerId: isNewAccount ? undefined : runnerID,
+                        username,
+                        password,
+                        gameData: isNewAccount ? localSnapshot : undefined
+                    })
                 });
 
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok) {
-                    alert(data.error || 'Account konnte nicht gespeichert werden.');
+                    alert(data.error || 'Account konnte nicht gespeichert werden. Dein lokaler Spielstand bleibt erhalten.');
                     return;
                 }
-
-                runnerID = data.runnerId || runnerID;
-                localStorage.setItem('glow_runner_id', runnerID);
-                if (data.token) {
-                    authToken = data.token;
-                    localStorage.setItem('glow_runner_token', authToken);
+                if (!data.token || !data.runnerId) {
+                    alert('Der Server hat keinen gültigen Account-Login zurückgegeben. Dein lokaler Spielstand bleibt erhalten.');
+                    return;
                 }
+                runnerID = data.runnerId;
+                authToken = data.token;
+                localStorage.setItem('glow_runner_id', runnerID);
+                localStorage.setItem('glow_runner_token', authToken);
                 window.username = username;
                 localStorage.setItem('glow_username', username);
                 window.accountSetupReady = true;
                 closeAccountSetup();
                 await fetchTokenFromServer();
-                alert('Dein Account wurde aktualisiert!');
+                updateAccountModeUI();
+                persistLocalGameState();
+                alert(isNewAccount ? 'Account erstellt! Dein lokaler Spielstand wurde übernommen.' : 'Deine Account-Daten wurden aktualisiert!');
             } catch (err) {
                 console.error('Account Setup Fehler', err);
-                alert('Fehler beim Aktualisieren des Accounts.');
+                alert('Registrierung fehlgeschlagen. Dein lokaler Spielstand bleibt auf diesem Gerät erhalten.');
             }
         }
 
@@ -1389,6 +1820,7 @@ function redirectToOfflinePage() {
         }
 
         async function submitTransferRequest() {
+            if (!authToken || !runnerID) { alert('Dafür musst du zuerst einen Account registrieren.'); return; }
             const targetId = document.getElementById("targetIdInput").value.toUpperCase().trim();
             if (!targetId || !targetId.startsWith("RNR-")) {
                 alert("Bitte eine gültige ID im Format RNR-XXXXXX eingeben!");
@@ -1398,7 +1830,7 @@ function redirectToOfflinePage() {
                 const res = await fetch(`${API_URL}/api/transfer/request`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ targetRunnerId: targetId, currentRunnerId: runnerID })
+                    body: JSON.stringify({ targetRunnerId: targetId })
                 });
                 const data = await res.json();
                 if (!res.ok) {
@@ -1413,6 +1845,7 @@ function redirectToOfflinePage() {
         }
 
         async function submitVerificationCode() {
+            if (!authToken || !runnerID) { alert('Dafür musst du zuerst einen Account registrieren.'); return; }
             const targetId = document.getElementById("targetIdInput").value.toUpperCase().trim();
             const code = document.getElementById("verificationCodeInput").value.trim();
             if (code.length !== 6) {
@@ -1444,6 +1877,7 @@ function redirectToOfflinePage() {
         }
 
         async function respondTransfer(action) {
+            if (!authToken || !runnerID) return;
             try {
                 const res = await fetch(`${API_URL}/api/transfer/respond`, {
                     method: "POST",
@@ -1468,7 +1902,7 @@ function redirectToOfflinePage() {
 
         // Automatisierter Live-Pulse Check (Mit funktionierendem JWT Authorization-Header)
         async function checkLivePulse() {
-            if (!runnerID) return;
+            if (!runnerID || !authToken) return;
             try {
                 const res = await fetch(`${API_URL}/api/live-pulse`, {
                     method: "POST",
@@ -1492,88 +1926,87 @@ function redirectToOfflinePage() {
 
         // JWT Token beim Spielstart vom Backend generieren/validieren lassen
         async function fetchTokenFromServer() {
+            if (!authToken || !runnerID) {
+                loadLocalGameState();
+                window.accountSetupReady = false;
+                updateAccountModeUI();
+                return;
+            }
             try {
                 const res = await fetch(`${API_URL}/api/user`, {
-                    method: "GET",
-                    headers: { "x-runner-id": runnerID }
+                    method: 'GET',
+                    headers: { Authorization: `Bearer ${authToken}` }
                 });
                 window.serverOnline = res.ok;
                 if (res.status === 403) {
-                    const data = await res.json();
-                    const reason = data.reason || "Gesperrt";
-                    const expires = data.expires ? new Date(data.expires).toISOString() : "Permanent";
+                    const data = await res.json().catch(() => ({}));
+                    const reason = data.reason || 'Gesperrt';
+                    const expires = data.expires ? new Date(data.expires).toISOString() : 'Permanent';
                     window.location.href = `locked.html?id=${encodeURIComponent(runnerID)}&reason=${encodeURIComponent(reason)}&expires=${encodeURIComponent(expires)}&by=Server`;
                     return;
                 }
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.token) {
-                        authToken = data.token;
-                        localStorage.setItem('glow_runner_token', authToken);
+                if (!res.ok) {
+                    if (res.status === 401 || res.status === 404) {
+                        localStorage.removeItem('glow_runner_token');
+                        localStorage.removeItem('glow_runner_id');
+                        authToken = '';
+                        runnerID = '';
+                        window.accountSetupReady = false;
+                        loadLocalGameState();
+                        updateAccountModeUI();
                     }
-                    if (data.data) {
-                        const userData = data.data || {};
-                        window.totalPoints = userData.points || 0;
-                        window.highscore = userData.highscore || 0;
-                        window.questLevel = userData.questLevel || 1;
-                        window.boughtSkins = userData.boughtSkins || ['cyan'];
-                        window.activeSkin = userData.activeSkin || 'cyan';
-                        window.boughtShapes = userData.boughtShapes || ['circle'];
-                        window.activeShape = userData.activeShape || 'circle';
-                        window.boughtMaps = userData.boughtMaps || ['none'];
-                        window.activeMap = userData.activeMap || 'none';
-                        if (userData.username) {
-                            window.username = userData.username;
-                            localStorage.setItem('glow_username', userData.username);
-                        }
-                        window.accountSetupReady = Boolean(userData.username && userData.passwordHash && userData.passwordSalt);
-                        if (!window.accountSetupReady) {
-                            openAccountSetup();
-                            return;
-                        }
-                        window.creatorStatus = data.creatorStatus || null;
-                        window.creatorProfiles = data.creatorProfiles || {};
-                        updateUI();
-                    }
+                    return;
                 }
+                const data = await res.json();
+                if (data.token) {
+                    authToken = data.token;
+                    localStorage.setItem('glow_runner_token', authToken);
+                }
+                if (data.data) {
+                    const userData = data.data || {};
+                    runnerID = userData.id || runnerID;
+                    localStorage.setItem('glow_runner_id', runnerID);
+                    applyGameSnapshot(userData.gameData || userData);
+                    if (userData.username) localStorage.setItem('glow_username', userData.username);
+                    window.accountSetupReady = Boolean(data.accountReady);
+                    window.creatorStatus = data.creatorStatus || null;
+                    updateUI();
+                    renderCreatorHub();
+                }
+                updateAccountModeUI();
             } catch (e) {
-                console.error("Token Fetch Fehler", e);
+                console.error('Token Fetch Fehler – lokaler Stand bleibt erhalten:', e);
                 window.serverOnline = false;
+                if (!authToken) loadLocalGameState();
             }
         }
 
-        // --- SAVE DATA TO SERVER ---
+        // Local-first speichern; angemeldete Accounts werden zusätzlich über das Backend in Firebase gespeichert.
         async function saveToDB() {
-            if (!authToken || !runnerID || !window.accountSetupReady) return;
+            persistLocalGameState();
+            if (!authToken || !runnerID) return true;
             try {
                 const res = await fetch(`${API_URL}/api/user/save`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`,
-                        'x-runner-id': runnerID
+                        'Authorization': `Bearer ${authToken}`
                     },
-                    body: JSON.stringify({
-                        points: window.totalPoints,
-                        highscore: window.highscore,
-                        boughtSkins: window.boughtSkins,
-                        activeSkin: window.activeSkin,
-                        boughtShapes: window.boughtShapes,
-                        activeShape: window.activeShape,
-                        boughtMaps: window.boughtMaps,
-                        activeMap: window.activeMap,
-                        questLevel: window.questLevel || 1
-                    })
+                    body: JSON.stringify({ gameData: getGameSnapshot(), hidden: Boolean(window.hidden) })
                 });
-                if (!res.ok) console.error("Save Error:", res.status);
+                if (!res.ok) console.error('Firebase Save Error:', res.status);
+                return res.ok;
             } catch (e) {
-                console.error("Save Fehler", e);
+                console.error('Server-Save fehlgeschlagen; lokaler Stand ist weiterhin gespeichert:', e);
+                return false;
             }
         }
 
         // Sofortige Zuweisung an das window-Objekt, damit onclick="openSettings()" direkt funktioniert!
         window.openSettings = openSettings;
         window.closeSettings = closeSettings;
+        window.setAccountSetupMode = setAccountSetupMode;
+        window.seekReplay = seekReplay;
         window.openAccountSetup = openAccountSetup;
         window.closeAccountSetup = closeAccountSetup;
         window.submitAccountSetup = submitAccountSetup;
@@ -1606,7 +2039,7 @@ function redirectToOfflinePage() {
         
 async function checkServerHealth() {
     const currentPath = window.location.pathname.toLowerCase();
-    if (currentPath.endsWith('/server-offline.html') || currentPath.endsWith('/server-starting.html')) {
+    if (currentPath.endsWith('/server-offline.html') || currentPath.endsWith('/server-starting.html') || currentPath.endsWith('/wartung.html')) {
         return;
     }
 
@@ -1631,6 +2064,11 @@ async function checkServerHealth() {
             throw new Error("Server offline");
         }
 
+        if (data.maintenance && authToken && runnerID) {
+            window.location.replace('wartung.html');
+            return false;
+        }
+
         window.serverOnline = true;
         sessionStorage.removeItem('glowrunner_redirect_lock');
         sessionStorage.removeItem('glowrunner_starting_started');
@@ -1638,6 +2076,9 @@ async function checkServerHealth() {
 
     } catch (error) {
         window.serverOnline = false;
+
+        // Anonyme Spieler sollen auch bei einem Backend-Ausfall lokal weiterspielen können.
+        if (!authToken || !runnerID) return false;
 
         const redirectLock = sessionStorage.getItem('glowrunner_redirect_lock');
         if (redirectLock === 'booting') {
@@ -1668,33 +2109,34 @@ async function checkServerHealth() {
         // --- CREATOR PROFILES VOM SERVER LADEN ---
         async function loadCreatorProfiles() {
             try {
-                const res = await fetch(`${API_URL}/api/user`, {
-                    headers: { 
-                        "x-runner-id": runnerID,
-                        "Authorization": `Bearer ${authToken}`
-                    }
-                });
+                const res = await fetch(`${API_URL}/api/creators/public`);
                 if (res.ok) {
                     const data = await res.json();
-                    window.creatorStatus = data.creatorStatus || null;
-                    window.creatorProfiles = data.creatorProfiles || {};
-                    if (typeof renderCreatorHub === "function") renderCreatorHub();
+                    window.creatorProfiles = data.creators || {};
+                    window.creatorItems = data.items || {};
+                    renderCreatorHub();
                 }
             } catch {}
         }
 
         // Initialisierung beim Laden der Seite
-        window.addEventListener("DOMContentLoaded", async () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             resize();
-            const runnerIdText = document.getElementById("runnerIdText");
-            if (runnerIdText) runnerIdText.innerText = runnerID;
+            const runnerIdText = document.getElementById('runnerIdText');
+            if (runnerIdText) runnerIdText.innerText = runnerID || '...';
             const hashMode = new URLSearchParams(window.location.hash.replace(/^#/, ''));
             const requestedMode = hashMode.get('account') === 'switch' ? 'switch' : 'current';
             if (window.location.hash.includes('account=')) {
                 openAccountSetup(requestedMode);
             }
+            try {
+                await initializeRunner();
+            } catch (error) {
+                console.error('Initialisierung fehlgeschlagen – lokaler Modus wird verwendet:', error);
+                loadLocalGameState();
+            }
             await fetchTokenFromServer();
-            loadCreatorProfiles(); // Creator-Profile beim Start laden
+            await loadCreatorProfiles();
             ensureUpdateLoop();
         });
 
@@ -2046,12 +2488,10 @@ async function checkServerHealth() {
         window.startDailyRift = startDailyRift;
 
         function startGame(mode = 'normal') {
-            if (!window.accountSetupReady) {
-                openAccountSetup();
-                return;
-            }
+            // Lokales Spielen ist ausdrücklich auch ohne Registrierung erlaubt.
             replayActive = false;
             gameActive = true;
+            notifyCrazyGamesGameplay('gameplayStart');
             dailyRiftActive = mode === 'dailyRift';
             dailyRiftTimer = dailyRiftActive ? 3600 : 0;
             document.getElementById('runResult').classList.add('hidden');
@@ -2520,6 +2960,7 @@ async function checkServerHealth() {
 
         function endGame(m) { 
             gameActive = false;
+            notifyCrazyGamesGameplay('gameplayStop');
             if (score > window.highscore) {
                 window.highscore = score;
             }
