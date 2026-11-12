@@ -1,306 +1,1126 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glow Runner - Global Ranking</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-        
-        body { 
-            background: #000; color: white; font-family: 'Orbitron', sans-serif; 
-            text-align: center; padding: 20px; margin: 0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080811">
+<title>Glow Runner – Global Ranking</title>
 
-        h1 { text-shadow: 0 0 10px #f0f; margin-bottom: 5px; letter-spacing: 3px; }
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
-        #userCount { color: #888; font-size: 0.8rem; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; }
+:root {
+    --cyan: #00f5ff;
+    --pink: #ff00d4;
+    --bg: #080811;
+}
 
-        /* Online Anzeige Style */
-        #onlineCount { color: #0f0; font-size: 0.7rem; margin-bottom: 20px; letter-spacing: 1px; }
+* { box-sizing: border-box; }
 
-        .leaderboard-box { 
-            max-width: 450px; margin: 0 auto; border: 2px solid #f0f; 
-            border-radius: 15px; padding: 10px; background: rgba(255,0,255,0.05); 
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.1);
-        }
-        
-        .entry { 
-            display: flex; justify-content: space-between; padding: 12px; 
-            border-bottom: 1px solid #333; align-items: center; 
-            transition: background 0.5s, transform 0.2s; cursor: pointer; position: relative;
-        }
+body {
+    background:
+        radial-gradient(ellipse at 50% -10%,rgba(255,0,212,.17),transparent 55%),
+        radial-gradient(ellipse at 100% 50%,rgba(0,245,255,.08),transparent 45%),
+        var(--bg);
+    color: white;
+    font-family: 'Orbitron',sans-serif;
+    text-align: center;
+    padding: 20px 12px 50px;
+    margin: 0;
+    min-height: 100vh;
+}
 
-        .entry:hover { background: rgba(0, 255, 255, 0.1); transform: scale(1.02); z-index: 5; }
-        
-        .flash-update { animation: flashGreen 1s ease-out; }
-        @keyframes flashGreen {
-            0% { background: rgba(0, 255, 0, 0.5); }
-            100% { background: transparent; }
-        }
+h1 {
+    font-size: clamp(1.5rem,5vw,2.3rem);
+    letter-spacing: 4px;
+    text-shadow: 0 0 15px var(--pink),0 0 35px rgba(255,0,212,.4);
+    margin: 20px 0 8px;
+}
 
-        .rank { font-weight: bold; width: 45px; text-align: left; font-size: 0.9rem; }
-        .name-container { flex-grow: 1; text-align: left; display: flex; align-items: center; gap: 8px; }
-        .score { color: #0ff; font-weight: bold; }
-        
-        .rank-1 { border-left: 5px solid #ffd700; color: #ffd700; background: rgba(255, 215, 0, 0.05); }
-        .rank-2 { border-left: 5px solid #c0c0c0; color: #c0c0c0; background: rgba(192, 192, 192, 0.05); }
-        .rank-3 { border-left: 5px solid #cd7f32; color: #cd7f32; background: rgba(205, 127, 50, 0.05); }
+.subtitle {
+    color: #77778c;
+    font-size: .62rem;
+    letter-spacing: 3px;
+    margin-bottom: 25px;
+}
 
-        .your-rank-separator { margin: 20px 0 10px 0; border-top: 2px dashed #444; padding-top: 10px; font-size: 0.7rem; color: #888; letter-spacing: 2px; }
+#userCount {
+    color: #aaa;
+    font-size: .7rem;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+}
 
-        #runnerCard {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95); border: 2px solid #0ff; padding: 25px;
-            z-index: 100; border-radius: 15px; display: none; min-width: 280px;
-            box-shadow: 0 0 40px #0ff; text-align: center; backdrop-filter: blur(10px);
-        }
-        .preview-box { width: 80px; height: 80px; margin: 15px auto; display: flex; align-items: center; justify-content: center; background: #111; border: 1px solid #333; overflow: hidden; }
-        .overlay-bg { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:90; display:none; }
-        .admin-tag { color: #ffd700; font-size: 0.6rem; border: 1px solid #ffd700; padding: 1px 4px; border-radius: 3px; background: rgba(255, 215, 0, 0.1); }
-        .btn-privacy { background: transparent; border: 1px solid #ff0; color: #ff0; padding: 12px; border-radius: 5px; font-family: 'Orbitron'; cursor: pointer; margin-top: 15px; width: 100%; max-width: 450px; transition: 0.3s; }
-        .btn-privacy:hover { background: rgba(255, 255, 0, 0.1); }
-        .back { display: inline-block; margin-top: 20px; color: #888; text-decoration: none; border: 1px solid #888; padding: 10px 20px; border-radius: 5px; transition: 0.3s; }
-        .banned-entry { border-left: 5px solid #ff0055 !important; background: rgba(255, 0, 85, 0.1) !important; }
-    </style>
+#userCount span { color: var(--cyan); }
+
+#onlineCount {
+    color: #00ff88;
+    font-size: .65rem;
+    margin-bottom: 25px;
+}
+
+.online-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #00ff88;
+    box-shadow: 0 0 10px #00ff88;
+    margin-right: 6px;
+}
+
+.leaderboard-box {
+    max-width: 540px;
+    margin: auto;
+    padding: 13px;
+    border: 1px solid rgba(255,0,212,.5);
+    border-radius: 18px;
+    background: rgba(15,15,29,.9);
+    box-shadow: 0 0 30px rgba(255,0,212,.1);
+    backdrop-filter: blur(15px);
+}
+
+.board-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 8px 15px;
+    color: #77778c;
+    font-size: .55rem;
+    letter-spacing: 2px;
+}
+
+.live-label { color: #00ff88; }
+
+.entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 7px;
+    padding: 12px 9px;
+    margin-bottom: 7px;
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 11px;
+    background: rgba(255,255,255,.025);
+    transition: .25s ease;
+    cursor: pointer;
+    position: relative;
+    text-align: left;
+}
+
+.entry:hover {
+    background: rgba(0,245,255,.08);
+    border-color: rgba(0,245,255,.4);
+    transform: translateY(-2px);
+}
+
+.global-rank {
+    width: 32px;
+    min-width: 32px;
+    color: #77778c;
+    font-size: .75rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+.name-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.player-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.runner-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: .7rem;
+}
+
+.player-rank {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: fit-content;
+    padding: 3px 6px;
+    border: 1px solid var(--rank-color);
+    border-radius: 5px;
+    color: var(--rank-color);
+    background: color-mix(in srgb,var(--rank-color) 12%,transparent);
+    font-size: .48rem;
+    letter-spacing: 1px;
+    font-weight: 800;
+    box-shadow: 0 0 9px color-mix(in srgb,var(--rank-color) 25%,transparent);
+    animation: badgeGlow 2.5s infinite alternate;
+}
+
+@keyframes badgeGlow {
+    from { box-shadow: 0 0 4px color-mix(in srgb,var(--rank-color) 15%,transparent); }
+    to { box-shadow: 0 0 13px color-mix(in srgb,var(--rank-color) 40%,transparent); }
+}
+
+.score {
+    color: var(--cyan);
+    font-size: .75rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.score small {
+    color: #77778c;
+    font-size: .48rem;
+    font-weight: 400;
+}
+
+.rank-1 {
+    border-color: rgba(255,215,0,.5);
+    background: linear-gradient(90deg,rgba(255,215,0,.13),transparent);
+}
+.rank-2 {
+    border-color: rgba(201,211,223,.4);
+    background: linear-gradient(90deg,rgba(201,211,223,.1),transparent);
+}
+.rank-3 {
+    border-color: rgba(205,127,50,.45);
+    background: linear-gradient(90deg,rgba(205,127,50,.12),transparent);
+}
+
+.me-entry {
+    outline: 1px solid var(--cyan);
+    box-shadow: 0 0 13px rgba(0,245,255,.13);
+}
+
+.banned-entry {
+    border-color: rgba(255,0,85,.5)!important;
+    background: rgba(255,0,85,.09)!important;
+}
+
+.banned-entry .runner-name,
+.banned-entry .score { color: #ff0055!important; }
+
+.admin-tag {
+    color: #ffd700;
+    font-size: .46rem;
+    border: 1px solid rgba(255,215,0,.5);
+    padding: 3px 5px;
+    border-radius: 4px;
+}
+
+.your-rank-separator {
+    margin: 22px 0 12px;
+    padding-top: 17px;
+    border-top: 1px dashed #44445b;
+    color: var(--cyan);
+    font-size: .6rem;
+    letter-spacing: 3px;
+}
+
+.loading {
+    padding: 35px 10px;
+    color: #88889c;
+    font-size: .65rem;
+    letter-spacing: 2px;
+}
+
+#lastUpdate {
+    color: #66667b;
+    font-size: .5rem;
+    margin-top: 12px;
+    letter-spacing: 1px;
+}
+
+/* RANG-KARTE */
+
+.rank-card {
+    --rank-color: #999;
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto 20px;
+    padding: 19px 15px;
+    max-width: 540px;
+    border: 1px solid var(--rank-color);
+    border-radius: 16px;
+    background:
+        radial-gradient(circle at 50% 0%,color-mix(in srgb,var(--rank-color) 20%,transparent),transparent 70%),
+        rgba(15,15,29,.92);
+    box-shadow: 0 0 22px color-mix(in srgb,var(--rank-color) 20%,transparent);
+    animation: rankCardAppear .7s ease both;
+}
+
+.rank-card::before {
+    content: "";
+    position: absolute;
+    top: -80%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(110deg,transparent 40%,rgba(255,255,255,.08) 50%,transparent 60%);
+    animation: shine 5s infinite;
+    pointer-events: none;
+}
+
+@keyframes shine {
+    0%,65% { transform: translateX(-100%) rotate(15deg); }
+    100% { transform: translateX(100%) rotate(15deg); }
+}
+
+@keyframes rankCardAppear {
+    from { opacity: 0; transform: translateY(15px) scale(.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.rank-card-label {
+    color: #88889c;
+    font-size: .55rem;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+}
+
+.rank-emblem {
+    font-size: 2.7rem;
+    color: var(--rank-color);
+    text-shadow: 0 0 20px var(--rank-color);
+    animation: emblemFloat 3s ease-in-out infinite;
+}
+
+@keyframes emblemFloat {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.rank-card-name {
+    color: var(--rank-color);
+    font-size: 1.25rem;
+    font-weight: 900;
+    letter-spacing: 4px;
+    margin: 8px 0;
+    text-shadow: 0 0 15px var(--rank-color);
+}
+
+.rank-card-score {
+    color: #aaa;
+    font-size: .65rem;
+    margin-bottom: 17px;
+}
+
+.progress-track {
+    height: 9px;
+    border-radius: 20px;
+    background: #252538;
+    overflow: hidden;
+    margin: 10px 0 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 20px;
+    background: var(--rank-color);
+    box-shadow: 0 0 12px var(--rank-color);
+    transition: width 1.3s cubic-bezier(.2,.8,.2,1);
+}
+
+.progress-labels {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    color: #88889c;
+    font-size: .48rem;
+}
+
+.next-rank {
+    color: var(--rank-color);
+    font-size: .58rem;
+    margin-top: 13px;
+}
+
+/* RANK-UP */
+
+#rankUpToast {
+    position: fixed;
+    top: 18px;
+    left: 50%;
+    transform: translate(-50%,-140%);
+    z-index: 200;
+    width: min(390px,92vw);
+    padding: 18px;
+    border: 1px solid #ffd700;
+    border-radius: 14px;
+    background: rgba(12,12,25,.97);
+    box-shadow: 0 0 35px rgba(255,215,0,.3);
+    transition: transform .6s cubic-bezier(.2,.9,.3,1.3);
+}
+
+#rankUpToast.show {
+    transform: translate(-50%,0);
+}
+
+.toast-title {
+    color: #ffd700;
+    font-size: .65rem;
+    letter-spacing: 3px;
+}
+
+.toast-rank {
+    font-size: 1.4rem;
+    margin-top: 10px;
+    color: white;
+    text-shadow: 0 0 15px #ffd700;
+}
+
+/* BUTTONS */
+
+.btn-privacy {
+    background: rgba(255,255,0,.03);
+    border: 1px solid #e5e500;
+    color: #ffff00;
+    padding: 13px;
+    border-radius: 8px;
+    font-family: 'Orbitron';
+    cursor: pointer;
+    margin-top: 18px;
+    width: 100%;
+    max-width: 540px;
+    font-size: .65rem;
+    transition: .2s;
+}
+
+.btn-privacy:hover {
+    background: rgba(255,255,0,.12);
+    box-shadow: 0 0 15px rgba(255,255,0,.15);
+}
+
+.btn-privacy:disabled { opacity: .4; cursor: not-allowed; }
+
+.back {
+    display: inline-block;
+    margin-top: 20px;
+    color: #88889c;
+    text-decoration: none;
+    border: 1px solid #44445b;
+    padding: 11px 20px;
+    border-radius: 7px;
+    font-size: .62rem;
+}
+
+/* RUNNER PROFIL */
+
+.overlay-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.83);
+    z-index: 90;
+    display: none;
+    backdrop-filter: blur(7px);
+}
+
+#runnerCard {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: min(350px,92vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #10101d;
+    border: 1px solid var(--cyan);
+    padding: 23px;
+    z-index: 100;
+    border-radius: 18px;
+    display: none;
+    box-shadow: 0 0 40px rgba(0,245,255,.22);
+}
+
+#cardName { color: var(--cyan); font-size: .95rem; overflow-wrap: anywhere; }
+
+#cardRank {
+    font-size: .6rem;
+    color: #88889c;
+    margin: 8px 0 15px;
+}
+
+.preview-box {
+    width: 90px;
+    height: 90px;
+    margin: 15px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #080811;
+    border: 1px solid #33334a;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+#cardStats {
+    font-size: .62rem;
+    color: #ffff55;
+    margin: 15px 0;
+    line-height: 2;
+}
+
+.card-rank-badge {
+    display: inline-block;
+    padding: 7px 12px;
+    border: 1px solid var(--rank-color);
+    border-radius: 7px;
+    color: var(--rank-color);
+    font-size: .7rem;
+    letter-spacing: 2px;
+    margin: 8px auto;
+    box-shadow: 0 0 12px color-mix(in srgb,var(--rank-color) 25%,transparent);
+}
+
+@media(max-width:390px) {
+    .leaderboard-box { padding: 8px; }
+    .entry { padding: 10px 6px; }
+    .runner-name { font-size: .63rem; }
+    .score { font-size: .65rem; }
+}
+</style>
 </head>
+
 <body>
-    <script>
-        (function () {
-            const isMaintenancePage = window.location.pathname.endsWith('/wartung.html');
-            const isOfflinePage = window.location.pathname.endsWith('/server-offline.html');
-            if (isMaintenancePage || isOfflinePage) return;
 
-            const getApiBase = () => 'https://glow-runner-backend.onrender.com';
+<h1>GLOBAL RANKING</h1>
+<div class="subtitle">THE WORLD'S BEST RUNNERS</div>
 
-            fetch(`${getApiBase()}/api/health`, { cache: 'no-store' })
-                .then(async (response) => {
-                    const data = await response.json().catch(() => ({}));
-                    if (!response.ok) {
-                        return;
-                    }
-                    if (data.status !== 'online') {
-                        return;
-                    }
-                })
-                .catch(() => {
-                    window.location.href = 'server-offline.html';
-                });
-        })();
-    </script>
+<div id="userCount">LEADERBOARD WIRD GELADEN...</div>
 
-    <h1>GLOBAL RANKING</h1>
-    <div id="userCount">LADE RUNNER-DATEN...</div>
-    <div id="onlineCount">
-        ● <span id="onlineVal">0</span> RUNNER LIVE
-    </div>
-    
-    <div class="leaderboard-box" id="leaderboard">Initialisiere Verbindung...</div>
+<div id="onlineCount">
+    <span class="online-dot"></span>
+    <span id="onlineVal">0</span> RUNNER LIVE
+</div>
 
-    <button id="togglePrivacyBtn" class="btn-privacy">DATENSCHUTZ LADEN...</button><br>
-    <a href="index.html" class="back">ZURÜCK ZUM HAUPTMENÜ</a>
+<div id="myRankCard"></div>
 
-    <div id="overlay" class="overlay-bg" onclick="closeCard()"></div>
-    <div id="runnerCard">
-        <h3 id="cardName" style="color:#0ff; margin: 0 0 5px 0;">Runner</h3>
-        <div id="cardRank" style="font-size:0.8rem; color:#888; margin-bottom: 10px;">#?</div>
-        <div class="preview-box"><div id="skinPreview"></div></div>
-        <div id="cardStats" style="font-size:0.7rem; color:#ff0; margin-bottom:20px; line-height: 1.5;"></div>
-        <button class="btn-privacy" style="border-color:#f0f; color:#f0f; margin: 0;" onclick="closeCard()">SCHLIESSEN</button>
+<div class="leaderboard-box">
+    <div class="board-header">
+        <span>GLOBAL PLAYER RANKING</span>
+        <span class="live-label">● LIVE DATA</span>
     </div>
 
-    <script>
-        const getApiBase = () => 'https://glow-runner-backend.onrender.com';
+    <div id="leaderboard">
+        <div class="loading">VERBINDUNG WIRD HERGESTELLT...</div>
+    </div>
 
-        const API_URL = getApiBase();
-        const runnerID = localStorage.getItem('glow_runner_id');
-        const authToken = localStorage.getItem('glow_runner_token');
-        let lastScores = {};
+    <div id="lastUpdate"></div>
+</div>
 
-        const app = window.initializeApp ? window.initializeApp() : null;
-        const db = app && window.getDatabase ? window.getDatabase(app) : null;
+<button id="togglePrivacyBtn" class="btn-privacy">
+    DATENSCHUTZ WIRD GELADEN...
+</button>
 
-        // --- LOAD LEADERBOARD FROM SERVER ---
-        async function loadLeaderboard() {
-            try {
-                const res = await fetch(`${API_URL}/api/leaderboard`);
-                if (!res.ok) throw new Error("Server Fehler");
-                const data = await res.json();
-                
-                const listDiv = document.getElementById('leaderboard');
-                const countDiv = document.getElementById('userCount');
-                
-                if (!data.leaderboard || data.leaderboard.length === 0) {
-                    listDiv.innerHTML = "Keine Daten verfügbar.";
-                    countDiv.innerText = "0 RUNNER REGISTRIERT";
-                    return;
-                }
+<br>
+<a href="index.html" class="back">ZURÜCK ZUM HAUPTMENÜ</a>
 
-                const leaderboard = data.leaderboard;
-                countDiv.innerHTML = `<span style="color: #0ff;">${leaderboard.length}</span> RUNNER REGISTRIERT`;
+<div id="overlay" class="overlay-bg" onclick="closeCard()"></div>
 
-                listDiv.innerHTML = "";
-                let myRank = 0;
-                let myData = null;
-                let isTop25 = false;
+<div id="runnerCard">
+    <h3 id="cardName">Runner</h3>
+    <div id="cardRank"></div>
+    <div id="cardRankBadge"></div>
+    <div class="preview-box"><div id="skinPreview"></div></div>
+    <div id="cardStats"></div>
+    <button class="btn-privacy"
+        style="border-color:#ff00d4;color:#ff00d4;margin:0"
+        onclick="closeCard()">SCHLIESSEN</button>
+</div>
 
-                leaderboard.forEach((u, index) => {
-                    if(u.id === runnerID) {
-                        myRank = index + 1;
-                        myData = u;
-                        if(index < 25) isTop25 = true;
-                    }
-                });
+<div id="rankUpToast">
+    <div class="toast-title">✦ RANK UP UNLOCKED ✦</div>
+    <div id="rankUpName" class="toast-rank"></div>
+</div>
 
-                leaderboard.forEach((user, i) => {
-                    if(i >= 25) return;
-                    const rank = i + 1;
-                    const isMe = user.id === runnerID;
-                    const isBanned = user.banned === true;
-                    const isHidden = user.hidden === true;
-                    const hasChanged = lastScores[user.id] !== undefined && lastScores[user.id] !== user.highscore;
-                    lastScores[user.id] = user.highscore;
+<script>
+(() => {
+'use strict';
 
-                    const entry = document.createElement('div');
-                    let podium = rank <= 3 ? `rank-${rank}` : "";
-                    let extraClass = isBanned ? "banned-entry" : "";
-                    entry.className = `entry ${podium} ${hasChanged ? 'flash-update' : ''} ${extraClass}`;
-                    if(isMe) entry.style.outline = "1px solid #0ff";
-                    
-                    let displayName = isBanned ? "🔴 BANNED" : (isHidden ? "???" : (user.username || 'Runner'));
-                    if(isMe && isHidden) displayName = "??? (DU)";
-                    if(isMe && isBanned) displayName = "🔴 BANNED (DU)";
+const API_URL = 'https://glow-runner-backend.onrender.com';
+const CACHE_KEY = 'glow_runner_leaderboard_cache';
 
-                    entry.innerHTML = `
-                        <div class="name-container">
-                            <span class="rank">#${rank}</span>
-                            <span style="color:${isBanned ? '#ff0055' : (isMe ? '#0ff' : 'white')}">${displayName}</span>
-                            ${user.admin && !isBanned ? '<span class="admin-tag">ADMIN</span>' : ''}
-                        </div>
-                        <span class="score" style="color:${isBanned ? '#ff0055' : '#0ff'}">${user.highscore}</span>
-                    `;
-                    
-                    if (!isBanned) {
-                        entry.onclick = () => showRunnerCard(user, rank);
-                    }
-                    listDiv.appendChild(entry);
-                });
+const runnerID = localStorage.getItem('glow_runner_id');
+const authToken = localStorage.getItem('glow_runner_token');
 
-                if(!isTop25 && myData) {
-                    listDiv.innerHTML += `<div class="your-rank-separator">DEINE PLATZIERUNG</div>`;
-                    const myEntry = document.createElement('div');
-                    const myIsBanned = myData.banned === true;
-                    myEntry.className = `entry ${myIsBanned ? 'banned-entry' : ''}`;
-                    myEntry.style.outline = "1px solid #0ff";
-                    myEntry.style.background = myIsBanned ? "rgba(255, 0, 85, 0.15)" : "rgba(0, 255, 255, 0.1)";
-                    let myDisplayName = myIsBanned ? "🔴 BANNED (DU)" : (myData.hidden ? "??? (DU)" : (myData.username || 'Runner'));
-                    myEntry.innerHTML = `
-                        <div class="name-container">
-                            <span class="rank">#${myRank}</span>
-                            <span style="color:${myIsBanned ? '#ff0055' : '#0ff'}">${myDisplayName}</span>
-                            ${myData.admin && !myIsBanned ? '<span class="admin-tag">ADMIN</span>' : ''}
-                        </div>
-                        <span class="score" style="color:${myIsBanned ? '#ff0055' : '#0ff'}">${myData.highscore}</span>
-                    `;
-                    
-                    if (!myIsBanned) {
-                        myEntry.onclick = () => showRunnerCard(myData, myRank);
-                    }
-                    listDiv.appendChild(myEntry);
-                }
+const listDiv = document.getElementById('leaderboard');
+const countDiv = document.getElementById('userCount');
+const privacyBtn = document.getElementById('togglePrivacyBtn');
 
-                if(myData) {
-                    window.currentLeaderboardUser = myData;
-                    const isBanned = myData.banned === true;
-                    if (isBanned) {
-                        document.getElementById('togglePrivacyBtn').innerText = "GEBANNT - DATENSCHUTZ N/A";
-                        document.getElementById('togglePrivacyBtn').disabled = true;
-                    } else {
-                        document.getElementById('togglePrivacyBtn').innerText = myData.hidden ? "NAME VERSTECKEN: AN" : "NAME VERSTECKEN: AUS";
-                        document.getElementById('togglePrivacyBtn').disabled = false;
-                    }
-                }
-            } catch (err) {
-                console.error("Leaderboard Fehler:", err);
-                document.getElementById('leaderboard').innerHTML = "Fehler beim Laden des Leaderboards";
+let lastScores = {};
+let currentUser = null;
+let loadInProgress = false;
+let hasLoadedOnce = false;
+
+/*
+ * RANGGRENZEN
+ * Hier kannst du später die Highscore-Grenzen ändern.
+ */
+const RANKS = [
+    { name: 'UNRANKED', min: 0, color: '#929292', icon: '◇' },
+    { name: 'BRONZE', min: 50, color: '#cd7f32', icon: '🥉' },
+    { name: 'SILBER', min: 100, color: '#c0c0c0', icon: '🥈' },
+    { name: 'GOLD', min: 300, color: '#ffd700', icon: '🥇' },
+    { name: 'PLATIN', min: 400, color: '#35d9df', icon: '💎' },
+    { name: 'DIAMANT', min: 600, color: '#65aaff', icon: '💠' },
+    { name: 'MASTER', min: 700, color: '#bd62ff', icon: '✦' },
+    { name: 'LEGEND', min: 800, color: '#ff4bd8', icon: '👑' }
+];
+
+function getRank(score) {
+    const value = Math.max(0, Number(score) || 0);
+
+    let rankIndex = 0;
+
+    for (let i = 0; i < RANKS.length; i++) {
+        if (value >= RANKS[i].min) rankIndex = i;
+    }
+
+    const rank = RANKS[rankIndex];
+    const nextRank = RANKS[rankIndex + 1] || null;
+
+    let progress = 100;
+
+    if (nextRank) {
+        const range = nextRank.min - rank.min;
+        progress = Math.min(100, Math.max(0,
+            ((value - rank.min) / range) * 100
+        ));
+    }
+
+    return {
+        ...rank,
+        index: rankIndex,
+        nextRank,
+        progress
+    };
+}
+
+function createElement(tag, className, text) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text !== undefined) el.textContent = text;
+    return el;
+}
+
+function formatScore(value) {
+    const score = Number(value);
+    return Number.isFinite(score) ? score.toLocaleString('de-DE') : '0';
+}
+
+function getDisplayName(user, isMe) {
+    if (user.banned) return isMe ? '🔴 BANNED (DU)' : '🔴 BANNED';
+    if (user.hidden) return isMe ? '??? (DU)' : '???';
+    return user.username || 'Runner';
+}
+
+// ----------------------------------
+// RANK-UP ERKENNUNG
+// ----------------------------------
+
+function checkRankUp(user) {
+    if (!user || !runnerID || user.id !== runnerID) return;
+
+    const currentRank = getRank(user.highscore);
+    const key = `glow_runner_rank_${runnerID}`;
+
+    try {
+        const previous = localStorage.getItem(key);
+
+        if (previous !== null) {
+            const previousIndex = Number(previous);
+
+            if (currentRank.index > previousIndex) {
+                showRankUp(currentRank);
             }
         }
 
-        // Runner Card Logik
-        window.showRunnerCard = function(user, rank) {
-            const isMe = user.id === runnerID;
-            if(user.hidden && !isMe) {
-                alert("Dieser Runner möchte anonym bleiben.");
-                return;
-            }
-            if(user.banned) {
-                alert("Dieser Spieler ist gebannt.");
-                return;
-            }
-            document.getElementById('cardName').innerText = user.username || "Unbekannter Runner";
-            document.getElementById('cardRank').innerText = "GLOBALER RANG: #" + rank;
-            document.getElementById('cardStats').innerHTML = `BESTSCORE: ${user.highscore}<br>CRYSTALS: ${user.points || 0}<br>MISSIONS-LEVEL: ${user.questLevel || 1}`;
-            const preview = document.getElementById('skinPreview');
-            preview.style = ""; preview.innerHTML = "";
-            preview.style.width = "40px"; preview.style.height = "40px";
-            let color = user.activeSkin || 'cyan';
-            let shape = user.activeShape || 'circle';
-            if(color === 'rainbow') {
-                preview.style.background = "linear-gradient(45deg, red, yellow, green, blue, purple, red)";
-                preview.style.backgroundSize = "200%";
-                preview.style.boxShadow = "0 0 20px white";
-            } else {
-                preview.style.background = color;
-                preview.style.boxShadow = `0 0 20px ${color}`;
-            }
-            if(shape === 'circle') preview.style.borderRadius = "50%";
-            if(shape === 'square') preview.style.borderRadius = "0%";
-            if(shape === 'triangle') {
-                preview.style.background = "none"; preview.style.boxShadow = "none"; preview.style.width = "0"; preview.style.height = "0";
-                preview.style.borderLeft = "20px solid transparent"; preview.style.borderRight = "20px solid transparent";
-                preview.style.borderBottom = `40px solid ${color === 'rainbow' ? 'white' : color}`;
-            }
-            if(shape === 'diamond') preview.style.transform = "rotate(45deg)";
-            if(shape === 'star') preview.style.clipPath = "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)";
-            if(shape === 'phoenix') preview.style.clipPath = "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%, 50% 40%)";
-            document.getElementById('runnerCard').style.display = "block";
-            document.getElementById('overlay').style.display = "block";
-        };
+        localStorage.setItem(key, String(currentRank.index));
+    } catch (err) {
+        console.warn('Rank-Verlauf konnte nicht gespeichert werden:', err);
+    }
+}
 
-        window.closeCard = () => {
-            document.getElementById('runnerCard').style.display = "none";
-            document.getElementById('overlay').style.display = "none";
-        };
+function showRankUp(rank) {
+    const toast = document.getElementById('rankUpToast');
+    const name = document.getElementById('rankUpName');
 
-        document.getElementById('togglePrivacyBtn').onclick = async () => {
-            if(!runnerID || !authToken) {
-                alert("Du musst angemeldet sein!");
-                return;
-            }
-            try {
-                const currentState = !!(runnerID && window.currentLeaderboardUser && window.currentLeaderboardUser.hidden);
-                const nextValue = !currentState;
-                const res = await fetch(`${API_URL}/api/user/save`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`,
-                        'x-runner-id': runnerID
-                    },
-                    body: JSON.stringify({ hidden: nextValue })
-                });
-                if (res.ok) {
-                    window.currentLeaderboardUser = { ...(window.currentLeaderboardUser || {}), hidden: nextValue };
-                    loadLeaderboard();
-                }
-            } catch (err) {
-                console.error("Privacy Update Fehler:", err);
-            }
-        };
+    name.textContent = `${rank.icon} ${rank.name}`;
+    name.style.color = rank.color;
+    name.style.textShadow = `0 0 20px ${rank.color}`;
 
-        // Load leaderboard on page load and refresh every 5 seconds
-        loadLeaderboard();
-        setInterval(loadLeaderboard, 5000);
-    </script>
+    toast.style.borderColor = rank.color;
+    toast.style.boxShadow = `0 0 35px ${rank.color}55`;
+
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 4500);
+}
+
+// ----------------------------------
+// EIGENE RANGKARTE
+// ----------------------------------
+
+function renderMyRank(user) {
+    const container = document.getElementById('myRankCard');
+
+    if (!user || user.banned) {
+        container.replaceChildren();
+        return;
+    }
+
+    const rank = getRank(user.highscore);
+
+    const card = createElement('div', 'rank-card');
+    card.style.setProperty('--rank-color', rank.color);
+
+    const label = createElement('div', 'rank-card-label', 'YOUR CURRENT RANK');
+    const emblem = createElement('div', 'rank-emblem', rank.icon);
+    const name = createElement('div', 'rank-card-name', rank.name);
+
+    const score = createElement(
+        'div',
+        'rank-card-score',
+        `HIGHScore: ${formatScore(user.highscore)} PTS`
+    );
+
+    const track = createElement('div', 'progress-track');
+    const fill = createElement('div', 'progress-fill');
+
+    fill.style.width = '0%';
+    track.appendChild(fill);
+
+    const labels = createElement('div', 'progress-labels');
+    labels.append(
+        createElement('span', '', rank.name),
+        createElement(
+            'span',
+            '',
+            rank.nextRank ? rank.nextRank.name : 'MAX RANK'
+        )
+    );
+
+    let nextText = 'Du hast den höchsten Rang erreicht!';
+
+    if (rank.nextRank) {
+        const remaining = Math.max(
+            0,
+            rank.nextRank.min - Number(user.highscore || 0)
+        );
+
+        nextText = `${formatScore(remaining)} PTS BIS ${rank.nextRank.name}`;
+    }
+
+    const next = createElement('div', 'next-rank', nextText);
+
+    card.append(label, emblem, name, score, track, labels, next);
+    container.replaceChildren(card);
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            fill.style.width = `${rank.progress}%`;
+        });
+    });
+}
+
+// ----------------------------------
+// CACHE
+// ----------------------------------
+
+function loadCachedLeaderboard() {
+    try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (!cached) return;
+
+        const parsed = JSON.parse(cached);
+
+        if (!Array.isArray(parsed.leaderboard)) return;
+
+        renderLeaderboard(parsed.leaderboard);
+        document.getElementById('lastUpdate').textContent =
+            'GESPEICHERTE DATEN – AKTUALISIERE...';
+
+        hasLoadedOnce = true;
+    } catch (err) {
+        console.warn('Cache konnte nicht geladen werden:', err);
+    }
+}
+
+function saveLeaderboardCache(data) {
+    try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+            leaderboard: data,
+            savedAt: Date.now()
+        }));
+    } catch (err) {
+        console.warn('Cache konnte nicht gespeichert werden:', err);
+    }
+}
+
+// ----------------------------------
+// LEADERBOARD
+// ----------------------------------
+
+function renderLeaderboard(leaderboard) {
+    countDiv.innerHTML = `<span>${leaderboard.length}</span> RUNNER REGISTRIERT`;
+
+    currentUser = leaderboard.find(user => user.id === runnerID) || null;
+
+    if (currentUser) {
+        renderMyRank(currentUser);
+        checkRankUp(currentUser);
+    } else {
+        document.getElementById('myRankCard').replaceChildren();
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    leaderboard.slice(0, 25).forEach((user, index) => {
+        fragment.appendChild(createEntry(user, index + 1));
+    });
+
+    const myRank = currentUser ? leaderboard.indexOf(currentUser) + 1 : 0;
+
+    if (currentUser && myRank > 25) {
+        fragment.appendChild(createElement(
+            'div',
+            'your-rank-separator',
+            '✦ DEINE PLATZIERUNG ✦'
+        ));
+
+        fragment.appendChild(createEntry(currentUser, myRank));
+    }
+
+    if (!leaderboard.length) {
+        fragment.appendChild(createElement(
+            'div',
+            'loading',
+            'NOCH KEINE RUNNER GEFUNDEN'
+        ));
+    }
+
+    listDiv.replaceChildren(fragment);
+    updatePrivacyButton();
+}
+
+function createEntry(user, rankNumber) {
+    const isMe = user.id === runnerID;
+    const isBanned = user.banned === true;
+    const rank = getRank(user.highscore);
+
+    const hasChanged =
+        lastScores[user.id] !== undefined &&
+        lastScores[user.id] !== user.highscore;
+
+    const entry = createElement('div', 'entry');
+
+    if (rankNumber <= 3) entry.classList.add(`rank-${rankNumber}`);
+    if (isMe) entry.classList.add('me-entry');
+    if (isBanned) entry.classList.add('banned-entry');
+    if (hasChanged) entry.classList.add('flash-update');
+
+    const globalRank = createElement(
+        'span',
+        'global-rank',
+        rankNumber <= 3
+            ? ['🥇','🥈','🥉'][rankNumber - 1]
+            : `#${rankNumber}`
+    );
+
+    const nameContainer = createElement('div', 'name-container');
+    const info = createElement('div', 'player-info');
+
+    const name = createElement(
+        'span',
+        'runner-name',
+        getDisplayName(user, isMe)
+    );
+
+    if (isMe && !isBanned) name.style.color = 'var(--cyan)';
+
+    const badge = createElement(
+        'span',
+        'player-rank',
+        `${rank.icon} ${rank.name}`
+    );
+
+    badge.style.setProperty('--rank-color', rank.color);
+
+    info.append(name, badge);
+    nameContainer.appendChild(info);
+
+    if (user.admin && !isBanned) {
+        nameContainer.appendChild(
+            createElement('span', 'admin-tag', 'ADMIN')
+        );
+    }
+
+    const score = createElement('span', 'score');
+    score.textContent = formatScore(user.highscore);
+
+    score.appendChild(createElement('small', '', ' PTS'));
+
+    entry.append(globalRank, nameContainer, score);
+
+    if (!isBanned) {
+        entry.addEventListener('click', () => showRunnerCard(user, rankNumber));
+    }
+
+    lastScores[user.id] = user.highscore;
+
+    return entry;
+}
+
+// ----------------------------------
+// DATEN LADEN
+// ----------------------------------
+
+async function loadLeaderboard() {
+    if (loadInProgress) return;
+
+    loadInProgress = true;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    try {
+        const res = await fetch(`${API_URL}/api/leaderboard`, {
+            method: 'GET',
+            cache: 'no-store',
+            signal: controller.signal
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+
+        if (!Array.isArray(data.leaderboard)) {
+            throw new Error('Ungültige Leaderboard-Daten');
+        }
+
+        renderLeaderboard(data.leaderboard);
+        saveLeaderboardCache(data.leaderboard);
+
+        document.getElementById('lastUpdate').textContent =
+            '● AKTUALISIERT: ' + new Date().toLocaleTimeString('de-DE');
+
+        hasLoadedOnce = true;
+
+    } catch (err) {
+        console.error('Leaderboard Fehler:', err);
+
+        if (!hasLoadedOnce) {
+            listDiv.replaceChildren(createElement(
+                'div',
+                'loading',
+                err.name === 'AbortError'
+                    ? 'SERVER ANTWORTET NICHT'
+                    : 'LEADERBOARD NICHT ERREICHBAR'
+            ));
+
+            countDiv.textContent = 'VERBINDUNGSFEHLER';
+        } else {
+            document.getElementById('lastUpdate').textContent =
+                'VERBINDUNG UNTERBROCHEN – LETZTE DATEN BLEIBEN SICHTBAR';
+        }
+    } finally {
+        clearTimeout(timeout);
+        loadInProgress = false;
+    }
+}
+
+// ----------------------------------
+// PRIVATSPHÄRE
+// ----------------------------------
+
+function updatePrivacyButton() {
+    if (!currentUser) {
+        privacyBtn.textContent = runnerID
+            ? 'DATENSCHUTZ NICHT VERFÜGBAR'
+            : 'ANMELDEN, UM DATENSCHUTZ ZU ÄNDERN';
+
+        privacyBtn.disabled = true;
+        return;
+    }
+
+    if (currentUser.banned) {
+        privacyBtn.textContent = 'GEBANNT – DATENSCHUTZ N/A';
+        privacyBtn.disabled = true;
+        return;
+    }
+
+    privacyBtn.textContent = currentUser.hidden
+        ? 'NAME VERSTECKEN: AN'
+        : 'NAME VERSTECKEN: AUS';
+
+    privacyBtn.disabled = !authToken;
+}
+
+privacyBtn.addEventListener('click', async () => {
+    if (!runnerID || !authToken) {
+        alert('Du musst angemeldet sein!');
+        return;
+    }
+
+    if (!currentUser) return;
+
+    const nextValue = !currentUser.hidden;
+
+    privacyBtn.disabled = true;
+    privacyBtn.textContent = 'WIRD GESPEICHERT...';
+
+    try {
+        const res = await fetch(`${API_URL}/api/user/save`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`,
+                'x-runner-id': runnerID
+            },
+            body: JSON.stringify({ hidden: nextValue })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        await loadLeaderboard();
+
+    } catch (err) {
+        console.error('Privacy Update Fehler:', err);
+        alert('Datenschutz-Einstellung konnte nicht gespeichert werden.');
+        updatePrivacyButton();
+    }
+});
+
+// ----------------------------------
+// RUNNER PROFIL
+// ----------------------------------
+
+window.showRunnerCard = function(user, globalRank) {
+    const isMe = user.id === runnerID;
+
+    if (user.hidden && !isMe) {
+        alert('Dieser Runner möchte anonym bleiben.');
+        return;
+    }
+
+    if (user.banned) {
+        alert('Dieser Spieler ist gebannt.');
+        return;
+    }
+
+    const rank = getRank(user.highscore);
+
+    document.getElementById('cardName').textContent =
+        user.username || 'Unbekannter Runner';
+
+    document.getElementById('cardRank').textContent =
+        `GLOBALER PLATZ: #${globalRank}`;
+
+    const badge = document.getElementById('cardRankBadge');
+    badge.replaceChildren();
+
+    const rankBadge = createElement(
+        'div',
+        'card-rank-badge',
+        `${rank.icon} ${rank.name}`
+    );
+
+    rankBadge.style.setProperty('--rank-color', rank.color);
+    badge.appendChild(rankBadge);
+
+    const stats = document.getElementById('cardStats');
+    stats.replaceChildren();
+
+    [
+        `HIGHSCORE: ${formatScore(user.highscore)}`,
+        `CRYSTALS: ${formatScore(user.points || 0)}`,
+        `MISSIONS-LEVEL: ${formatScore(user.questLevel || 1)}`
+    ].forEach(line => {
+        stats.appendChild(createElement('div', '', line));
+    });
+
+    const preview = document.getElementById('skinPreview');
+
+    preview.removeAttribute('style');
+    preview.replaceChildren();
+
+    preview.style.width = '40px';
+    preview.style.height = '40px';
+
+    const rawColor = user.activeSkin || 'cyan';
+    const color = rawColor === 'rainbow'
+        ? 'rainbow'
+        : (CSS.supports('color', rawColor) ? rawColor : '#00f5ff');
+
+    const shape = user.activeShape || 'circle';
+
+    if (color === 'rainbow') {
+        preview.style.background =
+            'linear-gradient(45deg,red,yellow,green,blue,purple,red)';
+        preview.style.backgroundSize = '200%';
+        preview.style.boxShadow = '0 0 20px white';
+    } else {
+        preview.style.background = color;
+        preview.style.boxShadow = `0 0 20px ${color}`;
+    }
+
+    if (shape === 'circle') preview.style.borderRadius = '50%';
+    if (shape === 'square') preview.style.borderRadius = '0';
+
+    if (shape === 'triangle') {
+        preview.style.background = 'none';
+        preview.style.boxShadow = 'none';
+        preview.style.width = '0';
+        preview.style.height = '0';
+        preview.style.borderLeft = '20px solid transparent';
+        preview.style.borderRight = '20px solid transparent';
+        preview.style.borderBottom =
+            `40px solid ${color === 'rainbow' ? 'white' : color}`;
+    }
+
+    if (shape === 'diamond') {
+        preview.style.transform = 'rotate(45deg)';
+    }
+
+    if (shape === 'star') {
+        preview.style.clipPath =
+            'polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)';
+    }
+
+    if (shape === 'phoenix') {
+        preview.style.clipPath =
+            'polygon(50% 0%,100% 50%,50% 100%,0% 50%,50% 40%)';
+    }
+
+    document.getElementById('runnerCard').style.display = 'block';
+    document.getElementById('overlay').style.display = 'block';
+};
+
+window.closeCard = function() {
+    document.getElementById('runnerCard').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+};
+
+// ----------------------------------
+// START
+// ----------------------------------
+
+loadCachedLeaderboard();
+loadLeaderboard();
+
+setInterval(loadLeaderboard, 15000);
+
+})();
+</script>
+
 </body>
 </html>
